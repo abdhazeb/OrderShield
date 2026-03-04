@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OrderShieldPro - Mobile App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            overflow-x: hidden;
+            max-width: 414px;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #1e3a8a;
+            color: white;
+            padding: 8px 16px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .time {
+            font-weight: 600;
+        }
+
+        .status-icons {
+            display: flex;
+            gap: 4px;
+        }
+
+        /* App Header */
+        .app-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .search-bar input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .search-icon {
+            color: #64748b;
+            font-size: 18px;
+        }
+
+        .filter-btn {
+            background: #e2e8f0;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 16px;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .see-all {
+            font-size: 14px;
+            color: #3b82f6;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Entity Card */
+        .entity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .entity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .entity-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1.3;
+            flex: 1;
+        }
+
+        .entity-type-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        .entity-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .entity-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-verified {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-warning {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge-critical {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            background: white;
+            padding: 20px 16px;
+            margin: -16px -16px 16px -16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .profile-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-outline {
+            background: white;
+            color: #3b82f6;
+            border: 2px solid #3b82f6;
+        }
+
+        /* Profile Stats */
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .profile-stat {
+            text-align: center;
+        }
+
+        .profile-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .profile-stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* Review Item */
+        .review-item {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .review-date {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .review-title {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        .review-content {
+            color: #475569;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .review-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            color: #64748b;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .clarification-box {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+
+        .clarification-title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 6px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-help {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+        }
+
+        .severity-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .severity-option {
+            padding: 16px 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .severity-option.selected {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .severity-option.info.selected {
+            border-color: #3b82f6;
+            background: #dbeafe;
+        }
+
+        .severity-option.warning.selected {
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+
+        .severity-option.critical.selected {
+            border-color: #ef4444;
+            background: #fee2e2;
+        }
+
+        .severity-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .severity-label {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .severity-desc {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .file-upload-box {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 24px;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .file-upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .alert {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 6px;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #3b82f6;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Quick Actions Home */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .action-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .action-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .action-title {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        /* Filters Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .filter-modal {
+            background: white;
+            width: 100%;
+            max-width: 414px;
+            margin: 0 auto;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Language Selector */
+        .lang-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .language-modal {
+            background: white;
+            width: 100%;
+            max-width: 414px;
+            margin: 0 auto;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+        }
+
+        .lang-option {
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .lang-option:hover {
+            border-color: #3b82f6;
+            background: #f1f5f9;
+        }
+
+        .lang-option.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .lang-name {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .lang-native {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .check-icon {
+            color: #3b82f6;
+            font-size: 20px;
+        }
+
+        /* RTL Support */
+        body.rtl {
+            direction: rtl;
+        }
+
+        body.rtl .entity-header,
+        body.rtl .review-header,
+        body.rtl .profile-title,
+        body.rtl .header-top {
+            flex-direction: row-reverse;
+        }
+
+        body.rtl .entity-meta,
+        body.rtl .review-meta {
+            text-align: right;
+        }
+
+        body.rtl .search-bar {
+            flex-direction: row-reverse;
+        }
+    </style>
+</head>
+<body>
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <span class="time">9:41</span>
+        <div class="status-icons">
+            <span>📶</span>
+            <span>📡</span>
+            <span>🔋</span>
+        </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <div class="app-header">
+            <div class="header-top">
+                <div class="app-title">
+                    <span>🛡️</span>
+                    <span data-i18n="appName">OrderShieldPro</span>
+                </div>
+                <button class="icon-btn">🔔</button>
+            </div>
+            <div class="search-bar" onclick="showScreen('searchScreen')">
+                <span class="search-icon">🔍</span>
+                <input type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Search by name, phone, WeChat..." readonly>
+            </div>
+            <button class="btn btn-primary" onclick="event.stopPropagation(); showScreen('submitScreen');" style="margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>✍️</span>
+                <span data-i18n="writeReview">Write Review</span>
+            </button>
+        </div>
+
+        <div class="content">
+            <div class="section-title">
+                <span data-i18n="recentReviews">Recent Reviews</span>
+                <span class="see-all" data-i18n="seeAll">See All</span>
+            </div>
+
+            <div class="entity-card" onclick="showScreen('entityProfileScreen')">
+                <div class="entity-header">
+                    <div class="entity-name">Shenzhen Aluminum Manufacturing Co.</div>
+                    <span class="entity-type-badge" data-i18n="supplier">Supplier</span>
+                </div>
+                <div class="entity-meta">
+                    <div class="meta-item">📍 Shenzhen, China</div>
+                    <div class="meta-item">📦 <span data-i18n="metals">Metals & Materials</span></div>
+                </div>
+                <div class="entity-stats">
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                    <span class="badge badge-info">8 <span data-i18n="infoOnly">Info</span></span>
+                    <span class="badge badge-warning">3 Warn</span>
+                    <span class="badge badge-critical">1 <span data-i18n="critical">Critical</span></span>
+                </div>
+            </div>
+
+            <div class="entity-card">
+                <div class="entity-header">
+                    <div class="entity-name">Global Trade Bridge Ltd.</div>
+                    <span class="entity-type-badge" data-i18n="broker">Broker</span>
+                </div>
+                <div class="entity-meta">
+                    <div class="meta-item">📍 Hong Kong</div>
+                    <div class="meta-item">📦 General Trading</div>
+                </div>
+                <div class="entity-stats">
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                    <span class="badge badge-info">26 <span data-i18n="infoOnly">Info</span></span>
+                    <span class="badge badge-warning">2 Warn</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Screen -->
+    <div id="searchScreen" class="screen">
+        <div class="app-header">
+            <div class="header-top">
+                <button class="icon-btn" onclick="showScreen('homeScreen')">←</button>
+                <div class="app-title" data-i18n="search">Search</div>
+                <button class="icon-btn" onclick="showFilters()">⚙️</button>
+            </div>
+            <div class="search-bar">
+                <span class="search-icon">🔍</span>
+                <input type="text" data-i18n-placeholder="searchPlaceholder" placeholder="Name, phone, WeChat ID..." id="searchInput" oninput="performSearch()">
+            </div>
+            <button class="btn btn-primary" onclick="showScreen('submitScreen')" style="margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <span>✍️</span>
+                <span data-i18n="writeReview">Write Review</span>
+            </button>
+        </div>
+
+        <div class="content">
+            <div class="section-title">
+                <span><span data-i18n="results">Results</span> <span id="resultCount">(23)</span></span>
+            </div>
+
+            <div id="noResultsMessage" style="display: none;">
+                <div class="alert" style="background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">
+                    <div style="font-weight: 700; margin-bottom: 8px;">⚠️ <span data-i18n="entityNotFound">Entity Not Found</span></div>
+                    <div style="font-size: 14px; line-height: 1.5;" data-i18n="investigationMessage">
+                        We couldn't find this supplier in our database. Our team will investigate and send you an email notification within 3-5 working days.
+                    </div>
+                    <button class="btn btn-primary" onclick="requestInvestigation()" style="margin-top: 12px; width: 100%;" data-i18n="requestInvestigation">Request Investigation</button>
+                </div>
+            </div>
+
+            <div id="searchResults">
+
+            <div class="entity-card" onclick="showScreen('entityProfileScreen')">
+                <div class="entity-header">
+                    <div class="entity-name">Shenzhen Aluminum Manufacturing Co.</div>
+                    <span class="entity-type-badge" data-i18n="supplier">Supplier</span>
+                </div>
+                <div class="entity-meta">
+                    <div class="meta-item">📍 Shenzhen, China</div>
+                    <div class="meta-item">📦 <span data-i18n="metals">Metals & Materials</span></div>
+                </div>
+                <div class="entity-stats">
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                    <span class="badge badge-info">8</span>
+                    <span class="badge badge-warning">3</span>
+                    <span class="badge badge-critical">1</span>
+                </div>
+            </div>
+
+            <div class="entity-card">
+                <div class="entity-header">
+                    <div class="entity-name">Global Trade Bridge Ltd.</div>
+                    <span class="entity-type-badge" data-i18n="broker">Broker</span>
+                </div>
+                <div class="entity-meta">
+                    <div class="meta-item">📍 Hong Kong</div>
+                    <div class="meta-item">📦 General Trading</div>
+                </div>
+                <div class="entity-stats">
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                    <span class="badge badge-info">26</span>
+                    <span class="badge badge-warning">2</span>
+                </div>
+            </div>
+
+            <div class="entity-card">
+                <div class="entity-header">
+                    <div class="entity-name">Ningbo Electronics Factory</div>
+                    <span class="entity-type-badge" data-i18n="supplier">Supplier</span>
+                </div>
+                <div class="entity-meta">
+                    <div class="meta-item">📍 Ningbo, China</div>
+                    <div class="meta-item">📦 <span data-i18n="electronics">Electronics</span></div>
+                </div>
+                <div class="entity-stats">
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                    <span class="badge badge-info">43</span>
+                    <span class="badge badge-warning">2</span>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Profile Screen (Supplier/Broker) -->
+    <div id="entityProfileScreen" class="screen">
+        <div class="app-header" style="padding-bottom: 0;">
+            <div class="header-top">
+                <button class="icon-btn" onclick="showScreen('homeScreen')">←</button>
+                <div class="app-title" data-i18n="supplierProfile">Supplier Profile</div>
+                <button class="icon-btn">⋯</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="profile-header">
+                <div class="profile-name">Shenzhen Aluminum Manufacturing Co., Ltd.</div>
+                <div class="profile-badges">
+                    <span class="entity-type-badge" data-i18n="supplier">Supplier</span>
+                    <span class="badge badge-verified">✓ <span data-i18n="verified">Verified</span></span>
+                </div>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">12</div>
+                        <div class="profile-stat-label" data-i18n="reviews">Reviews</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">8</div>
+                        <div class="profile-stat-label" data-i18n="positive">Positive</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">3</div>
+                        <div class="profile-stat-label" data-i18n="warnings">Warnings</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="profile-stat-value">1</div>
+                        <div class="profile-stat-label" data-i18n="critical">Critical</div>
+                    </div>
+                </div>
+                <div class="entity-meta" style="margin-top: 16px;">
+                    <div class="meta-item">📍 Shenzhen, Guangdong, China</div>
+                    <div class="meta-item">📦 Metals & Materials, Aluminum</div>
+                    <div class="meta-item">📅 Listed since March 2023</div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-outline">👁️ <span data-i18n="follow">Follow</span></button>
+                    <button class="btn btn-primary" onclick="showScreen('submitScreen')">✍️ <span data-i18n="review">Review</span></button>
+                </div>
+            </div>
+
+            <div class="section-title">
+                <span data-i18n="reviewTimeline">Review Timeline</span>
+            </div>
+
+            <!-- Critical Review -->
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="badge badge-critical">🚨 Critical</span>
+                    <span class="review-date">Jan 28, 2026</span>
+                </div>
+                <div class="review-title">Material Substitution - Iron instead of Aluminum</div>
+                <div class="review-content">
+                    Ordered aluminum components, received batch with mixed materials. Sample inspection showed correct items, but full shipment contained ~30% iron parts instead of aluminum.
+                </div>
+                <div class="review-meta">
+                    <span>👤 Verified Broker</span>
+                    <span>📦 Aluminum Components</span>
+                    <span>💰 $45,000</span>
+                </div>
+                <div class="clarification-box">
+                    <div class="clarification-title">⚠️ Team Clarification:</div>
+                    Supplier offered 40% partial refund after evidence presented. Dispute ongoing as of Feb 5, 2026.
+                </div>
+            </div>
+
+            <!-- Warning Review -->
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="badge badge-warning">⚠️ Warning</span>
+                    <span class="review-date">Dec 15, 2025</span>
+                </div>
+                <div class="review-title">Delayed Delivery - 3 Weeks Late</div>
+                <div class="review-content">
+                    Production delayed by 3 weeks without proactive notification. Promised 45 days, actual delivery 66 days. Customer missed seasonal window.
+                </div>
+                <div class="review-meta">
+                    <span>👤 End-Buyer</span>
+                    <span>📦 Aluminum Window Frames</span>
+                    <span>💰 $28,000</span>
+                </div>
+            </div>
+
+            <!-- Positive Review -->
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="badge badge-info">ℹ️ Positive</span>
+                    <span class="review-date">Nov 20, 2025</span>
+                </div>
+                <div class="review-title">Good Quality, On-Time Delivery</div>
+                <div class="review-content">
+                    Smooth transaction. Quality met specs, secure packaging, delivery 2 days early. Responsive communication throughout.
+                </div>
+                <div class="review-meta">
+                    <span>👤 Verified Broker</span>
+                    <span>📦 Aluminum Sheets</span>
+                    <span>💰 $32,000</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Review Screen -->
+    <div id="submitScreen" class="screen">
+        <div class="app-header">
+            <div class="header-top">
+                <button class="icon-btn" onclick="showScreen('homeScreen')">←</button>
+                <div class="app-title" data-i18n="submitReview">Submit Review</div>
+                <button class="icon-btn">💾</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="alert">
+                Your review will be verified by our team before publication. All sensitive info will be redacted to protect your privacy.
+            </div>
+
+            <form>
+                <div class="form-group">
+                    <label class="form-label">Entity Name *</label>
+                    <input type="text" class="form-input" placeholder="Supplier or broker name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Contact Information (Phone/WeChat)</label>
+                    <input type="text" class="form-input" placeholder="Phone number or WeChat ID">
+                    <div class="form-help">Helps identify entities that rebrand to avoid bad reviews</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Entity Type *</label>
+                    <select class="form-select">
+                        <option>Select type...</option>
+                        <option>Supplier</option>
+                        <option>Broker / Trading Office</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Your Relationship *</label>
+                    <select class="form-select">
+                        <option>Select your role...</option>
+                        <option>Broker reviewing Supplier</option>
+                        <option>End-Buyer reviewing Supplier</option>
+                        <option>End-Buyer reviewing Broker</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Product Category *</label>
+                    <select class="form-select">
+                        <option>Select category...</option>
+                        <option>Electronics</option>
+                        <option>Textiles & Apparel</option>
+                        <option>Metals & Materials</option>
+                        <option>Home & Garden</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Transaction Date *</label>
+                    <input type="date" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Severity Level *</label>
+                    <div class="severity-selector">
+                        <div class="severity-option info" onclick="selectSeverity(this)">
+                            <div class="severity-icon">ℹ️</div>
+                            <div class="severity-label">Info</div>
+                            <div class="severity-desc">Positive note</div>
+                        </div>
+                        <div class="severity-option warning" onclick="selectSeverity(this)">
+                            <div class="severity-icon">⚠️</div>
+                            <div class="severity-label">Warning</div>
+                            <div class="severity-desc">Minor issues</div>
+                        </div>
+                        <div class="severity-option critical" onclick="selectSeverity(this)">
+                            <div class="severity-icon">🚨</div>
+                            <div class="severity-label">Critical</div>
+                            <div class="severity-desc">Major breach</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Review Title *</label>
+                    <input type="text" class="form-input" placeholder="Brief summary">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description *</label>
+                    <textarea class="form-textarea" placeholder="Describe what happened..."></textarea>
+                    <div class="form-help">Be factual and specific (min 100 characters)</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Order Value (Optional)</label>
+                    <input type="number" class="form-input" placeholder="USD amount">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Supporting Evidence</label>
+                    <div class="file-upload-box">
+                        <div class="file-upload-icon">📎</div>
+                        <div style="font-weight: 700; margin-bottom: 4px;">Tap to upload</div>
+                        <div style="font-size: 12px; color: #64748b;">Photos, invoices, reports</div>
+                    </div>
+                    <div class="form-help">Evidence speeds up verification</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Your Email (Verification Only) *</label>
+                    <input type="email" class="form-input" placeholder="your@email.com">
+                    <div class="form-help">Never displayed publicly</div>
+                </div>
+
+                <button type="submit" class="submit-btn" onclick="submitReview(event)">Submit for Verification</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showScreen('homeScreen'); setActiveNav(this)">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label" data-i18n="home">Home</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('searchScreen'); setActiveNav(this)">
+            <div class="nav-icon">🔍</div>
+            <div class="nav-label" data-i18n="search">Search</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('submitScreen'); setActiveNav(this)">
+            <div class="nav-icon">✍️</div>
+            <div class="nav-label" data-i18n="submit">Submit</div>
+        </div>
+        <div class="nav-item" onclick="showScreen('userProfileScreen'); setActiveNav(this)">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label" data-i18n="profile">Profile</div>
+        </div>
+    </div>
+
+    <!-- User Profile Screen -->
+    <div id="userProfileScreen" class="screen">
+        <div class="app-header">
+            <div class="header-top">
+                <button class="icon-btn" onclick="showScreen('homeScreen')">←</button>
+                <div class="app-title" data-i18n="myProfile">My Profile</div>
+                <button class="icon-btn">⚙️</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Logged Out View -->
+            <div id="profileLoggedOut" style="display: block;">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #e0e7ff, #c7d2fe); margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 48px;">🔒</div>
+                    <div style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;" data-i18n="signInRequired">Sign In Required</div>
+                    <div style="color: #64748b; font-size: 15px; line-height: 1.6; margin-bottom: 32px;" data-i18n="signInMessage">Create an account to submit reviews, track suppliers, and access premium features</div>
+                </div>
+
+                <div class="section-title">
+                    <span data-i18n="subscriptionPlans">Subscription Plans</span>
+                </div>
+
+                <div class="entity-card" style="background: #f8fafc; border: 2px solid #e2e8f0;">
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Free</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">$0<span style="font-size: 14px; color: #64748b; font-weight: 400;">/month</span></div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• Search and view entity profiles</div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• Submit up to 3 reviews per month</div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 12px;">• Community support</div>
+                    </div>
+                </div>
+
+                <div class="entity-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6;">
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-size: 18px; font-weight: 700; color: #1e3a8a;">Pro Plan</div>
+                            <span class="badge badge-info" style="background: #3b82f6; color: white;">Popular</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: #3b82f6; margin-bottom: 12px;">$29<span style="font-size: 14px; color: #64748b; font-weight: 400;">/month</span></div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• Everything in Free</div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• <strong>Unlimited reviews</strong></div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• Priority investigation (24h)</div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">• Advanced search filters</div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 12px;">• Priority email support</div>
+                    </div>
+                </div>
+
+                <div class="entity-card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b;">
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 18px; font-weight: 700; color: #92400e; margin-bottom: 8px;">Enterprise</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #92400e; margin-bottom: 12px;" data-i18n="customPricing">Custom Pricing</div>
+                        <div style="font-size: 13px; color: #78350f; margin-bottom: 8px;">• Everything in Pro</div>
+                        <div style="font-size: 13px; color: #78350f; margin-bottom: 8px;">• API access</div>
+                        <div style="font-size: 13px; color: #78350f; margin-bottom: 8px;">• Dedicated account manager</div>
+                        <div style="font-size: 13px; color: #78350f; margin-bottom: 8px;">• Custom integrations</div>
+                        <div style="font-size: 13px; color: #78350f; margin-bottom: 12px;">• White-label options</div>
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="signup()" style="margin-bottom: 12px;">
+                    <span data-i18n="createAccount">Create Account</span>
+                </button>
+                <button class="btn btn-outline" onclick="login()" style="width: 100%;">
+                    <span data-i18n="signIn">Sign In</span>
+                </button>
+
+                <div style="margin-top: 32px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+                    <div style="font-size: 14px; color: #64748b; text-align: center;" data-i18n="freeAccountNote">Create a free account to get started with 3 reviews per month</div>
+                </div>
+
+                <div class="section-title" style="margin-top: 24px;">
+                    <span data-i18n="helpSupport">Help & Support</span>
+                </div>
+
+                <div class="entity-card" style="cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💡</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;" data-i18n="sendFeedback">Send Feedback</div>
+                            <div style="font-size: 13px; color: #64748b;" data-i18n="feedbackDesc">Suggest features to improve the app</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logged In View -->
+            <div id="profileLoggedIn" style="display: none;">
+                <div class="profile-header">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1e3a8a); margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">👤</div>
+                        <div class="profile-name" style="text-align: center;">John Smith</div>
+                        <div style="color: #64748b; font-size: 14px; margin-top: 4px;">john.smith@example.com</div>
+                    </div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value">8</div>
+                        <div class="stat-label" data-i18n="myReviews">My Reviews</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">12</div>
+                        <div class="stat-label" data-i18n="watching">Watching</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span data-i18n="myActivity">My Activity</span>
+                </div>
+
+                <div class="entity-card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">✍️</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">Reviews Submitted</div>
+                            <div style="font-size: 13px; color: #64748b;">8 total reviews</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">👁️</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;" data-i18n="myWatchlist">My Watchlist</div>
+                            <div style="font-size: 13px; color: #64748b;">12 entities being watched</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-align: center; font-size: 20px;">🔔</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">Notifications</div>
+                            <div style="font-size: 13px; color: #64748b;">Manage notification preferences</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span data-i18n="subscription">Subscription</span>
+                </div>
+
+                <div class="entity-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6;">
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="font-size: 18px; font-weight: 700; color: #1e3a8a;">Pro Plan</div>
+                            <span class="badge badge-info" style="background: #3b82f6; color: white;">Active</span>
+                        </div>
+                        <div style="font-size: 13px; color: #475569; margin-bottom: 8px;">Unlimited reviews and priority support</div>
+                        <div style="font-size: 12px; color: #64748b;">Renews on March 15, 2026</div>
+                    </div>
+                    <button class="btn btn-outline" onclick="showSubscriptionPlans()" style="width: 100%; border-color: #3b82f6; color: #3b82f6;">
+                        <span data-i18n="managePlan">Manage Plan</span>
+                    </button>
+                </div>
+
+                <div class="section-title">
+                    <span data-i18n="accountSettings">Account Settings</span>
+                </div>
+
+                <div class="entity-card" onclick="showLanguages()" style="cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🌐</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;" data-i18n="language">Language</div>
+                            <div style="font-size: 13px; color: #64748b;" id="currentLanguageDisplay">English</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="entity-card">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🔐</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">Privacy & Security</div>
+                            <div style="font-size: 13px; color: #64748b;">Manage your account privacy</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="section-title">
+                    <span data-i18n="helpSupport">Help & Support</span>
+                </div>
+
+                <div class="entity-card" style="cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">💡</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;" data-i18n="sendFeedback">Send Feedback</div>
+                            <div style="font-size: 13px; color: #64748b;" data-i18n="feedbackDesc">Suggest features to improve the app</div>
+                        </div>
+                        <div style="color: #3b82f6; font-size: 18px;">›</div>
+                    </div>
+                </div>
+
+                <div class="entity-card" onclick="isLoggedIn = false; updateProfileView();" style="cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                        <div style="width: 40px; height: 40px; background: #fee2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">🚪</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #dc2626; margin-bottom: 4px;">Logout</div>
+                            <div style="font-size: 13px; color: #64748b;">Sign out of your account</div>
+                        </div>
+                        <div style="color: #dc2626; font-size: 18px;">›</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div class="modal-overlay" id="filterModal" onclick="hideFilters()">
+        <div class="filter-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="filters">Filters</div>
+                <button class="close-btn" onclick="hideFilters()">✕</button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" data-i18n="entityType">Entity Type</label>
+                <select class="form-select">
+                    <option data-i18n="allTypes">All Types</option>
+                    <option data-i18n="supplier">Supplier</option>
+                    <option data-i18n="broker">Broker</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" data-i18n="countryRegion">Country/Region</label>
+                <select class="form-select">
+                    <option data-i18n="allCountries">All Countries</option>
+                    <option>China</option>
+                    <option>India</option>
+                    <option>Vietnam</option>
+                    <option>Turkey</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" data-i18n="productCategory">Product Category</label>
+                <select class="form-select">
+                    <option data-i18n="allCategories">All Categories</option>
+                    <option data-i18n="electronics">Electronics</option>
+                    <option data-i18n="textiles">Textiles</option>
+                    <option data-i18n="metals">Metals & Materials</option>
+                    <option data-i18n="homeGarden">Home & Garden</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" data-i18n="severityFilter">Severity Filter</label>
+                <select class="form-select">
+                    <option data-i18n="allLevels">All Levels</option>
+                    <option data-i18n="infoOnly">Info Only</option>
+                    <option data-i18n="warnings">Warnings</option>
+                    <option data-i18n="criticalIssues">Critical Issues</option>
+                </select>
+            </div>
+
+            <button class="submit-btn" onclick="hideFilters()" data-i18n="applyFilters">Apply Filters</button>
+        </div>
+    </div>
+
+    <!-- Language Selection Modal -->
+    <div class="modal-overlay" id="languageModal" onclick="hideLanguages()">
+        <div class="language-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="selectLanguage">Select Language</div>
+                <button class="close-btn" onclick="hideLanguages()">✕</button>
+            </div>
+            
+            <div class="lang-option active" onclick="changeLanguage('en')">
+                <div>
+                    <div class="lang-name">English</div>
+                    <div class="lang-native">English</div>
+                </div>
+                <span class="check-icon" id="check-en">✓</span>
+            </div>
+
+            <div class="lang-option" onclick="changeLanguage('ar')">
+                <div>
+                    <div class="lang-name">Arabic</div>
+                    <div class="lang-native">العربية</div>
+                </div>
+                <span class="check-icon" id="check-ar" style="display: none;">✓</span>
+            </div>
+
+            <div class="lang-option" onclick="changeLanguage('zh')">
+                <div>
+                    <div class="lang-name">Chinese</div>
+                    <div class="lang-native">中文 (简体)</div>
+                </div>
+                <span class="check-icon" id="check-zh" style="display: none;">✓</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscription Plans Modal -->
+    <div class="modal-overlay" id="subscriptionModal" onclick="hideSubscriptionPlans()">
+        <div class="filter-modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title" data-i18n="subscriptionPlans">Subscription Plans</div>
+                <button class="close-btn" onclick="hideSubscriptionPlans()">✕</button>
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <div class="entity-card" style="border: 2px solid #e2e8f0;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px;">Free</div>
+                        <div style="font-size: 32px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">$0<span style="font-size: 14px; color: #64748b;">/month</span></div>
+                        <div style="font-size: 13px; color: #64748b;">Perfect for occasional users</div>
+                    </div>
+                    <div style="margin-bottom: 16px; font-size: 14px; color: #475569;">
+                        <div style="margin-bottom: 8px;">✓ 3 reviews per month</div>
+                        <div style="margin-bottom: 8px;">✓ Basic search</div>
+                        <div style="margin-bottom: 8px;">✓ Follow up to 5 entities</div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%;" data-i18n="currentPlan">Current Plan</button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <div class="entity-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #3b82f6;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #1e3a8a; margin-bottom: 8px;">
+                            Pro <span class="badge badge-info" style="background: #3b82f6; color: white; font-size: 10px;">POPULAR</span>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700; color: #3b82f6; margin-bottom: 4px;">$29<span style="font-size: 14px; color: #64748b;">/month</span></div>
+                        <div style="font-size: 13px; color: #64748b;">For active brokers and buyers</div>
+                    </div>
+                    <div style="margin-bottom: 16px; font-size: 14px; color: #475569;">
+                        <div style="margin-bottom: 8px;">✓ <strong>Unlimited reviews</strong></div>
+                        <div style="margin-bottom: 8px;">✓ Advanced search & filters</div>
+                        <div style="margin-bottom: 8px;">✓ Unlimited watchlist</div>
+                        <div style="margin-bottom: 8px;">✓ Priority verification (24h)</div>
+                        <div style="margin-bottom: 8px;">✓ Email alerts</div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%;" data-i18n="upgradeToPro">Upgrade to Pro</button>
+                </div>
+            </div>
+
+            <div>
+                <div class="entity-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 20px; font-weight: 700; color: #92400e; margin-bottom: 8px;">Enterprise</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #b45309; margin-bottom: 4px;" data-i18n="contactUs">Contact Us</div>
+                        <div style="font-size: 13px; color: #78350f;">For trading offices and teams</div>
+                    </div>
+                    <div style="margin-bottom: 16px; font-size: 14px; color: #78350f;">
+                        <div style="margin-bottom: 8px;">✓ Everything in Pro</div>
+                        <div style="margin-bottom: 8px;">✓ Multi-user accounts</div>
+                        <div style="margin-bottom: 8px;">✓ API access</div>
+                        <div style="margin-bottom: 8px;">✓ Dedicated support</div>
+                        <div style="margin-bottom: 8px;">✓ Custom reports</div>
+                    </div>
+                    <button class="btn btn-outline" style="width: 100%; border-color: #f59e0b; color: #92400e;" data-i18n="contactSales">Contact Sales</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User authentication state (for prototype - in real app, check backend)
+        let isLoggedIn = false; // Set to true to see logged-in view
+
+        // Translations
+        const translations = {
+            en: {
+                appName: "OrderShieldPro",
+                searchPlaceholder: "Search by name, phone, WeChat...",
+                home: "Home",
+                search: "Search",
+                submit: "Submit",
+                profile: "Profile",
+                verifiedEntities: "Verified Entities",
+                reviews: "Reviews",
+                countries: "Countries",
+                verified: "Verified",
+                searchEntity: "Search Entity",
+                writeReview: "Write Review",
+                myWatchlist: "My Watchlist",
+                myActivity: "My Activity",
+                recentReviews: "Recent Reviews",
+                seeAll: "See All",
+                supplier: "Supplier",
+                broker: "Broker",
+                results: "Results",
+                supplierProfile: "Supplier Profile",
+                positive: "Positive",
+                warnings: "Warnings",
+                critical: "Critical",
+                reviewTimeline: "Review Timeline",
+                follow: "Follow",
+                review: "Review",
+                submitReview: "Submit Review",
+                filters: "Filters",
+                entityType: "Entity Type",
+                allTypes: "All Types",
+                countryRegion: "Country/Region",
+                allCountries: "All Countries",
+                productCategory: "Product Category",
+                allCategories: "All Categories",
+                electronics: "Electronics",
+                textiles: "Textiles",
+                metals: "Metals & Materials",
+                homeGarden: "Home & Garden",
+                severityFilter: "Severity Filter",
+                allLevels: "All Levels",
+                infoOnly: "Info Only",
+                criticalIssues: "Critical Issues",
+                applyFilters: "Apply Filters",
+                selectLanguage: "Select Language",
+                verifiedBroker: "Verified Broker",
+                endBuyer: "End-Buyer",
+                myProfile: "My Profile",
+                myReviews: "My Reviews",
+                watching: "Watching",
+                accountSettings: "Account Settings",
+                language: "Language",
+                entityNotFound: "Entity Not Found",
+                investigationMessage: "We couldn't find this supplier in our database. Our team will investigate and send you an email notification within 3-5 working days.",
+                requestInvestigation: "Request Investigation",
+                subscription: "Subscription",
+                managePlan: "Manage Plan",
+                subscriptionPlans: "Subscription Plans",
+                currentPlan: "Current Plan",
+                upgradeToPro: "Upgrade to Pro",
+                contactUs: "Contact Us",
+                contactSales: "Contact Sales",
+                signInRequired: "Sign In Required",
+                signInMessage: "Create an account to submit reviews, track suppliers, and access premium features",
+                customPricing: "Custom Pricing",
+                createAccount: "Create Account",
+                signIn: "Sign In",
+                freeAccountNote: "Create a free account to get started with 3 reviews per month",
+                helpSupport: "Help & Support",
+                sendFeedback: "Send Feedback",
+                feedbackDesc: "Suggest features to improve the app"
+            },
+            ar: {
+                appName: "أوردر شيلد برو",
+                searchPlaceholder: "ابحث بالاسم، الهاتف، ويتشات...",
+                home: "الرئيسية",
+                search: "بحث",
+                submit: "إرسال",
+                profile: "الملف الشخصي",
+                verifiedEntities: "جهات موثقة",
+                reviews: "المراجعات",
+                countries: "الدول",
+                verified: "موثق",
+                searchEntity: "بحث عن جهة",
+                writeReview: "كتابة مراجعة",
+                myWatchlist: "قائمة المتابعة",
+                myActivity: "نشاطاتي",
+                recentReviews: "أحدث المراجعات",
+                seeAll: "عرض الكل",
+                supplier: "مورد",
+                broker: "وسيط",
+                results: "النتائج",
+                supplierProfile: "ملف المورد",
+                positive: "إيجابي",
+                warnings: "تحذيرات",
+                critical: "حرج",
+                reviewTimeline: "الجدول الزمني للمراجعات",
+                follow: "متابعة",
+                review: "مراجعة",
+                submitReview: "إرسال مراجعة",
+                filters: "الفلاتر",
+                entityType: "نوع الجهة",
+                allTypes: "كل الأنواع",
+                countryRegion: "الدولة/المنطقة",
+                allCountries: "كل الدول",
+                productCategory: "فئة المنتج",
+                allCategories: "كل الفئات",
+                electronics: "إلكترونيات",
+                textiles: "منسوجات",
+                metals: "معادن ومواد",
+                homeGarden: "منزل وحديقة",
+                severityFilter: "فلتر الخطورة",
+                allLevels: "كل المستويات",
+                infoOnly: "معلومات فقط",
+                warnings: "تحذيرات",
+                criticalIssues: "مشاكل حرجة",
+                applyFilters: "تطبيق الفلاتر",
+                selectLanguage: "اختر اللغة",
+                verifiedBroker: "وسيط موثق",
+                endBuyer: "مشتري نهائي",
+                myProfile: "ملفي الشخصي",
+                myReviews: "مراجعاتي",
+                watching: "أتابع",
+                accountSettings: "إعدادات الحساب",
+                language: "اللغة",
+                entityNotFound: "الجهة غير موجودة",
+                investigationMessage: "لم نتمكن من العثور على هذا المورد في قاعدة البيانات. سيقوم فريقنا بالتحقيق وإرسال إشعار لك عبر البريد الإلكتروني خلال 3-5 أيام عمل.",
+                requestInvestigation: "طلب تحقيق",
+                subscription: "الاشتراك",
+                managePlan: "إدارة الخطة",
+                subscriptionPlans: "خطط الاشتراك",
+                currentPlan: "الخطة الحالية",
+                upgradeToPro: "الترقية إلى برو",
+                contactUs: "اتصل بنا",
+                contactSales: "اتصل بالمبيعات",
+                signInRequired: "يتطلب تسجيل الدخول",
+                signInMessage: "أنشئ حسابًا لإرسال المراجعات وتتبع الموردين والوصول إلى الميزات المميزة",
+                customPricing: "أسعار مخصصة",
+                createAccount: "إنشاء حساب",
+                signIn: "تسجيل الدخول",
+                freeAccountNote: "أنشئ حسابًا مجانيًا للبدء بـ 3 مراجعات شهريًا",
+                helpSupport: "المساعدة والدعم",
+                sendFeedback: "إرسال ملاحظات",
+                feedbackDesc: "اقترح ميزات لتحسين التطبيق"
+            },
+            zh: {
+                appName: "订单守护专业版",
+                searchPlaceholder: "按名称、电话、微信搜索...",
+                home: "首页",
+                search: "搜索",
+                submit: "提交",
+                profile: "个人资料",
+                verifiedEntities: "已验证实体",
+                reviews: "评论",
+                countries: "国家",
+                verified: "已验证",
+                searchEntity: "搜索实体",
+                writeReview: "撰写评论",
+                myWatchlist: "我的关注",
+                myActivity: "我的活动",
+                recentReviews: "最新评论",
+                seeAll: "查看全部",
+                supplier: "供应商",
+                broker: "经纪商",
+                results: "结果",
+                supplierProfile: "供应商资料",
+                positive: "正面",
+                warnings: "警告",
+                critical: "严重",
+                reviewTimeline: "评论时间线",
+                follow: "关注",
+                review: "评论",
+                submitReview: "提交评论",
+                filters: "筛选",
+                entityType: "实体类型",
+                allTypes: "所有类型",
+                countryRegion: "国家/地区",
+                allCountries: "所有国家",
+                productCategory: "产品类别",
+                allCategories: "所有类别",
+                electronics: "电子产品",
+                textiles: "纺织品",
+                metals: "金属与材料",
+                homeGarden: "家居与园艺",
+                severityFilter: "严重性筛选",
+                allLevels: "所有级别",
+                infoOnly: "仅信息",
+                criticalIssues: "严重问题",
+                applyFilters: "应用筛选",
+                selectLanguage: "选择语言",
+                verifiedBroker: "已验证经纪商",
+                endBuyer: "最终买家",
+                myProfile: "我的资料",
+                myReviews: "我的评论",
+                watching: "关注中",
+                accountSettings: "账户设置",
+                language: "语言",
+                entityNotFound: "未找到实体",
+                investigationMessage: "我们的数据库中未找到此供应商。我们的团队将进行调查，并在3-5个工作日内通过电子邮件通知您。",
+                requestInvestigation: "请求调查",
+                subscription: "订阅",
+                managePlan: "管理套餐",
+                subscriptionPlans: "订阅套餐",
+                currentPlan: "当前套餐",
+                upgradeToPro: "升级到专业版",
+                contactUs: "联系我们",
+                contactSales: "联系销售",
+                signInRequired: "需要登录",
+                signInMessage: "创建账户以提交评论、追踪供应商并访问高级功能",
+                customPricing: "定制价格",
+                createAccount: "创建账户",
+                signIn: "登录",
+                freeAccountNote: "创建免费账户即可开始，每月3次评论",
+                helpSupport: "帮助与支持",
+                sendFeedback: "发送反馈",
+                feedbackDesc: "建议功能以改进应用"
+            }
+        };
+
+        let currentLanguage = 'en';
+
+        function updateContent() {
+            const t = translations[currentLanguage];
+            
+            // Update all elements with data-i18n attribute
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (t[key]) {
+                    element.textContent = t[key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (t[key]) {
+                    element.placeholder = t[key];
+                }
+            });
+
+            // Update RTL for Arabic
+            if (currentLanguage === 'ar') {
+                document.body.classList.add('rtl');
+            } else {
+                document.body.classList.remove('rtl');
+            }
+
+            // Update language display in profile
+            const languageNames = { en: 'English', ar: 'العربية', zh: '中文 (简体)' };
+            const displayElement = document.getElementById('currentLanguageDisplay');
+            if (displayElement) {
+                displayElement.textContent = languageNames[currentLanguage];
+            }
+
+            // Store preference
+            localStorage.setItem('preferredLanguage', currentLanguage);
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Update active state in language modal
+            document.querySelectorAll('.lang-option').forEach(opt => {
+                opt.classList.remove('active');
+            });
+            document.querySelectorAll('[id^="check-"]').forEach(check => {
+                check.style.display = 'none';
+            });
+            
+            event.target.closest('.lang-option').classList.add('active');
+            document.getElementById('check-' + lang).style.display = 'block';
+            
+            updateContent();
+            hideLanguages();
+        }
+
+        function showLanguages() {
+            document.getElementById('languageModal').classList.add('active');
+        }
+
+        function hideLanguages() {
+            document.getElementById('languageModal').classList.remove('active');
+        }
+
+        function showSubscriptionPlans() {
+            document.getElementById('subscriptionModal').classList.add('active');
+        }
+
+        function hideSubscriptionPlans() {
+            document.getElementById('subscriptionModal').classList.remove('active');
+        }
+
+        function updateProfileView() {
+            const loggedInView = document.getElementById('profileLoggedIn');
+            const loggedOutView = document.getElementById('profileLoggedOut');
+            
+            if (isLoggedIn) {
+                loggedInView.style.display = 'block';
+                loggedOutView.style.display = 'none';
+            } else {
+                loggedInView.style.display = 'none';
+                loggedOutView.style.display = 'block';
+            }
+        }
+
+        function login() {
+            // In real app, this would authenticate with backend
+            isLoggedIn = true;
+            updateProfileView();
+        }
+
+        function signup() {
+            // In real app, this would create account on backend
+            isLoggedIn = true;
+            updateProfileView();
+        }
+
+        function performSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            const resultCount = document.getElementById('resultCount');
+            
+            // Simulate search - in real app, this would query the backend
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            if (query && query.length > 2) {
+                // Simulate no results for demo purposes when searching for specific terms
+                if (query.includes('test') || query.includes('fake')) {
+                    searchResults.style.display = 'none';
+                    noResultsMessage.style.display = 'block';
+                    resultCount.textContent = '(0)';
+                } else {
+                    searchResults.style.display = 'block';
+                    noResultsMessage.style.display = 'none';
+                    resultCount.textContent = '(23)';
+                }
+            } else {
+                searchResults.style.display = 'block';
+                noResultsMessage.style.display = 'none';
+                resultCount.textContent = '(23)';
+            }
+        }
+
+        function requestInvestigation() {
+            alert('✅ Investigation request submitted!\n\nOur team will research this entity and notify you via email within 3-5 working days.');
+            document.getElementById('searchInput').value = '';
+            performSearch();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update profile view based on login state
+            if (screenId === 'userProfileScreen') {
+                updateProfileView();
+            }
+            
+            window.scrollTo(0, 0);
+        }
+
+        function setActiveNav(element) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        function selectSeverity(element) {
+            document.querySelectorAll('.severity-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            element.classList.add('selected');
+        }
+
+        function showFilters() {
+            document.getElementById('filterModal').classList.add('active');
+        }
+
+        function hideFilters() {
+            document.getElementById('filterModal').classList.remove('active');
+        }
+
+        function submitReview(event) {
+            event.preventDefault();
+            alert('✅ Review submitted for verification!\n\nOur team will review within 48 hours. You\'ll receive an email notification.');
+            showScreen('homeScreen');
+            setActiveNav(document.querySelector('.nav-item'));
+        }
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            document.querySelector('.time').textContent = 
+                `${hours}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load saved language preference
+            const savedLang = localStorage.getItem('preferredLanguage');
+            if (savedLang && translations[savedLang]) {
+                currentLanguage = savedLang;
+                
+                // Update language modal selection
+                document.querySelectorAll('.lang-option').forEach(opt => {
+                    opt.classList.remove('active');
+                });
+                document.querySelectorAll('[id^="check-"]').forEach(check => {
+                    check.style.display = 'none';
+                });
+                document.querySelector(`[onclick="changeLanguage('${savedLang}')"]`).classList.add('active');
+                document.getElementById('check-' + savedLang).style.display = 'block';
+            }
+            
+            updateContent();
+            updateTime();
+            setInterval(updateTime, 60000);
+        });
+    </script>
+</body>
+</html>

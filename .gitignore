@@ -1,0 +1,48 @@
+# .NET Build Artifacts
+**/bin/
+**/obj/
+*.user
+*.suo
+.vs/
+*.userosscache
+*.sln.docstates
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# Angular / Node.js
+**/node_modules/
+**/dist/
+**/.angular/
+npm-debug.log
+yarn-error.log
+.npm
+
+# Environment / Secrets
+.env
+.env.*
+appsettings.Development.json
+secrets.json
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/settings.json
+.vscode/launch.json
+
+# Uploads / User Data
+**/uploads/
+
+# Test Results
+TestResults/
+coverage/
+*.trx
+*.coveragexml

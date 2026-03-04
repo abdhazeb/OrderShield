@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrderShieldPro - Supplier & Broker Review Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Page Sections */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            color: #1e3a8a;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+        }
+
+        /* Search Box */
+        .search-box {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+
+        .btn-outline:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #475569;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        /* Entity Card */
+        .entity-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .entity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        }
+
+        .entity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .entity-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .entity-type {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .entity-meta {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .entity-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .badge-verified {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge-critical {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        /* Profile Page */
+        .profile-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+
+        .profile-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-title h1 {
+            font-size: 2rem;
+            color: #1e3a8a;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .profile-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Review Timeline */
+        .review-timeline {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .review-item {
+            border-left: 3px solid #e2e8f0;
+            padding-left: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .review-item::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+        }
+
+        .review-item.warning::before {
+            background: #f59e0b;
+        }
+
+        .review-item.critical::before {
+            background: #ef4444;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.75rem;
+        }
+
+        .review-date {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .review-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .review-content {
+            color: #475569;
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .review-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+
+        .clarification {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+        }
+
+        .clarification-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Form */
+        .form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .form-section h2 {
+            color: #1e3a8a;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #334155;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.3rem;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: #3b82f6;
+            background: #f1f5f9;
+        }
+
+        .severity-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .severity-option {
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .severity-option:hover {
+            border-color: #3b82f6;
+            background: #f1f5f9;
+        }
+
+        .severity-option input {
+            display: none;
+        }
+
+        .severity-option input:checked + .severity-label {
+            font-weight: 700;
+        }
+
+        .severity-option.info {
+            border-color: #3b82f6;
+        }
+
+        .severity-option.warning {
+            border-color: #f59e0b;
+        }
+
+        .severity-option.critical {
+            border-color: #ef4444;
+        }
+
+        /* Footer */
+        footer {
+            background: #1e293b;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <span>OrderShieldPro</span>
+            </div>
+            <nav>
+                <a href="#" onclick="showPage('home')">Home</a>
+                <a href="#" onclick="showPage('search')">Search</a>
+                <a href="#" onclick="showPage('submit')">Submit Review</a>
+                <a href="#" onclick="showPage('profile')">Demo Profile</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Home Page -->
+    <div id="home" class="page-section active">
+        <div class="container">
+            <div class="hero">
+                <h1>Protect Your Orders, Verify Your Partners</h1>
+                <p>Check supplier and broker reputation before placing orders. Make informed decisions with verified reviews from the global trade community.</p>
+                <button class="btn btn-primary" onclick="showPage('search')">Start Searching</button>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">10,247</div>
+                    <div class="stat-label">Verified Entities</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">28,563</div>
+                    <div class="stat-label">Total Reviews</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Countries Covered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">94%</div>
+                    <div class="stat-label">Verification Rate</div>
+                </div>
+            </div>
+
+            <div class="search-box">
+                <h2 style="margin-bottom: 1.5rem; color: #1e3a8a;">Quick Search</h2>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" placeholder="Enter supplier or broker name...">
+                    <button class="btn btn-primary" onclick="showPage('search')">Search</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Page -->
+    <div id="search" class="page-section">
+        <div class="container">
+            <div class="search-box">
+                <h2 style="margin-bottom: 1.5rem; color: #1e3a8a;">Search Suppliers & Brokers</h2>
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" placeholder="Enter company name, product category, or location...">
+                    <button class="btn btn-primary">Search</button>
+                </div>
+                
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Entity Type</label>
+                        <select>
+                            <option>All Types</option>
+                            <option>Supplier</option>
+                            <option>Broker</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Country/Region</label>
+                        <select>
+                            <option>All Countries</option>
+                            <option>China</option>
+                            <option>India</option>
+                            <option>Vietnam</option>
+                            <option>Turkey</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Product Category</label>
+                        <select>
+                            <option>All Categories</option>
+                            <option>Electronics</option>
+                            <option>Textiles</option>
+                            <option>Metals & Materials</option>
+                            <option>Home & Garden</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Severity Filter</label>
+                        <select>
+                            <option>All Levels</option>
+                            <option>Info Only</option>
+                            <option>Warnings</option>
+                            <option>Critical Issues</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem; color: #1e3a8a;">Search Results (23 matches)</h3>
+
+            <!-- Entity Cards -->
+            <div class="entity-card" onclick="showPage('profile')">
+                <div class="entity-header">
+                    <div>
+                        <div class="entity-name">Shenzhen Aluminum Manufacturing Co., Ltd.</div>
+                        <span class="entity-type">Supplier</span>
+                    </div>
+                    <span class="badge badge-verified">✓ Verified</span>
+                </div>
+                <div class="entity-meta">
+                    <span>📍 Shenzhen, China</span>
+                    <span>📦 Metals & Materials</span>
+                    <span>📅 Listed since 2023</span>
+                </div>
+                <div class="entity-stats">
+                    <div class="stat">
+                        <strong>12</strong> reviews
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-info">8 Info</span>
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-warning">3 Warnings</span>
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-critical">1 Critical</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entity-card">
+                <div class="entity-header">
+                    <div>
+                        <div class="entity-name">Global Trade Bridge Ltd.</div>
+                        <span class="entity-type">Broker</span>
+                    </div>
+                    <span class="badge badge-verified">✓ Verified</span>
+                </div>
+                <div class="entity-meta">
+                    <span>📍 Hong Kong</span>
+                    <span>📦 General Trading</span>
+                    <span>📅 Listed since 2024</span>
+                </div>
+                <div class="entity-stats">
+                    <div class="stat">
+                        <strong>28</strong> reviews
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-info">26 Info</span>
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-warning">2 Warnings</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entity-card">
+                <div class="entity-header">
+                    <div>
+                        <div class="entity-name">Ningbo Electronics Factory</div>
+                        <span class="entity-type">Supplier</span>
+                    </div>
+                    <span class="badge badge-verified">✓ Verified</span>
+                </div>
+                <div class="entity-meta">
+                    <span>📍 Ningbo, China</span>
+                    <span>📦 Electronics</span>
+                    <span>📅 Listed since 2022</span>
+                </div>
+                <div class="entity-stats">
+                    <div class="stat">
+                        <strong>45</strong> reviews
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-info">43 Info</span>
+                    </div>
+                    <div class="stat">
+                        <span class="badge badge-warning">2 Warnings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Page -->
+    <div id="profile" class="page-section">
+        <div class="container">
+            <div class="profile-header">
+                <div class="profile-title">
+                    <div>
+                        <h1>Shenzhen Aluminum Manufacturing Co., Ltd.</h1>
+                        <span class="entity-type">Supplier</span>
+                        <span class="badge badge-verified" style="margin-left: 1rem;">✓ Verified Entity</span>
+                    </div>
+                    <div class="profile-actions">
+                        <button class="btn btn-outline">👁️ Follow</button>
+                        <button class="btn btn-primary" onclick="showPage('submit')">Write Review</button>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <div class="info-item">
+                        <span class="info-label">Location</span>
+                        <span class="info-value">Shenzhen, Guangdong, China</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Product Categories</span>
+                        <span class="info-value">Metals & Materials, Aluminum Products</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Listed Since</span>
+                        <span class="info-value">March 2023</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Last Review</span>
+                        <span class="info-value">January 28, 2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Total Reviews</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">8</div>
+                    <div class="stat-label">Positive</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Warnings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">1</div>
+                    <div class="stat-label">Critical</div>
+                </div>
+            </div>
+
+            <div class="review-timeline">
+                <h2 style="margin-bottom: 2rem; color: #1e3a8a;">Review Timeline</h2>
+
+                <!-- Critical Review -->
+                <div class="review-item critical">
+                    <div class="review-header">
+                        <div>
+                            <span class="badge badge-critical">Critical Issue</span>
+                            <span class="badge badge-verified" style="margin-left: 0.5rem;">✓ Verified</span>
+                        </div>
+                        <span class="review-date">January 28, 2026</span>
+                    </div>
+                    <div class="review-title">Material Substitution - Iron instead of Aluminum</div>
+                    <div class="review-content">
+                        Ordered aluminum components, received batch with mixed materials. Sample inspection showed correct items, but full shipment contained approximately 30% iron parts instead of aluminum. Supplier was contacted immediately after customer discovered the issue.
+                    </div>
+                    <div class="review-meta">
+                        <span>👤 By: Verified Broker</span>
+                        <span>📦 Product: Aluminum Components</span>
+                        <span>💰 Order Value: $45,000</span>
+                    </div>
+                    <div class="clarification">
+                        <div class="clarification-title">⚠️ Clarification Added by Service Team:</div>
+                        Supplier initially refused compensation. After presenting evidence (photos, third-party inspection report), supplier acknowledged error and offered 40% partial refund. Dispute ongoing as of Feb 5, 2026.
+                    </div>
+                </div>
+
+                <!-- Warning Review -->
+                <div class="review-item warning">
+                    <div class="review-header">
+                        <div>
+                            <span class="badge badge-warning">Warning</span>
+                            <span class="badge badge-verified" style="margin-left: 0.5rem;">✓ Verified</span>
+                        </div>
+                        <span class="review-date">December 15, 2025</span>
+                    </div>
+                    <div class="review-title">Delayed Delivery - 3 Weeks Beyond Promise Date</div>
+                    <div class="review-content">
+                        Production delayed by 3 weeks without proactive notification. Delivery promise was 45 days, actual delivery took 66 days. Customer missed seasonal sales window causing revenue impact.
+                    </div>
+                    <div class="review-meta">
+                        <span>👤 By: End-Buyer</span>
+                        <span>📦 Product: Aluminum Window Frames</span>
+                        <span>💰 Order Value: $28,000</span>
+                    </div>
+                </div>
+
+                <!-- Positive Review -->
+                <div class="review-item">
+                    <div class="review-header">
+                        <div>
+                            <span class="badge badge-info">Info - Positive</span>
+                            <span class="badge badge-verified" style="margin-left: 0.5rem;">✓ Verified</span>
+                        </div>
+                        <span class="review-date">November 20, 2025</span>
+                    </div>
+                    <div class="review-title">Good Quality, On-Time Delivery</div>
+                    <div class="review-content">
+                        Smooth transaction from order to delivery. Quality met specifications, packaging was secure, and delivery was 2 days ahead of schedule. Communication was responsive throughout the process.
+                    </div>
+                    <div class="review-meta">
+                        <span>👤 By: Verified Broker</span>
+                        <span>📦 Product: Aluminum Sheets</span>
+                        <span>💰 Order Value: $32,000</span>
+                    </div>
+                </div>
+
+                <!-- Another Positive -->
+                <div class="review-item">
+                    <div class="review-header">
+                        <div>
+                            <span class="badge badge-info">Info - Positive</span>
+                            <span class="badge badge-verified" style="margin-left: 0.5rem;">✓ Verified</span>
+                        </div>
+                        <span class="review-date">October 8, 2025</span>
+                    </div>
+                    <div class="review-title">Professional Service & Quality Products</div>
+                    <div class="review-content">
+                        Third order with this supplier. Consistent quality, competitive pricing, and reliable communication. Pre-shipment inspection went smoothly. Would recommend for aluminum products.
+                    </div>
+                    <div class="review-meta">
+                        <span>👤 By: Verified Broker</span>
+                        <span>📦 Product: Custom Aluminum Parts</span>
+                        <span>💰 Order Value: $18,500</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Review Page -->
+    <div id="submit" class="page-section">
+        <div class="container">
+            <div class="form-section">
+                <h2>Submit a Review</h2>
+                <div class="alert alert-info">
+                    Your review will be verified by our service team before publication. All sensitive information will be redacted to protect your privacy.
+                </div>
+
+                <form>
+                    <!-- Entity Information -->
+                    <div class="form-group">
+                        <label>Entity Name (Supplier or Broker) *</label>
+                        <input type="text" placeholder="Enter company name" required>
+                        <div class="form-help">If not found, we'll create a new profile after verification</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Entity Type *</label>
+                        <select required>
+                            <option value="">Select type...</option>
+                            <option>Supplier</option>
+                            <option>Broker / Trading Office</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Your Relationship *</label>
+                        <select required>
+                            <option value="">Select your role...</option>
+                            <option>I am a Broker reviewing a Supplier</option>
+                            <option>I am an End-Buyer reviewing a Supplier</option>
+                            <option>I am an End-Buyer reviewing a Broker</option>
+                        </select>
+                    </div>
+
+                    <!-- Transaction Details -->
+                    <div class="form-group">
+                        <label>Product Category *</label>
+                        <select required>
+                            <option value="">Select category...</option>
+                            <option>Electronics</option>
+                            <option>Textiles & Apparel</option>
+                            <option>Metals & Materials</option>
+                            <option>Home & Garden</option>
+                            <option>Machinery & Equipment</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Transaction Date *</label>
+                        <input type="date" required>
+                        <div class="form-help">When did the transaction or incident occur?</div>
+                    </div>
+
+                    <!-- Severity Level -->
+                    <div class="form-group">
+                        <label>Severity Level *</label>
+                        <div class="severity-options">
+                            <label class="severity-option info">
+                                <input type="radio" name="severity" value="info" required>
+                                <div class="severity-label">
+                                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">ℹ️</div>
+                                    <strong>Info</strong>
+                                    <div style="font-size: 0.85rem; margin-top: 0.3rem;">Positive feedback or general note</div>
+                                </div>
+                            </label>
+                            <label class="severity-option warning">
+                                <input type="radio" name="severity" value="warning">
+                                <div class="severity-label">
+                                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">⚠️</div>
+                                    <strong>Warning</strong>
+                                    <div style="font-size: 0.85rem; margin-top: 0.3rem;">Minor issues, delays, quality concerns</div>
+                                </div>
+                            </label>
+                            <label class="severity-option critical">
+                                <input type="radio" name="severity" value="critical">
+                                <div class="severity-label">
+                                    <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🚨</div>
+                                    <strong>Critical</strong>
+                                    <div style="font-size: 0.85rem; margin-top: 0.3rem;">Major breach, fraud, significant loss</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Review Details -->
+                    <div class="form-group">
+                        <label>Review Title *</label>
+                        <input type="text" placeholder="Brief summary of your experience" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Detailed Description *</label>
+                        <textarea placeholder="Describe what happened, the outcome, and any relevant details. Do not include personal information or sensitive data that could identify you." required></textarea>
+                        <div class="form-help">Minimum 100 characters. Be factual and specific.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Order Value (Optional)</label>
+                        <input type="number" placeholder="USD amount">
+                        <div class="form-help">Helps others assess the scale of the transaction</div>
+                    </div>
+
+                    <!-- Evidence Upload -->
+                    <div class="form-group">
+                        <label>Supporting Evidence (Highly Recommended)</label>
+                        <div class="file-upload">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">📎</div>
+                            <div><strong>Click to upload</strong> or drag and drop</div>
+                            <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem;">
+                                PO, invoices, photos, inspection reports, email screenshots (max 10MB)
+                            </div>
+                        </div>
+                        <div class="form-help">Evidence increases credibility and speeds up verification</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Evidence Links (Optional)</label>
+                        <input type="url" placeholder="https://...">
+                        <div class="form-help">Link to external storage if files are too large</div>
+                    </div>
+
+                    <!-- Contact for Verification -->
+                    <div class="form-group">
+                        <label>Your Email (For Verification Only) *</label>
+                        <input type="email" placeholder="your@email.com" required>
+                        <div class="form-help">Never displayed publicly. Used only for verification and updates.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" required>
+                            I confirm this information is accurate and I have redacted any sensitive personal data
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Review for Verification</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <p><strong>OrderShieldPro</strong> — Protecting International Trade, One Review at a Time</p>
+            <p style="margin-top: 0.5rem; opacity: 0.8;">© 2026 OrderShieldPro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page-section').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        // Handle form submission
+        document.querySelector('form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Review submitted for verification!\n\nOur service team will review your submission within 48 hours. You will receive an email notification once your review is published.');
+            showPage('home');
+        });
+    </script>
+</body>
+</html>

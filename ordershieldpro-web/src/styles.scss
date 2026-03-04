@@ -1,0 +1,151 @@
+@use "tailwindcss";
+
+/* ====================================
+   OrderShieldPro Design System
+   Tone: Authoritative · Trustworthy · Modern
+   ==================================== */
+
+:root {
+  /* --- Brand Palette --- */
+  --navy-950: #0a0f1e;
+  --navy-900: #0f1729;
+  --navy-800: #162033;
+  --navy-700: #1e2d4a;
+  --navy-600: #2a3f66;
+  --navy-500: #3a5485;
+  --navy-400: #5b7aab;
+  --navy-300: #8da5ca;
+  --navy-200: #b8cce3;
+  --navy-100: #dde6f2;
+  --navy-50: #f0f4f9;
+
+  /* Accent: Warm teal — trust, growth, verification */
+  --accent-600: #0d7377;
+  --accent-500: #0f9197;
+  --accent-400: #22b8bf;
+  --accent-300: #5fd4d9;
+  --accent-200: #99e5e8;
+  --accent-100: #d5f5f6;
+  --accent-50: #effbfb;
+
+  /* Legacy compat */
+  --primary-900: var(--navy-900);
+  --primary-800: var(--navy-800);
+  --primary-700: var(--navy-700);
+  --primary-600: var(--navy-600);
+  --primary-500: var(--navy-500);
+  --primary-400: var(--navy-400);
+  --primary-300: var(--navy-300);
+  --primary-200: var(--navy-200);
+  --primary-100: var(--navy-100);
+  --primary-50: var(--navy-50);
+
+  /* --- Surfaces --- */
+  --surface-0: #ffffff;
+  --surface-50: #f8f9fb;
+  --surface-100: #f1f3f7;
+  --surface-200: #e4e7ee;
+  --surface-border: #dfe2ea;
+  --surface-border-subtle: #eceef3;
+
+  /* --- Text --- */
+  --text-primary: #0f1729;
+  --text-secondary: #4a5468;
+  --text-tertiary: #7b8499;
+  --text-muted: #a0a8b8;
+  --text-on-dark: #f0f4f9;
+  --text-on-accent: #ffffff;
+
+  /* --- Severity / Status --- */
+  --severity-critical: #c42b2b;
+  --severity-critical-bg: #fef0f0;
+  --severity-warning: #d97706;
+  --severity-warning-bg: #fefbf0;
+  --severity-info: #2563eb;
+  --severity-info-bg: #f0f5ff;
+
+  --success: #0d8a5e;
+  --success-bg: #ecfdf5;
+  --danger: #c42b2b;
+  --danger-bg: #fef0f0;
+
+  /* --- Shadows (layered for depth) --- */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 41, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 41, 0.06), 0 1px 2px rgba(15, 23, 41, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 41, 0.07), 0 1px 3px rgba(15, 23, 41, 0.04);
+  --shadow-lg: 0 8px 24px rgba(15, 23, 41, 0.08), 0 2px 6px rgba(15, 23, 41, 0.04);
+  --shadow-xl: 0 16px 40px rgba(15, 23, 41, 0.1), 0 4px 12px rgba(15, 23, 41, 0.04);
+  --shadow-accent: 0 4px 16px rgba(15, 115, 119, 0.2);
+
+  /* --- Radii --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* --- Typography --- */
+  --font-display: 'Bricolage Grotesque', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+
+  /* --- Motion --- */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 150ms var(--ease-out);
+  --transition-base: 250ms var(--ease-out);
+  --transition-slow: 400ms var(--ease-out);
+}
+
+/* --- Global Reset & Base --- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--surface-50);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'cv01', 'cv03', 'cv04';
+}
+
+/* --- Focus Ring (accessible, visible) --- */
+:focus-visible {
+  outline: 2px solid var(--accent-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Selection --- */
+::selection {
+  background: var(--accent-200);
+  color: var(--navy-900);
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--navy-200);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--navy-300);
+}
+
+/* --- RTL support --- */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
