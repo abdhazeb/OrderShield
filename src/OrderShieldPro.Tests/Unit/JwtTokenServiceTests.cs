@@ -149,10 +149,10 @@ public class JwtTokenServiceTests
     }
 
     [Theory]
-    [InlineData("Admin", "Enterprise")]
+    [InlineData("Admin", "Pro")]
     [InlineData("Buyer", "Free")]
     [InlineData("Broker", "Pro")]
-    [InlineData("ServiceTeam", "Enterprise")]
+    [InlineData("ServiceTeam", "Pro")]
     public void GenerateAccessToken_HandlesAllRolesAndTiers(string role, string tier)
     {
         // Act

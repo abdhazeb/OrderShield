@@ -95,7 +95,7 @@ import { EntitySearchResult, PaginatedResult } from '../../core/models';
     .hero-content {
       position: relative;
       z-index: 1;
-      max-width: 640px;
+      max-width: 800px;
       margin: 0 auto;
     }
 
@@ -208,6 +208,17 @@ import { EntitySearchResult, PaginatedResult } from '../../core/models';
       .section-title { font-size: 1.4rem; }
       .quick-action { padding: 0; max-width: 260px; margin: 20px 0 28px; }
       .entities-grid { gap: 16px; }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .section-header {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .see-all {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .btn {
+      flex-direction: row-reverse;
     }
   `]
 })

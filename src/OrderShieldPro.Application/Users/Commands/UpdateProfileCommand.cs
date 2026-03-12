@@ -10,4 +10,7 @@ public record UpdateProfileCommand : IRequest<Result>
 {
     public string FullName { get; init; } = string.Empty;
     public string? Region { get; init; }
+    public string? BusinessName { get; init; }
+    public string? LicenseAddress { get; init; }
+    public string? BusinessPhone { get; init; }
 }

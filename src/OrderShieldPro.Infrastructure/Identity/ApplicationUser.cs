@@ -30,6 +30,13 @@ public class ApplicationUser : IdentityUser
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 
+    // Business verification
+    public string? BusinessName { get; set; }
+    public string? LicenseAddress { get; set; }
+    public string? BusinessPhone { get; set; }
+    public string? BusinessLicenseFilePath { get; set; }
+    public bool IsBusinessVerified { get; set; }
+
     // Refresh token for JWT
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiresAt { get; set; }

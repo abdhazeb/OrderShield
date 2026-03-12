@@ -6,7 +6,8 @@ import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { SeverityLevel, ReviewStatus, InvestigationStatus, ReviewerType, AdminActionStatus, AdminActionType } from '../../core/enums';
+import { SeverityLevel, ReviewStatus, ReviewerType, AdminActionStatus, AdminActionType } from '../../core/enums';
+import { environment } from '../../../environments/environment';
 
 interface PendingReview {
   id: string;
@@ -26,26 +27,6 @@ interface PendingReview {
   evidenceLinks?: string;
   evidenceFiles: { id: string; fileName: string; contentType: string; fileSizeBytes: number }[];
   publicEvidenceNotes: { id: string; summary: string; verificationOutcome: number; createdAt: string }[];
-  createdAt: string;
-}
-
-interface Investigation {
-  id: string;
-  entityName: string;
-  entityPhone?: string;
-  entityWeChat?: string;
-  entityCountry?: string;
-  entityWebsite?: string;
-  additionalDetails?: string;
-  enquiryChecklist?: string;
-  requestedById: string;
-  requestedByName?: string;
-  status: InvestigationStatus;
-  assignedToId?: string;
-  serviceTeamNotes?: string;
-  replyMessage?: string;
-  repliedAt?: string;
-  subscriberCount?: number;
   createdAt: string;
 }
 
@@ -84,7 +65,6 @@ interface AnalyticsSummary {
   publishedReviews: number;
   avgTurnaroundHours: number;
   totalEntities: number;
-  totalInvestigations: number;
   verificationRate: number;
 }
 
@@ -109,13 +89,10 @@ interface ContactMsg {
       <!-- Tab Bar -->
       <div class="tab-bar">
         <button class="tab-item" [class.active]="activeTab() === 'queue'" (click)="activeTab.set('queue')">
-          {{ 'admin.moderationQueue' | translate }}
+          {{ 'admin.reviewsRequests' | translate }}
           @if (pendingCount() > 0) {
             <span class="tab-badge">{{ pendingCount() }}</span>
           }
-        </button>
-        <button class="tab-item" [class.active]="activeTab() === 'investigations'" (click)="activeTab.set('investigations')">
-          {{ 'admin.investigations' | translate }}
         </button>
         <button class="tab-item" [class.active]="activeTab() === 'analytics'" (click)="activeTab.set('analytics'); loadAnalytics()">
           {{ 'admin.analytics' | translate }}
@@ -124,6 +101,12 @@ interface ContactMsg {
           {{ 'admin.contactMessages' | translate }}
           @if (unreadMsgCount() > 0) {
             <span class="tab-badge">{{ unreadMsgCount() }}</span>
+          }
+        </button>
+        <button class="tab-item" [class.active]="activeTab() === 'subscriptions'" (click)="activeTab.set('subscriptions'); loadSubscriptionRequests()">
+          {{ 'admin.subscriptions' | translate }}
+          @if (pendingSubCount() > 0) {
+            <span class="tab-badge">{{ pendingSubCount() }}</span>
           }
         </button>
         @if (authService.isSuperAdmin()) {
@@ -191,7 +174,7 @@ interface ContactMsg {
                           </div>
                           <div class="detail-item">
                             <span class="detail-key">{{ 'admin.reviewer' | translate }}</span>
-                            <span class="detail-val">{{ review.reviewerName || 'Anonymous' }}</span>
+                            <span class="detail-val">{{ review.reviewerName || ('admin.anonymous' | translate) }}</span>
                           </div>
                           <div class="detail-item">
                             <span class="detail-key">{{ 'admin.reviewerType' | translate }}</span>
@@ -286,7 +269,7 @@ interface ContactMsg {
                             class="msg-textarea"
                             rows="4"
                             [(ngModel)]="messageText"
-                            placeholder="e.g. Could you provide more details about the defective units?"></textarea>
+                            [placeholder]="'admin.placeholder.message' | translate"></textarea>
                           <div class="msg-actions">
                             <button class="toolbar-btn btn-approve" [disabled]="!messageText.trim() || sendingMessage()" (click)="sendMessage(review.id)">
                               {{ sendingMessage() ? ('admin.sending' | translate) : ('admin.sendMessage' | translate) }}
@@ -306,112 +289,13 @@ interface ContactMsg {
           }
         }
 
-        <!-- ==================== INVESTIGATIONS ==================== -->
-        @if (activeTab() === 'investigations') {
-          @if (loadingInvestigations()) {
-            <div class="content-card"><app-loading-spinner [message]="'admin.loadingInvestigations' | translate" /></div>
-          } @else if (investigations().length === 0) {
-            <div class="content-card empty-card">
-              <app-empty-state [title]="'admin.noInvestigations' | translate" [subtitle]="'admin.noInvestigationsDesc' | translate" />
-            </div>
-          } @else {
-            <div class="inv-grid">
-              @for (inv of investigations(); track inv.id) {
-                <div class="inv-card">
-                  <div class="inv-card-top">
-                    <h3 class="inv-title">{{ inv.entityName }}</h3>
-                    <span class="inv-status" [class]="'status-' + getStatusClass(inv.status)">
-                      {{ getStatusLabel(inv.status) }}
-                    </span>
-                  </div>
-                  <div class="inv-info-row">
-                    <span>{{ 'admin.requestedBy' | translate }} {{ inv.requestedByName || 'Unknown' }}</span>
-                    <span>{{ inv.createdAt | date:'MMM d, yyyy' }}</span>
-                  </div>
-                  <div class="inv-tags">
-                    @if (inv.entityCountry) {
-                      <span class="inv-tag">?? {{ inv.entityCountry }}</span>
-                    }
-                    @if (inv.entityPhone) {
-                      <span class="inv-tag">?? {{ inv.entityPhone }}</span>
-                    }
-                    @if (inv.entityWeChat) {
-                      <span class="inv-tag">?? {{ inv.entityWeChat }}</span>
-                    }
-                    @if (inv.entityWebsite) {
-                      <span class="inv-tag">?? {{ inv.entityWebsite }}</span>
-                    }
-                  </div>
-                  @if (inv.enquiryChecklist) {
-                    <div class="checklist-display">
-                      <span class="checklist-label">{{ 'admin.requestedInfo' | translate }}:</span>
-                      <div class="checklist-tags">
-                        @for (item of inv.enquiryChecklist.split(','); track item) {
-                          <span class="checklist-tag">{{ getChecklistLabel(item) }}</span>
-                        }
-                      </div>
-                    </div>
-                  }
-                  @if (inv.subscriberCount && inv.subscriberCount > 0) {
-                    <div class="subscriber-info">?? {{ inv.subscriberCount }} {{ 'admin.subscribersWaiting' | translate }}</div>
-                  }
-                  @if (inv.additionalDetails) {
-                    <p class="inv-details">{{ inv.additionalDetails }}</p>
-                  }
-                  @if (inv.serviceTeamNotes) {
-                    <div class="inv-notes-block">
-                      <span class="inv-notes-label">{{ 'admin.serviceTeamNotes' | translate }}</span>
-                      <p>{{ inv.serviceTeamNotes }}</p>
-                    </div>
-                  }
-                  @if (inv.replyMessage) {
-                    <div class="inv-reply-block">
-                      <span class="inv-notes-label">{{ 'admin.replyToUser' | translate }}</span>
-                      <p>{{ inv.replyMessage }}</p>
-                      @if (inv.repliedAt) {
-                        <span class="reply-date-small">{{ inv.repliedAt | date:'MMM d, yyyy' }}</span>
-                      }
-                    </div>
-                  }
-                  <div class="inv-actions">
-                    @if (inv.status === InvestigationStatus.Pending) {
-                      <button class="toolbar-btn btn-approve" (click)="updateInvestigation(inv.id, InvestigationStatus.InProgress)">{{ 'admin.accept' | translate }}</button>
-                      <button class="toolbar-btn btn-reject" (click)="updateInvestigation(inv.id, InvestigationStatus.Cancelled)">{{ 'admin.dismiss' | translate }}</button>
-                    }
-                    @if (inv.status === InvestigationStatus.InProgress) {
-                      <button class="toolbar-btn btn-approve" (click)="updateInvestigation(inv.id, InvestigationStatus.Completed)">{{ 'admin.markComplete' | translate }}</button>
-                    }
-                    @if (inv.status !== InvestigationStatus.Cancelled && !inv.replyMessage) {
-                      <button class="toolbar-btn btn-message" (click)="openReplyForm(inv)">
-                        ?? {{ 'admin.replyEnquiry' | translate }}
-                      </button>
-                    }
-                  </div>
-                  @if (replyingToInvId() === inv.id) {
-                    <div class="reply-form-panel">
-                      <h4>{{ 'admin.replyEnquiry' | translate }}</h4>
-                      <textarea class="msg-textarea" rows="4" [(ngModel)]="invReplyText" [placeholder]="'admin.replyPlaceholder' | translate"></textarea>
-                      <div class="msg-actions">
-                        <button class="toolbar-btn btn-approve" [disabled]="!invReplyText.trim() || sendingReply()" (click)="sendEnquiryReply(inv.id)">
-                          {{ sendingReply() ? ('admin.sending' | translate) : ('admin.sendReply' | translate) }}
-                        </button>
-                        <button class="toolbar-btn" (click)="replyingToInvId.set(''); invReplyText = ''">{{ 'admin.cancel' | translate }}</button>
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          }
-        }
-
         <!-- ==================== ANALYTICS ==================== -->
         @if (activeTab() === 'analytics') {
           @if (loadingAnalytics()) {
             <div class="content-card"><app-loading-spinner [message]="'admin.loadingAnalytics' | translate" /></div>
           } @else if (analytics()) {
             <div class="kpi-grid">
-              <div class="kpi-card">
+              <div class="kpi-card clickable" (click)="activeTab.set('queue')">
                 <div class="kpi-icon blue-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="kpi-data">
                   <span class="kpi-value">{{ analytics()!.totalReviews }}</span>
@@ -425,14 +309,14 @@ interface ContactMsg {
                   <span class="kpi-label">{{ 'admin.pendingReviews' | translate }}</span>
                 </div>
               </div>
-              <div class="kpi-card">
+              <div class="kpi-card clickable" (click)="activeTab.set('queue')">
                 <div class="kpi-icon green-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 4L12 14.01l-3-3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="kpi-data">
                   <span class="kpi-value">{{ analytics()!.publishedReviews }}</span>
                   <span class="kpi-label">{{ 'admin.publishedReviews' | translate }}</span>
                 </div>
               </div>
-              <div class="kpi-card">
+              <div class="kpi-card clickable" (click)="activeTab.set('queue')">
                 <div class="kpi-icon purple-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                 <div class="kpi-data">
                   <span class="kpi-value">{{ analytics()!.avgTurnaroundHours | number:'1.0-0' }}<small>h</small></span>
@@ -444,13 +328,6 @@ interface ContactMsg {
                 <div class="kpi-data">
                   <span class="kpi-value">{{ analytics()!.totalEntities }}</span>
                   <span class="kpi-label">{{ 'admin.totalEntities' | translate }}</span>
-                </div>
-              </div>
-              <div class="kpi-card clickable" (click)="activeTab.set('investigations')">
-                <div class="kpi-icon red-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="white" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-                <div class="kpi-data">
-                  <span class="kpi-value">{{ analytics()!.totalInvestigations }}</span>
-                  <span class="kpi-label">{{ 'admin.totalInvestigations' | translate }}</span>
                 </div>
               </div>
             </div>
@@ -529,10 +406,10 @@ interface ContactMsg {
         <!-- ==================== APPROVALS (SuperAdmin) ==================== -->
         @if (activeTab() === 'approvals') {
           @if (loadingActions()) {
-            <div class="content-card"><app-loading-spinner message="Loading pending actions..." /></div>
+            <div class="content-card"><app-loading-spinner [message]="'admin.loadingPendingActions' | translate" /></div>
           } @else if (pendingActions().length === 0) {
             <div class="content-card empty-card">
-              <app-empty-state title="No Pending Actions" subtitle="All admin actions have been reviewed." />
+              <app-empty-state [title]="'admin.noPendingActions' | translate" [subtitle]="'admin.noPendingActionsDesc' | translate" />
             </div>
           } @else {
             <div class="queue-list">
@@ -607,9 +484,9 @@ interface ContactMsg {
             }
 
             @if (loadingTeam()) {
-              <app-loading-spinner message="Loading team..." />
+              <app-loading-spinner [message]="'admin.loadingTeam' | translate" />
             } @else if (teamMembers().length === 0) {
-              <div class="content-card empty-card"><app-empty-state title="No team members" subtitle="Create an admin to get started." /></div>
+              <div class="content-card empty-card"><app-empty-state [title]="'admin.noTeamMembers' | translate" [subtitle]="'admin.noTeamMembersDesc' | translate" /></div>
             } @else {
               <div class="team-grid">
                 @for (member of teamMembers(); track member.id) {
@@ -626,7 +503,7 @@ interface ContactMsg {
                     <div class="team-card-meta">
                       <span>{{ 'admin.joined' | translate }}: {{ member.createdAt | date:'MMM d, yyyy' }}</span>
                       <span class="status-pill" [class]="member.isActive ? 'active-pill' : 'frozen-pill'">
-                        {{ member.isActive ? 'Active' : 'Frozen' }}
+                        {{ member.isActive ? ('admin.active' | translate) : ('admin.frozen' | translate) }}
                       </span>
                     </div>
                     @if (member.role !== 'SuperAdmin') {
@@ -647,29 +524,140 @@ interface ContactMsg {
         }
 
         <!-- ==================== SETTINGS (SuperAdmin) ==================== -->
+        <!-- ==================== SUBSCRIPTIONS ==================== -->
+        @if (activeTab() === 'subscriptions') {
+          @if (loadingSubRequests()) {
+            <div class="content-card"><app-loading-spinner [message]="'admin.loadingSubscriptions' | translate" /></div>
+          } @else if (subRequests().length === 0) {
+            <div class="content-card empty-card">
+              <app-empty-state [title]="'admin.noSubscriptionRequests' | translate" [subtitle]="'admin.noSubscriptionRequestsDesc' | translate" />
+            </div>
+          } @else {
+            <div class="queue-list">
+              @for (req of subRequests(); track req.id) {
+                <div class="queue-card" [class.selected]="selectedSubRequest()?.id === req.id">
+                  <div class="queue-card-header" (click)="toggleSubRequest(req)">
+                    <div class="card-left">
+                      <span class="severity-dot" [class]="'dot-sub-' + getSubStatusClass(req.status)"></span>
+                      <div class="card-title-group">
+                        <h3 class="card-title">{{ req.userName || req.userEmail || 'User' }} — {{ getSubTierLabel(req.requestedTier) }}</h3>
+                        <div class="card-meta">
+                          <span>{{ req.durationYears }} {{ req.durationYears === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                          <span class="meta-sep">&middot;</span>
+                          <span>{{ req.createdAt | date:'MMM d, yyyy' }}</span>
+                          <span class="meta-sep">&middot;</span>
+                          <span class="meta-severity" [class]="'sev-sub-' + getSubStatusClass(req.status)">
+                            {{ getSubStatusLabel(req.status) | uppercase }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button class="expand-btn" [class.rotated]="selectedSubRequest()?.id === req.id">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  @if (selectedSubRequest()?.id === req.id) {
+                    <div class="queue-card-body">
+                      <div class="detail-section">
+                        <h4 class="section-title">{{ 'admin.requestDetails' | translate }}</h4>
+                        <div class="detail-grid">
+                          <div class="detail-item">
+                            <span class="detail-key">{{ 'admin.requester' | translate }}</span>
+                            <span class="detail-val">{{ req.userName || req.userEmail || 'Unknown' }}</span>
+                          </div>
+                          <div class="detail-item">
+                            <span class="detail-key">{{ 'subscription.requestedTier' | translate }}</span>
+                            <span class="detail-val">{{ getSubTierLabel(req.requestedTier) }}</span>
+                          </div>
+                          <div class="detail-item">
+                            <span class="detail-key">{{ 'subscription.duration' | translate }}</span>
+                            <span class="detail-val">{{ req.durationYears }} {{ req.durationYears === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                          </div>
+                          <div class="detail-item">
+                            <span class="detail-key">{{ 'subscription.amount' | translate }}</span>
+                            <span class="detail-val">{{ req.totalAmount | currency:'USD' }}</span>
+                          </div>
+                          @if (req.paymentProofStoragePath) {
+                            <div class="detail-item">
+                              <span class="detail-key">{{ 'subscription.paymentProof' | translate }}</span>
+                              <a class="detail-val file-link" [href]="getPaymentProofUrl(req.paymentProofStoragePath)" target="_blank" rel="noopener">📎 {{ req.paymentProofFileName }}</a>
+                            </div>
+                          }
+                          @if (req.paymentNotes) {
+                            <div class="detail-item full-width">
+                              <span class="detail-key">{{ 'subscription.paymentNotes' | translate }}</span>
+                              <span class="detail-val">{{ req.paymentNotes }}</span>
+                            </div>
+                          }
+                          @if (req.adminNotes) {
+                            <div class="detail-item full-width">
+                              <span class="detail-key">{{ 'subscription.adminNotes' | translate }}</span>
+                              <span class="detail-val">{{ req.adminNotes }}</span>
+                            </div>
+                          }
+                          @if (req.reviewedByName) {
+                            <div class="detail-item">
+                              <span class="detail-key">{{ 'admin.reviewedBy' | translate }}</span>
+                              <span class="detail-val">{{ req.reviewedByName }}</span>
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                      @if (req.status === 0) {
+                        <div class="action-bar">
+                          <div class="admin-notes-input">
+                            <input type="text" [(ngModel)]="subAdminNotes" [placeholder]="'subscription.adminNotesPlaceholder' | translate" class="setting-input" />
+                          </div>
+                          <div class="action-buttons">
+                            <button class="toolbar-btn btn-approve" [disabled]="processingSubId()" (click)="approveSubRequest(req.id)">
+                              @if (processingSubId() === req.id + '-approve') { <span class="btn-spinner"></span> }
+                              {{ 'admin.approve' | translate }}
+                            </button>
+                            <button class="toolbar-btn btn-reject" [disabled]="processingSubId()" (click)="rejectSubRequest(req.id)">
+                              @if (processingSubId() === req.id + '-reject') { <span class="btn-spinner"></span> }
+                              {{ 'admin.reject' | translate }}
+                            </button>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        }
+
         @if (activeTab() === 'settings') {
           <div class="settings-section">
             <h3 class="settings-title">{{ 'admin.systemSettings' | translate }}</h3>
             @if (loadingSettings()) {
-              <app-loading-spinner message="Loading settings..." />
+              <app-loading-spinner [message]="'admin.loadingSettings' | translate" />
             } @else {
-              <div class="settings-grid">
-                @for (setting of systemSettings(); track setting.key) {
-                  <div class="setting-card content-card">
-                    <div class="setting-header">
-                      <span class="setting-key">{{ setting.key }}</span>
+              <div class="content-card settings-card-unified">
+                <div class="settings-grid">
+                  @for (setting of systemSettings(); track setting.key) {
+                    <div class="setting-field">
+                      <label class="setting-label">{{ getSettingLabel(setting.key) }}</label>
                       @if (setting.description) {
-                        <span class="setting-desc">{{ setting.description }}</span>
+                        <span class="setting-desc">{{ getSettingDescription(setting.key, setting.description) }}</span>
                       }
-                    </div>
-                    <div class="setting-input-row">
                       <input type="text" [(ngModel)]="setting.value" class="setting-input" />
-                      <button class="toolbar-btn btn-approve" (click)="saveSetting(setting)">
-                        {{ 'common.save' | translate }}
-                      </button>
                     </div>
-                  </div>
-                }
+                  }
+                </div>
+                <div class="settings-actions">
+                  <button class="toolbar-btn btn-approve settings-save-all" (click)="saveAllSettings()" [disabled]="savingAllSettings()">
+                    @if (savingAllSettings()) {
+                      <span class="btn-spinner"></span>
+                    }
+                    {{ 'common.save' | translate }}
+                  </button>
+                </div>
               </div>
             }
           </div>
@@ -684,10 +672,9 @@ export class AdminDashboardComponent implements OnInit {
   private translate = inject(TranslateService);
   authService = inject(AuthService);
 
-  readonly InvestigationStatus = InvestigationStatus;
   readonly AdminActionStatus = AdminActionStatus;
 
-  activeTab = signal<'queue' | 'investigations' | 'analytics' | 'messages' | 'approvals' | 'team' | 'settings'>('queue');
+  activeTab = signal<'queue' | 'analytics' | 'messages' | 'subscriptions' | 'approvals' | 'team' | 'settings'>('queue');
 
   // Moderation Queue
   pendingReviews = signal<PendingReview[]>([]);
@@ -701,13 +688,6 @@ export class AdminDashboardComponent implements OnInit {
   messageText = '';
   messageSent = signal(false);
   sendingMessage = signal(false);
-
-  // Investigations
-  investigations = signal<Investigation[]>([]);
-  loadingInvestigations = signal(false);
-  replyingToInvId = signal('');
-  invReplyText = '';
-  sendingReply = signal(false);
 
   // Analytics
   analytics = signal<AnalyticsSummary | null>(null);
@@ -734,10 +714,18 @@ export class AdminDashboardComponent implements OnInit {
   // Settings (SuperAdmin)
   systemSettings = signal<SystemSetting[]>([]);
   loadingSettings = signal(false);
+  savingAllSettings = signal(false);
+
+  // Subscriptions
+  subRequests = signal<any[]>([]);
+  pendingSubCount = signal(0);
+  loadingSubRequests = signal(false);
+  selectedSubRequest = signal<any | null>(null);
+  subAdminNotes = '';
+  processingSubId = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadPendingReviews();
-    this.loadInvestigations();
     // Load pending action count badge for SuperAdmin
     if (this.authService.isSuperAdmin()) {
       this.loadPendingActionCount();
@@ -763,23 +751,7 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  private loadInvestigations(): void {
-    this.loadingInvestigations.set(true);
-    this.apiService.get<any>('admin/watch-requests?page=1&pageSize=50').subscribe({
-      next: (res) => {
-        const items = res.items || res.data || [];
-        this.investigations.set(items);
-        this.loadingInvestigations.set(false);
-      },
-      error: () => {
-        this.loadingInvestigations.set(false);
-        this.investigations.set([]);
-      }
-    });
-  }
-
   loadAnalytics(): void {
-    if (this.analytics()) return;
     this.loadingAnalytics.set(true);
     this.apiService.get<AnalyticsSummary>('admin/analytics').subscribe({
       next: (data) => {
@@ -814,7 +786,7 @@ export class AdminDashboardComponent implements OnInit {
         this.pendingCount.update(c => Math.max(0, c - 1));
         this.selectedReview.set(null);
       },
-      error: () => alert('Failed to publish review')
+      error: () => alert(this.translate.instant('admin.failedPublish'))
     });
   }
 
@@ -826,7 +798,7 @@ export class AdminDashboardComponent implements OnInit {
         this.pendingCount.update(c => Math.max(0, c - 1));
         this.selectedReview.set(null);
       },
-      error: () => alert('Failed to reject review')
+      error: () => alert(this.translate.instant('admin.failedReject'))
     });
   }
 
@@ -854,25 +826,8 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: () => {
         this.sendingMessage.set(false);
-        alert('Failed to send message');
+        alert(this.translate.instant('admin.failedSendMessage'));
       }
-    });
-  }
-
-  // ==================== INVESTIGATIONS ====================
-
-  updateInvestigation(id: string, status: InvestigationStatus): void {
-    this.apiService.put(`watch-requests/${id}/status`, {
-      newStatus: status,
-      serviceTeamNotes: null,
-      resultEntityId: null
-    }).subscribe({
-      next: () => {
-        this.investigations.update(list => list.map(inv =>
-          inv.id === id ? { ...inv, status } : inv
-        ));
-      },
-      error: () => alert('Failed to update investigation')
     });
   }
 
@@ -912,31 +867,11 @@ export class AdminDashboardComponent implements OnInit {
         this.unreadMsgCount.update(c => Math.max(0, c - 1));
         this.selectedMsg.update(m => m && m.id === id ? { ...m, isRead: true, readAt: new Date().toISOString() } : m);
       },
-      error: () => alert('Failed to mark as read')
+      error: () => alert(this.translate.instant('admin.failedMarkRead'))
     });
   }
 
   // ==================== HELPERS ====================
-
-  getStatusClass(status: InvestigationStatus): string {
-    switch (status) {
-      case InvestigationStatus.Pending: return 'pending';
-      case InvestigationStatus.InProgress: return 'active';
-      case InvestigationStatus.Completed: return 'completed';
-      case InvestigationStatus.Cancelled: return 'dismissed';
-      default: return 'pending';
-    }
-  }
-
-  getStatusLabel(status: InvestigationStatus): string {
-    switch (status) {
-      case InvestigationStatus.Pending: return this.translate.instant('admin.pending');
-      case InvestigationStatus.InProgress: return this.translate.instant('admin.inProgress');
-      case InvestigationStatus.Completed: return this.translate.instant('admin.completed');
-      case InvestigationStatus.Cancelled: return this.translate.instant('admin.dismissed');
-      default: return 'Unknown';
-    }
-  }
 
   getSeverityString(severity: SeverityLevel): string {
     switch (severity) {
@@ -956,7 +891,7 @@ export class AdminDashboardComponent implements OnInit {
     switch (type) {
       case ReviewerType.Broker: return this.translate.instant('admin.broker');
       case ReviewerType.Buyer: return this.translate.instant('admin.buyer');
-      default: return 'Unknown';
+      default: return this.translate.instant('admin.unknown');
     }
   }
 
@@ -966,49 +901,16 @@ export class AdminDashboardComponent implements OnInit {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
-  // ==================== ENQUIRY REPLY ====================
-
-  openReplyForm(inv: Investigation): void {
-    this.replyingToInvId.set(inv.id);
-    this.invReplyText = '';
+  getSettingLabel(key: string): string {
+    const tKey = `admin.settingLabel.${key}`;
+    const translated = this.translate.instant(tKey);
+    return translated !== tKey ? translated : key;
   }
 
-  sendEnquiryReply(invId: string): void {
-    if (!this.invReplyText.trim()) return;
-    this.sendingReply.set(true);
-    this.apiService.post<any>(`admin/watch-requests/${invId}/reply`, {
-      replyMessage: this.invReplyText.trim()
-    }).subscribe({
-      next: (res) => {
-        this.sendingReply.set(false);
-        this.replyingToInvId.set('');
-        this.invReplyText = '';
-        // Update the investigation in-place
-        if (res.queued) {
-          alert('Your reply has been queued for SuperAdmin approval.');
-        } else {
-          this.investigations.update(list => list.map(inv =>
-            inv.id === invId ? { ...inv, replyMessage: this.invReplyText || res.replyMessage, repliedAt: new Date().toISOString() } : inv
-          ));
-        }
-        this.loadInvestigations();
-      },
-      error: () => {
-        this.sendingReply.set(false);
-        alert('Failed to send reply');
-      }
-    });
-  }
-
-  getChecklistLabel(key: string): string {
-    const map: Record<string, string> = {
-      'legitimacy': 'Business Legitimacy',
-      'quality': 'Product Quality',
-      'payment': 'Payment Reliability',
-      'delivery': 'Delivery Track Record',
-      'other': 'Other',
-    };
-    return map[key.trim()] || key;
+  getSettingDescription(key: string, fallback: string): string {
+    const tKey = `admin.settingDesc.${key}`;
+    const translated = this.translate.instant(tKey);
+    return translated !== tKey ? translated : fallback;
   }
 
   // ==================== APPROVALS (SuperAdmin) ====================
@@ -1041,7 +943,7 @@ export class AdminDashboardComponent implements OnInit {
         this.pendingActions.update(list => list.filter(a => a.id !== id));
         this.pendingActionCount.update(c => Math.max(0, c - 1));
       },
-      error: () => alert('Failed to approve action'),
+      error: () => alert(this.translate.instant('admin.failedApproveAction')),
     });
   }
 
@@ -1051,18 +953,18 @@ export class AdminDashboardComponent implements OnInit {
         this.pendingActions.update(list => list.filter(a => a.id !== id));
         this.pendingActionCount.update(c => Math.max(0, c - 1));
       },
-      error: () => alert('Failed to reject action'),
+      error: () => alert(this.translate.instant('admin.failedRejectAction')),
     });
   }
 
   getActionTypeLabel(type: AdminActionType): string {
     switch (type) {
-      case AdminActionType.PublishReview: return 'Publish Review';
-      case AdminActionType.RejectReview: return 'Reject Review';
-      case AdminActionType.EditReview: return 'Edit Review';
-      case AdminActionType.DeleteReview: return 'Delete Review';
-      case AdminActionType.ReplyEnquiry: return 'Reply to Enquiry';
-      default: return 'Unknown';
+      case AdminActionType.PublishReview: return this.translate.instant('admin.actionType.publishReview');
+      case AdminActionType.RejectReview: return this.translate.instant('admin.actionType.rejectReview');
+      case AdminActionType.EditReview: return this.translate.instant('admin.actionType.editReview');
+      case AdminActionType.DeleteReview: return this.translate.instant('admin.actionType.deleteReview');
+      case AdminActionType.ReplyEnquiry: return this.translate.instant('admin.actionType.replyEnquiry');
+      default: return this.translate.instant('admin.actionType.unknown');
     }
   }
 
@@ -1096,31 +998,31 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: (err) => {
         this.creatingAdmin.set(false);
-        alert(err?.error?.message || 'Failed to create admin');
+        alert(err?.error?.message || this.translate.instant('admin.failedCreateAdmin'));
       },
     });
   }
 
   toggleAdminActive(userId: string, isCurrentlyActive: boolean): void {
     const action = isCurrentlyActive ? 'freeze' : 'unfreeze';
-    if (!confirm(`Are you sure you want to ${action} this admin?`)) return;
+    if (!confirm(this.translate.instant('admin.confirmToggleAdmin', { action }))) return;
     this.apiService.put<any>(`admin/team/${userId}/toggle-active`, {}).subscribe({
       next: () => {
         this.teamMembers.update(list => list.map(m =>
           m.id === userId ? { ...m, isActive: !m.isActive } : m
         ));
       },
-      error: () => alert(`Failed to ${action} admin`),
+      error: () => alert(this.translate.instant('admin.failedToggleAdmin')),
     });
   }
 
   deleteAdmin(userId: string, name: string): void {
-    if (!confirm(`Are you sure you want to delete admin "${name}"? This cannot be undone.`)) return;
+    if (!confirm(this.translate.instant('admin.confirmDeleteAdmin', { name }))) return;
     this.apiService.delete<any>(`admin/team/${userId}`).subscribe({
       next: () => {
         this.teamMembers.update(list => list.filter(m => m.id !== userId));
       },
-      error: () => alert('Failed to delete admin'),
+      error: () => alert(this.translate.instant('admin.failedDeleteAdmin')),
     });
   }
 
@@ -1145,7 +1047,116 @@ export class AdminDashboardComponent implements OnInit {
       next: () => {
         // silently saved
       },
-      error: () => alert('Failed to save setting'),
+      error: () => alert(this.translate.instant('admin.failedSaveSetting')),
+    });
+  }
+
+  saveAllSettings(): void {
+    this.savingAllSettings.set(true);
+    const settings = this.systemSettings();
+    let completed = 0;
+    let hasError = false;
+    settings.forEach(setting => {
+      this.apiService.put<any>('admin/settings', { key: setting.key, value: setting.value }).subscribe({
+        next: () => {
+          completed++;
+          if (completed === settings.length) {
+            this.savingAllSettings.set(false);
+            if (!hasError) {
+              alert(this.translate.instant('admin.settingsSaved'));
+            }
+          }
+        },
+        error: () => {
+          completed++;
+          hasError = true;
+          if (completed === settings.length) {
+            this.savingAllSettings.set(false);
+          }
+          alert(this.translate.instant('admin.failedSaveSetting'));
+        },
+      });
+    });
+  }
+
+  // ==================== SUBSCRIPTIONS ====================
+
+  loadSubscriptionRequests(): void {
+    this.loadingSubRequests.set(true);
+    this.apiService.get<any[]>('subscriptions/pending-requests').subscribe({
+      next: (res) => {
+        this.subRequests.set(res || []);
+        this.pendingSubCount.set((res || []).filter((r: any) => r.status === 0).length);
+        this.loadingSubRequests.set(false);
+      },
+      error: () => {
+        this.loadingSubRequests.set(false);
+        this.subRequests.set([]);
+      },
+    });
+  }
+
+  toggleSubRequest(req: any): void {
+    this.selectedSubRequest.set(this.selectedSubRequest()?.id === req.id ? null : req);
+    this.subAdminNotes = '';
+  }
+
+  getSubTierLabel(tier: number): string {
+    switch (tier) {
+      case 1: return 'Pro';
+      default: return 'Free';
+    }
+  }
+
+  getPaymentProofUrl(storagePath: string): string {
+    return `${environment.apiBaseUrl}/subscriptions/download/${encodeURIComponent(storagePath)}`;
+  }
+
+  getSubStatusClass(status: number): string {
+    switch (status) {
+      case 1: return 'approved';
+      case 2: return 'rejected';
+      default: return 'pending';
+    }
+  }
+
+  getSubStatusLabel(status: number): string {
+    switch (status) {
+      case 1: return this.translate.instant('subscription.statusApproved');
+      case 2: return this.translate.instant('subscription.statusRejected');
+      default: return this.translate.instant('subscription.statusPending');
+    }
+  }
+
+  approveSubRequest(id: string): void {
+    this.processingSubId.set(id + '-approve');
+    this.apiService.post<any>(`subscriptions/approve/${id}`, { adminNotes: this.subAdminNotes || null }).subscribe({
+      next: () => {
+        this.processingSubId.set(null);
+        this.subAdminNotes = '';
+        this.loadSubscriptionRequests();
+      },
+      error: (err) => {
+        this.processingSubId.set(null);
+        const errors = err?.error?.errors;
+        alert(Array.isArray(errors) ? errors.join(', ') : (errors || this.translate.instant('admin.failedApproveSubscription')));
+      },
+    });
+  }
+
+  rejectSubRequest(id: string): void {
+    this.processingSubId.set(id + '-reject');
+    this.apiService.post<any>(`subscriptions/reject/${id}`, { adminNotes: this.subAdminNotes || null }).subscribe({
+      next: () => {
+        this.processingSubId.set(null);
+        this.subAdminNotes = '';
+        this.loadSubscriptionRequests();
+      },
+      error: (err) => {
+        this.processingSubId.set(null);
+        const errors = err?.error?.errors;
+        alert(Array.isArray(errors) ? errors.join(', ') : (errors || this.translate.instant('admin.failedRejectSubscription')));
+      },
     });
   }
 }

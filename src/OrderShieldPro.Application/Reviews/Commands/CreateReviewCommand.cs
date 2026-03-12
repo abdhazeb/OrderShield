@@ -24,12 +24,20 @@ public record CreateReviewCommand : IRequest<Result<Guid>>
     public string Narrative { get; init; } = string.Empty;
     public string? Product { get; init; }
     public string? ProductCategory { get; init; }
-    public DateTime IncidentDate { get; init; }
+    public DateTime? IncidentDate { get; init; }
     public decimal? OrderValue { get; init; }
 
     // Contact info used in the transaction
+    public string? ContactName { get; init; }
     public string? ContactPhoneUsed { get; init; }
     public string? ContactWeChatUsed { get; init; }
+
+    // Supplier location (for new suppliers)
+    public string? SupplierCountry { get; init; }
+    public string? SupplierProvince { get; init; }
+
+    // Comment vs Review
+    public bool IsComment { get; init; }
 
     // Evidence
     public string? EvidenceLinks { get; init; }

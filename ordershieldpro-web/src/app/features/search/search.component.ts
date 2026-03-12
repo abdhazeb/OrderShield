@@ -47,16 +47,16 @@ import { InvestigationStatus } from '../../core/enums';
         <div class="filters-panel">
           <div class="filter-group">
             <label>{{ 'search.country' | translate }}</label>
-            <input type="text" [(ngModel)]="filters.country" (input)="performSearch()" placeholder="e.g., China, Turkey" />
+            <input type="text" [(ngModel)]="filters.country" (input)="performSearch()" [placeholder]="'search.filterPlaceholder.country' | translate" />
           </div>
           <div class="filter-group">
             <label>{{ 'search.category' | translate }}</label>
-            <input type="text" [(ngModel)]="filters.category" (input)="performSearch()" placeholder="e.g., Electronics" />
+            <input type="text" [(ngModel)]="filters.category" (input)="performSearch()" [placeholder]="'search.filterPlaceholder.category' | translate" />
           </div>
           <div class="filter-group">
             <label>{{ 'search.reviewType' | translate }}</label>
             <select [(ngModel)]="filters.severity" (change)="performSearch()">
-              <option value="">All</option>
+              <option value="">{{ 'search.allTypes' | translate }}</option>
               <option value="0">{{ 'severity.info' | translate }}</option>
               <option value="1">{{ 'severity.warning' | translate }}</option>
               <option value="2">{{ 'severity.critical' | translate }}</option>
@@ -65,6 +65,13 @@ import { InvestigationStatus } from '../../core/enums';
               <option value="5">{{ 'severity.quality' | translate }}</option>
               <option value="6">{{ 'severity.delivery' | translate }}</option>
               <option value="7">{{ 'severity.payment' | translate }}</option>
+              <option value="8">{{ 'severity.financiallyDistressed' | translate }}</option>
+              <option value="9">{{ 'severity.bankrupt' | translate }}</option>
+              <option value="10">{{ 'severity.poorManagement' | translate }}</option>
+              <option value="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
+              <option value="12">{{ 'severity.bribeOthers' | translate }}</option>
+              <option value="13">{{ 'severity.fakeSupplier' | translate }}</option>
+              <option value="14">{{ 'severity.other' | translate }}</option>
             </select>
           </div>
         </div>
@@ -83,9 +90,11 @@ import { InvestigationStatus } from '../../core/enums';
         } @else if (hasSearched() && entities().length === 0) {
           <!-- No Results -->
           <div class="no-results-section">
-            <div class="no-results-icon">🔍</div>
-            <h2 class="no-results-title">{{ 'search.noResults' | translate }}</h2>
-            <p class="no-results-subtitle">{{ 'enquiry.noResultsHint' | translate }}</p>
+            @if (!directEnquiryMode()) {
+              <div class="no-results-icon">🔍</div>
+              <h2 class="no-results-title">{{ 'search.noResults' | translate }}</h2>
+              <p class="no-results-subtitle">{{ 'enquiry.noResultsHint' | translate }}</p>
+            }
 
             @if (!showNewEnquiryForm()) {
               <!-- Action Buttons -->
@@ -150,15 +159,15 @@ import { InvestigationStatus } from '../../core/enums';
                     </div>
                     <div class="form-group">
                       <label>{{ 'enquiry.country' | translate }}</label>
-                      <input type="text" [(ngModel)]="enquiryForm.entityCountry" placeholder="e.g., China, Turkey" />
+                      <input type="text" [(ngModel)]="enquiryForm.entityCountry" [placeholder]="'enquiry.placeholder.country' | translate" />
                     </div>
                     <div class="form-group">
                       <label>{{ 'enquiry.phone' | translate }}</label>
-                      <input type="text" [(ngModel)]="enquiryForm.entityPhone" placeholder="+86..." />
+                      <input type="text" [(ngModel)]="enquiryForm.entityPhone" [placeholder]="'enquiry.placeholder.phone' | translate" />
                     </div>
                     <div class="form-group">
                       <label>{{ 'enquiry.wechat' | translate }}</label>
-                      <input type="text" [(ngModel)]="enquiryForm.entityWeChat" placeholder="WeChat ID" />
+                      <input type="text" [(ngModel)]="enquiryForm.entityWeChat" [placeholder]="'enquiry.placeholder.wechat' | translate" />
                     </div>
                     <div class="form-group full-width">
                       <label>{{ 'enquiry.website' | translate }}</label>
@@ -188,7 +197,7 @@ import { InvestigationStatus } from '../../core/enums';
                     <button class="btn-primary btn-submit-enquiry" [disabled]="!enquiryFormValid() || submittingEnquiry()" (click)="submitEnquiry()">
                       {{ submittingEnquiry() ? ('common.loading' | translate) : ('enquiry.submit' | translate) }}
                     </button>
-                    <button class="btn-secondary" (click)="showNewEnquiryForm.set(false)">{{ 'common.cancel' | translate }}</button>
+                    <button class="btn-secondary" (click)="closeEnquiryPanel()">{{ 'common.cancel' | translate }}</button>
                   </div>
                 </div>
               }
@@ -429,7 +438,7 @@ import { InvestigationStatus } from '../../core/enums';
     }
     .reply-block {
       background: var(--accent-50); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px;
-      text-align: left; border: 1px solid var(--accent-100);
+      text-align: start; border: 1px solid var(--accent-100);
     }
     .reply-block h4 { font-size: 14px; font-weight: 700; color: var(--accent-600); margin-bottom: 8px; }
     .reply-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
@@ -439,7 +448,7 @@ import { InvestigationStatus } from '../../core/enums';
     .enquiry-form-card {
       background: var(--surface-0); border-radius: var(--radius-xl); padding: 24px; max-width: 600px;
       margin: 0 auto; box-shadow: var(--shadow-md);
-      border: 1px solid var(--surface-border-subtle); text-align: left;
+      border: 1px solid var(--surface-border-subtle); text-align: start;
     }
     .form-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
     .form-subtitle { font-size: 14px; color: var(--text-tertiary); margin-bottom: 20px; }
@@ -495,6 +504,30 @@ import { InvestigationStatus } from '../../core/enums';
       .form-group.full-width { grid-column: span 1; }
       .checklist-grid { grid-template-columns: 1fr; }
     }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .form-group label,
+    :host-context([dir="rtl"]) .form-group input,
+    :host-context([dir="rtl"]) .form-group textarea,
+    :host-context([dir="rtl"]) .filter-group label,
+    :host-context([dir="rtl"]) .filter-group input,
+    :host-context([dir="rtl"]) .filter-group select {
+      text-align: right;
+      direction: rtl;
+    }
+    :host-context([dir="rtl"]) .enquiry-form-card,
+    :host-context([dir="rtl"]) .reply-block {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .existing-enquiry-card {
+      text-align: center;
+    }
+    :host-context([dir="rtl"]) .form-title,
+    :host-context([dir="rtl"]) .form-subtitle,
+    :host-context([dir="rtl"]) .checklist-section h4,
+    :host-context([dir="rtl"]) .results-count {
+      text-align: right;
+    }
   `]
 })
 export class SearchComponent implements OnInit {
@@ -528,6 +561,7 @@ export class SearchComponent implements OnInit {
   submittingEnquiry = signal(false);
   subscribing = signal(false);
   slaDays = signal(2);
+  directEnquiryMode = signal(false);
 
   enquiryFormValid = computed(() => {
     return this.enquiryEntityName().trim().length > 0;
@@ -590,6 +624,11 @@ export class SearchComponent implements OnInit {
           this.searchQuery.set(params['q']);
           this.performSearch();
         }
+        if (params['openEnquiry'] === 'true') {
+          this.directEnquiryMode.set(true);
+          this.hasSearched.set(true);
+          this.showNewEnquiryForm.set(true);
+        }
       });
 
     // Load SLA setting
@@ -610,6 +649,14 @@ export class SearchComponent implements OnInit {
     this.checkExistingEnquiry();
   }
 
+  closeEnquiryPanel(): void {
+    this.showNewEnquiryForm.set(false);
+    if (this.directEnquiryMode()) {
+      this.directEnquiryMode.set(false);
+      this.hasSearched.set(false);
+    }
+  }
+
   openNewEnquiryForm(): void {
     this.existingEnquiry.set(null);
     this.skipExistingCheck.set(true);
@@ -623,6 +670,7 @@ export class SearchComponent implements OnInit {
     this.existingEnquiry.set(null);
     this.alreadySubscribed.set(false);
     this.showNewEnquiryForm.set(false);
+    this.directEnquiryMode.set(false);
 
     let url = `entities/search?page=${this.currentPage()}&pageSize=10`;
     if (this.searchQuery()) url += `&q=${encodeURIComponent(this.searchQuery())}`;
@@ -728,7 +776,7 @@ export class SearchComponent implements OnInit {
       },
       error: () => {
         this.submittingEnquiry.set(false);
-        this.showToastMessage('Failed to submit enquiry', 'info');
+        this.showToastMessage(this.translate.instant('enquiry.failedSubmit'), 'info');
       },
     });
   }

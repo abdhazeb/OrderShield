@@ -19,7 +19,7 @@ public record ReviewDto
     public string Narrative { get; init; } = string.Empty;
     public string? Product { get; init; }
     public string? ProductCategory { get; init; }
-    public DateTime IncidentDate { get; init; }
+    public DateTime? IncidentDate { get; init; }
     public decimal? OrderValue { get; init; }
     public string? EvidenceLinks { get; init; }
     public IReadOnlyList<EvidenceFileDto> EvidenceFiles { get; init; } = Array.Empty<EvidenceFileDto>();

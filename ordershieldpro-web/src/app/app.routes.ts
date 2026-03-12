@@ -16,6 +16,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/search/search.component').then(m => m.SearchComponent),
       },
       {
+        path: 'enquiries',
+        loadComponent: () => import('./features/enquiries/enquiries.component').then(m => m.EnquiriesComponent),
+      },
+      {
         path: 'entity/:id',
         loadComponent: () => import('./features/entity/entity-profile.component').then(m => m.EntityProfileComponent),
       },
@@ -38,6 +42,11 @@ export const routes: Routes = [
         path: 'notifications',
         canActivate: [authGuard],
         loadComponent: () => import('./features/notifications/notifications.component').then(m => m.NotificationsComponent),
+      },
+      {
+        path: 'subscription',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/subscription/subscription.component').then(m => m.SubscriptionComponent),
       },
       {
         path: 'admin',

@@ -23,7 +23,8 @@ public class AuthController : ControllerBase
         [Required, EmailAddress, StringLength(256)] string Email,
         [Required, StringLength(128, MinimumLength = 10)] string Password,
         Language Language,
-        [StringLength(200)] string? Organization = null);
+        [StringLength(200)] string? Organization = null,
+        [StringLength(30)] string? PhoneNumber = null);
 
     public record LoginRequest(
         [Required, EmailAddress, StringLength(256)] string Email,
@@ -46,7 +47,7 @@ public class AuthController : ControllerBase
         var safeRole = UserRole.Buyer;
 
         var (succeeded, userId, token, refreshToken, errors) =
-            await _identityService.RegisterAsync(request.FullName, request.Email, request.Password, safeRole, request.Language, request.Organization, ct);
+            await _identityService.RegisterAsync(request.FullName, request.Email, request.Password, safeRole, request.Language, request.Organization, request.PhoneNumber, ct);
 
         if (!succeeded)
             return BadRequest(new { errors });

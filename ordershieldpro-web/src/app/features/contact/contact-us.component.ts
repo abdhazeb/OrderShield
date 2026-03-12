@@ -2,7 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../core/auth/services/auth.service';
 
@@ -137,7 +137,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
 
     .form-textarea { resize: vertical; min-height: 100px; max-height: 300px; }
 
-    .char-count { text-align: right; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+    .char-count { text-align: end; font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 
     .btn {
       width: 100%; padding: 14px; border: none; border-radius: var(--radius-lg);
@@ -160,6 +160,7 @@ export class ContactUsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private translate = inject(TranslateService);
 
   submitting = signal(false);
   sent = signal(false);
@@ -192,7 +193,7 @@ export class ContactUsComponent implements OnInit {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.message || 'Something went wrong. Please try again.');
+        this.error.set(err?.error?.message || this.translate.instant('profile.errorGeneric'));
       },
     });
   }

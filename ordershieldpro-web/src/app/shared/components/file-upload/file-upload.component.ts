@@ -17,7 +17,7 @@ import { TranslateModule } from '@ngx-translate/core';
       <div class="upload-text">
         {{ label || ('review.uploadEvidence' | translate) }}
       </div>
-      <div class="upload-hint">{{ hint || 'Drag & drop or tap to upload (max 10MB)' }}</div>
+      <div class="upload-hint">{{ hint || ('fileUpload.hint' | translate) }}</div>
       <input
         #fileInput
         type="file"

@@ -15,29 +15,39 @@ public class IdentityService : IIdentityService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IApplicationDbContext _dbContext;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        IApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
+        _dbContext = dbContext;
     }
 
     public async Task<(bool Succeeded, string? UserId, string? Token, string? RefreshToken, string[] Errors)> RegisterAsync(
-        string fullName, string email, string password, UserRole role, Language language, string? organization = null, CancellationToken cancellationToken = default)
+        string fullName, string email, string password, UserRole role, Language language, string? organization = null, string? phoneNumber = null, CancellationToken cancellationToken = default)
     {
+        // Read free trial days from system settings (default 365)
+        var freeTrialSetting = await _dbContext.SystemSettings
+            .FirstOrDefaultAsync(s => s.Key == "free_trial_days", cancellationToken);
+        var freeTrialDays = int.TryParse(freeTrialSetting?.Value, out var days) ? days : 365;
+
         var user = new ApplicationUser
         {
             FullName = fullName,
             Email = email,
             UserName = email,
+            PhoneNumber = phoneNumber,
             Role = role,
             LanguagePreference = language,
             Organization = organization,
             SubscriptionTier = SubscriptionTier.Free,
+            SubscriptionExpiryDate = DateTime.UtcNow.AddDays(freeTrialDays),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
@@ -146,7 +156,7 @@ public class IdentityService : IIdentityService
 
     // IIdentityService implementations
 
-    public async Task<Result> UpdateProfileAsync(string userId, string fullName, string? region, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateProfileAsync(string userId, string fullName, string? region, string? businessName = null, string? licenseAddress = null, string? businessPhone = null, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null)
@@ -154,6 +164,9 @@ public class IdentityService : IIdentityService
 
         user.FullName = fullName;
         user.Region = region;
+        user.BusinessName = businessName;
+        user.LicenseAddress = licenseAddress;
+        user.BusinessPhone = businessPhone;
         user.UpdatedAt = DateTime.UtcNow;
 
         var result = await _userManager.UpdateAsync(user);
@@ -196,7 +209,13 @@ public class IdentityService : IIdentityService
             SubscriptionTier = user.SubscriptionTier,
             SubscriptionExpiryDate = user.SubscriptionExpiryDate,
             TrustScore = user.TrustScore,
-            CreatedAt = user.CreatedAt
+            CreatedAt = user.CreatedAt,
+            PhoneNumber = user.PhoneNumber,
+            BusinessName = user.BusinessName,
+            LicenseAddress = user.LicenseAddress,
+            BusinessPhone = user.BusinessPhone,
+            BusinessLicenseFilePath = user.BusinessLicenseFilePath,
+            IsBusinessVerified = user.IsBusinessVerified
         };
     }
 
@@ -211,6 +230,35 @@ public class IdentityService : IIdentityService
             .ToListAsync(cancellationToken);
 
         return users.ToDictionary(u => u.Id, u => u.FullName);
+    }
+
+    public async Task<Dictionary<string, (string Name, string Email)>> GetUserInfoAsync(IEnumerable<string> userIds, CancellationToken cancellationToken = default)
+    {
+        var ids = userIds.Distinct().ToList();
+        if (ids.Count == 0) return new();
+
+        var users = await _userManager.Users
+            .Where(u => ids.Contains(u.Id))
+            .Select(u => new { u.Id, u.FullName, Email = u.Email ?? "" })
+            .ToListAsync(cancellationToken);
+
+        return users.ToDictionary(u => u.Id, u => (u.FullName, u.Email));
+    }
+
+    public async Task<Result> UpdateSubscriptionAsync(string userId, SubscriptionTier tier, DateTime expiryDate, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+            return Result.Failure("User not found.");
+
+        user.SubscriptionTier = tier;
+        user.SubscriptionExpiryDate = expiryDate;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded
+            ? Result.Success()
+            : Result.Failure(result.Errors.Select(e => e.Description));
     }
 
     /// <summary>

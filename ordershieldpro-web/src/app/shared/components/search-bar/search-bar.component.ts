@@ -78,6 +78,11 @@ import { TranslateModule } from '@ngx-translate/core';
       background: var(--surface-200);
       color: var(--text-primary);
     }
+
+    /* RTL */
+    :host-context([dir="rtl"]) input {
+      text-align: right;
+    }
   `]
 })
 export class SearchBarComponent {

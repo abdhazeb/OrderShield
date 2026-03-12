@@ -4,7 +4,7 @@ using OrderShieldPro.Domain.Enums;
 namespace OrderShieldPro.Domain.Entities;
 
 /// <summary>
-/// Subscription plan definition (Free, Pro, Enterprise).
+/// Subscription plan definition (Free, Pro).
 /// Displayed in the User Profile subscription plans modal.
 /// </summary>
 public class SubscriptionPlan : BaseEntity

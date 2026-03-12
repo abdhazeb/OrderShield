@@ -59,9 +59,9 @@ import { VerificationStatus } from '../../core/enums';
             <button class="btn btn-primary" [routerLink]="['/submit-review', entity()!.id]">
               ✍️ {{ 'review.submit' | translate }}
             </button>
-            @if (authService.isAuthenticated()) {
-              <button class="btn btn-outline" (click)="toggleFollow()">
-                {{ entity()!.isFollowed ? ('entity.unfollow' | translate) : ('entity.follow' | translate) }}
+            @if (authService.isAuthenticated() && entity()!.totalReviewCount > 0) {
+              <button class="btn btn-outline" [routerLink]="['/submit-review', entity()!.id]" [queryParams]="{ mode: 'comment' }">
+                💬 {{ 'review.addComment' | translate }}
               </button>
             }
           </div>
@@ -69,10 +69,10 @@ import { VerificationStatus } from '../../core/enums';
 
         <!-- Stats -->
         <div class="profile-stats">
-          <app-stat-card [value]="entity()!.totalReviewCount" label="Total" />
-          <app-stat-card [value]="entity()!.infoReviewCount" label="Info" color="#1e40af" />
-          <app-stat-card [value]="entity()!.warningReviewCount" label="Warning" color="#92400e" />
-          <app-stat-card [value]="entity()!.criticalReviewCount" label="Critical" color="#991b1b" />
+          <app-stat-card [value]="entity()!.totalReviewCount" [label]="'entity.stats.total' | translate" />
+          <app-stat-card [value]="entity()!.infoReviewCount" [label]="'entity.stats.info' | translate" color="#1e40af" />
+          <app-stat-card [value]="entity()!.warningReviewCount" [label]="'entity.stats.warning' | translate" color="#92400e" />
+          <app-stat-card [value]="entity()!.criticalReviewCount" [label]="'entity.stats.critical' | translate" color="#991b1b" />
         </div>
 
         <!-- Additional Info -->
@@ -214,6 +214,9 @@ import { VerificationStatus } from '../../core/enums';
       padding: 4px 10px; border-radius: var(--radius-sm); font-size: 13px;
       margin: 0 4px 4px 0;
     }
+    :host-context([dir="rtl"]) .info-tag {
+      margin: 0 0 4px 4px;
+    }
 
     .followers-count {
       padding: 0 16px; margin-bottom: 16px;
@@ -236,6 +239,38 @@ import { VerificationStatus } from '../../core/enums';
       .followers-count { padding: 0; }
       .section { padding: 0 0 2rem; }
       .profile-meta { flex-direction: row; flex-wrap: wrap; gap: 1.5rem; }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .profile-name-row {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .profile-badges {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .badge {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .meta-item {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .profile-actions {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .info-group h3,
+    :host-context([dir="rtl"]) .info-section,
+    :host-context([dir="rtl"]) .section-title,
+    :host-context([dir="rtl"]) .followers-count {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .profile-name,
+    :host-context([dir="rtl"]) .trade-name {
+      text-align: right;
+    }
+    @media (min-width: 768px) {
+      :host-context([dir="rtl"]) .profile-meta {
+        flex-direction: row-reverse;
+      }
     }
   `]
 })

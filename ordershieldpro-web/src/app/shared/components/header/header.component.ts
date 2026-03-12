@@ -26,6 +26,7 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
         <nav class="desktop-nav">
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">{{ 'nav.home' | translate }}</a>
           <a routerLink="/search" routerLinkActive="active">{{ 'nav.search' | translate }}</a>
+          <a routerLink="/enquiries" routerLinkActive="active">{{ 'nav.enquiries' | translate }}</a>
           @if (authService.isAuthenticated()) {
             <a routerLink="/submit-review" routerLinkActive="active">{{ 'nav.submit' | translate }}</a>
             <a routerLink="/profile" routerLinkActive="active">{{ 'nav.profile' | translate }}</a>
@@ -140,8 +141,8 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
     .desktop-nav a {
       color: var(--text-secondary);
       text-decoration: none;
-      font-weight: 500;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 0.85rem;
       transition: color var(--transition-fast), background var(--transition-fast);
       padding: 0.5rem 0.875rem;
       border-radius: var(--radius-md);
@@ -296,7 +297,7 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
     .notification-badge {
       position: absolute;
       top: -3px;
-      right: -3px;
+      inset-inline-end: -3px;
       background: var(--severity-critical);
       color: white;
       font-size: 10px;
@@ -318,6 +319,13 @@ import { LanguageSelectorComponent } from '../language-selector/language-selecto
     @media (min-width: 768px) {
       .desktop-header { display: block; }
       .mobile-header { display: none; }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .notification-badge {
+      inset-inline-end: -3px;
+      right: auto;
+      left: auto;
     }
   `]
 })

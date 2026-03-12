@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
@@ -99,7 +99,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
     .form-input:focus { outline: none; border-color: var(--accent-400); box-shadow: 0 0 0 3px rgba(15, 145, 151, 0.1); }
 
     .forgot-link {
-      text-align: right; margin-bottom: 16px; margin-top: -8px;
+      text-align: end; margin-bottom: 16px; margin-top: -8px;
     }
     .forgot-link a {
       color: var(--accent-600); font-size: 13px; font-weight: 600; text-decoration: none;
@@ -126,8 +126,8 @@ import { AuthService } from '../../core/auth/services/auth.service';
     .auth-divider::before, .auth-divider::after {
       content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--surface-border);
     }
-    .auth-divider::before { left: 0; }
-    .auth-divider::after { right: 0; }
+    .auth-divider::before { inset-inline-start: 0; }
+    .auth-divider::after { inset-inline-end: 0; }
 
     .spinner-sm {
       width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
@@ -138,13 +138,22 @@ import { AuthService } from '../../core/auth/services/auth.service';
     .auth-footer {
       text-align: center; margin-top: 20px; font-size: 14px; color: var(--text-tertiary);
     }
-    .auth-footer a { color: var(--accent-600); font-weight: 600; text-decoration: none; margin-left: 4px; }
-  `]
+    .auth-footer a { color: var(--accent-600); font-weight: 600; text-decoration: none; margin-inline-start: 4px; }
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .form-label {
+      display: block;
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .form-input {
+      text-align: right;
+      direction: rtl;
+    }  `]
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private translate = inject(TranslateService);
 
   submitting = signal(false);
   error = signal('');
@@ -181,7 +190,7 @@ export class LoginComponent {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.message || 'Invalid email or password');
+        this.error.set(err?.error?.message || this.translate.instant('auth.loginError'));
       },
     });
   }

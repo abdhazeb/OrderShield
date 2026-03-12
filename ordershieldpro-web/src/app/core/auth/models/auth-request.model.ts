@@ -7,6 +7,7 @@ export interface RegisterRequest {
   role: UserRole;
   language: Language;
   organization?: string;
+  phoneNumber?: string;
 }
 
 export interface LoginRequest {

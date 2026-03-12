@@ -89,7 +89,7 @@ public static class DataSeeder
             EmailConfirmed = true,
             FullName = "System Administrator",
             Role = UserRole.Admin,
-            SubscriptionTier = SubscriptionTier.Enterprise,
+            SubscriptionTier = SubscriptionTier.Pro,
             TrustScore = 100,
             LanguagePreference = Language.En
         }, "Admin@123!", "Admin");
@@ -103,7 +103,7 @@ public static class DataSeeder
             EmailConfirmed = true,
             FullName = "Gatwani Admin",
             Role = UserRole.SuperAdmin,
-            SubscriptionTier = SubscriptionTier.Enterprise,
+            SubscriptionTier = SubscriptionTier.Pro,
             TrustScore = 100,
             LanguagePreference = Language.En
         }, "Admin_123!!", "SuperAdmin");
@@ -117,7 +117,7 @@ public static class DataSeeder
             EmailConfirmed = true,
             FullName = "Sarah Chen",
             Role = UserRole.ServiceTeam,
-            SubscriptionTier = SubscriptionTier.Enterprise,
+            SubscriptionTier = SubscriptionTier.Pro,
             TrustScore = 95,
             LanguagePreference = Language.Zh
         }, "Service@123!", "ServiceTeam");
@@ -223,21 +223,6 @@ public static class DataSeeder
                 HasDedicatedSupport = false,
                 FeaturesJson = "[\"All Free features\",\"20 reviews/month\",\"50 watchlist items\",\"Priority verification\",\"Advanced filters\",\"Email notifications\"]",
                 SortOrder = 2
-            },
-            new()
-            {
-                Name = "Enterprise",
-                Tier = SubscriptionTier.Enterprise,
-                MonthlyPrice = 99.99m,
-                Description = "Full access for enterprises and organizations",
-                MaxReviewsPerMonth = -1,
-                MaxWatchlistSize = -1,
-                HasPriorityVerification = true,
-                HasAdvancedFilters = true,
-                HasApiAccess = true,
-                HasDedicatedSupport = true,
-                FeaturesJson = "[\"All Pro features\",\"Unlimited reviews\",\"Unlimited watchlist\",\"API access\",\"Dedicated support\",\"Custom reports\"]",
-                SortOrder = 3
             }
         };
 
@@ -1234,6 +1219,30 @@ public static class DataSeeder
                 Key = "enquiry_sla_days",
                 Value = "2",
                 Description = "Number of working days to respond to supplier enquiries"
+            },
+            new()
+            {
+                Key = "free_trial_days",
+                Value = "365",
+                Description = "Number of days for the free trial period after registration"
+            },
+            new()
+            {
+                Key = "annual_subscription_price",
+                Value = "99",
+                Description = "Annual subscription price in USD"
+            },
+            new()
+            {
+                Key = "two_year_discount_percent",
+                Value = "15",
+                Description = "Discount percentage for 2-year subscription"
+            },
+            new()
+            {
+                Key = "three_year_discount_percent",
+                Value = "25",
+                Description = "Discount percentage for 3-year subscription"
             }
         };
 

@@ -108,6 +108,59 @@ public class WatchRequestsController : ControllerBase
     }
 
     /// <summary>
+    /// Get all public enquiries — visible to everyone (no auth required).
+    /// Returns paginated list sorted by newest first.
+    /// </summary>
+    [HttpGet("public")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetPublicEnquiries(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? status = null,
+        CancellationToken ct = default)
+    {
+        var query = _context.WatchRequests
+            .Include(w => w.Subscribers)
+            .AsNoTracking()
+            .AsQueryable();
+
+        // Filter by status if provided
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<InvestigationStatus>(status, true, out var parsed))
+        {
+            query = query.Where(w => w.Status == parsed);
+        }
+
+        var totalCount = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(w => w.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(w => new
+            {
+                w.Id,
+                w.EntityName,
+                w.EntityCountry,
+                w.EnquiryChecklist,
+                Status = w.Status.ToString(),
+                w.ReplyMessage,
+                w.RepliedAt,
+                w.CreatedAt,
+                SubscriberCount = w.Subscribers.Count,
+                ResultEntityId = w.ResultEntityId
+            })
+            .ToListAsync(ct);
+
+        return Ok(new
+        {
+            items,
+            totalCount,
+            page,
+            pageSize,
+            hasNextPage = (page * pageSize) < totalCount
+        });
+    }
+
+    /// <summary>
     /// Get the enquiry SLA setting.
     /// </summary>
     [HttpGet("sla")]
@@ -138,24 +191,4 @@ public class WatchRequestsController : ControllerBase
 
         return Ok(result);
     }
-
-    /// <summary>
-    /// Resolve a watch request (service team only).
-    /// </summary>
-    [HttpPut("{id:guid}/status")]
-    [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
-    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] ResolveWatchRequestRequest request, CancellationToken ct)
-    {
-        var result = await _mediator.Send(new ResolveWatchRequestCommand
-        {
-            Id = id,
-            NewStatus = request.NewStatus,
-            ServiceTeamNotes = request.ServiceTeamNotes,
-            ResultEntityId = request.ResultEntityId
-        }, ct);
-
-        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
-    }
-
-    public record ResolveWatchRequestRequest(InvestigationStatus NewStatus, string? ServiceTeamNotes, Guid? ResultEntityId);
 }

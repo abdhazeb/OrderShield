@@ -21,6 +21,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             return Result.Failure("User not authenticated.");
 
         return await _identityService.UpdateProfileAsync(
-            _currentUserService.UserId, request.FullName, request.Region, cancellationToken);
+            _currentUserService.UserId, request.FullName, request.Region,
+            request.BusinessName, request.LicenseAddress, request.BusinessPhone, cancellationToken);
     }
 }

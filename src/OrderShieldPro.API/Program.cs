@@ -83,7 +83,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularDev", policy =>
     {
-        policy.WithOrigins("http://localhost:4300")
+        policy.WithOrigins(
+                "http://localhost:4300",
+                "http://192.168.1.2:4300"
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();

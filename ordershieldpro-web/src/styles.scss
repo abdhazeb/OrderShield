@@ -149,3 +149,133 @@ body {
   text-align: right;
 }
 
+/* Arabic font family override */
+[dir="rtl"] body,
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select,
+[dir="rtl"] button {
+  font-family: 'Noto Sans Arabic', 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4,
+[dir="rtl"] .page-title, [dir="rtl"] .section-title,
+[dir="rtl"] .hero-heading {
+  font-family: 'Noto Sans Arabic', 'Bricolage Grotesque', Georgia, serif;
+}
+
+/* RTL input/textarea/select alignment */
+[dir="rtl"] input,
+[dir="rtl"] textarea {
+  text-align: right;
+}
+
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  text-align: right;
+}
+
+/* RTL select arrow positioning */
+[dir="rtl"] select {
+  background-position: left 12px center;
+  padding-left: 32px;
+  padding-right: 12px;
+}
+
+/* RTL flex row reversal for common patterns */
+[dir="rtl"] .back-btn {
+  flex-direction: row-reverse;
+}
+
+/* RTL scrollbar position */
+[dir="rtl"] ::-webkit-scrollbar {
+  direction: rtl;
+}
+
+/* Inputs, selects, textareas */
+[dir="rtl"] input,
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+}
+
+/* Placeholder text direction */
+[dir="rtl"] input::placeholder,
+[dir="rtl"] textarea::placeholder {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Back button — icon + label pair needs reversing in RTL */
+[dir="rtl"] .back-btn {
+  flex-direction: row-reverse;
+}
+
+/* Form group inline (profile page side-by-side fields) */
+[dir="rtl"] .form-group-inline {
+  flex-direction: row-reverse;
+}
+
+/* Navigation arrow (→) should flip to (←) in RTL */
+[dir="rtl"] .arrow,
+[dir="rtl"] .nav-arrow,
+[dir="rtl"] .view-entity-link {
+  transform: scaleX(-1);
+  display: inline-block;
+}
+
+/* Text alignment overrides for centered elements — keep center */
+[dir="rtl"] .text-center,
+[dir="rtl"] .hero-content,
+[dir="rtl"] .auth-header,
+[dir="rtl"] .no-results-section,
+[dir="rtl"] .existing-enquiry-card,
+[dir="rtl"] .guest-limit-banner,
+[dir="rtl"] .logged-out,
+[dir="rtl"] .empty-state,
+[dir="rtl"] .plan-card {
+  text-align: center;
+}
+
+/* Section/card titles stay left:right → right:left */
+[dir="rtl"] .section-title,
+[dir="rtl"] .form-title,
+[dir="rtl"] .page-title,
+[dir="rtl"] .form-subtitle {
+  text-align: right;
+}
+
+/* Margin swaps for inline spacing */
+[dir="rtl"] .auth-footer a {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+/* Forgot link — align to start edge in RTL (right side) */
+[dir="rtl"] .forgot-link {
+  text-align: start;
+}
+
+/* Notification unread dot — move to left side in RTL */
+[dir="rtl"] .unread-dot {
+  order: -1;
+}
+
+/* Select custom arrow — flip background position */
+[dir="rtl"] select {
+  padding-left: 40px;
+  padding-right: 12px;
+  background-position: left 12px center;
+}
+
+/* Reply block text direction */
+[dir="rtl"] .reply-block {
+  text-align: right;
+}
+
+/* Toast — keep centered */
+[dir="rtl"] .toast-message {
+  text-align: center;
+}
+

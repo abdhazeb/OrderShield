@@ -122,7 +122,6 @@ public class AdminController : ControllerBase
         var pendingReviews = await _context.Reviews.CountAsync(r => r.Status == ReviewStatus.Pending, ct);
         var publishedReviews = await _context.Reviews.CountAsync(r => r.Status == ReviewStatus.Published, ct);
         var totalEntities = await _context.TradeEntities.CountAsync(ct);
-        var totalInvestigations = await _context.WatchRequests.CountAsync(ct);
 
         var publishedWithDates = await _context.Reviews
             .Where(r => r.Status == ReviewStatus.Published && r.UpdatedAt.HasValue)
@@ -148,78 +147,8 @@ public class AdminController : ControllerBase
             publishedReviews,
             avgTurnaroundHours = Math.Round(avgTurnaroundHours, 1),
             totalEntities,
-            totalInvestigations,
             verificationRate
         });
-    }
-
-    /// <summary>
-    /// Get all watch/investigation requests for admin management.
-    /// </summary>
-    [HttpGet("watch-requests")]
-    public async Task<IActionResult> GetAllWatchRequests(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
-    {
-        var query = _context.WatchRequests
-            .Include(w => w.Subscribers)
-            .OrderByDescending(w => w.CreatedAt);
-        var totalCount = await query.CountAsync(ct);
-        var items = await query
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(w => new
-            {
-                w.Id,
-                w.EntityName,
-                w.EntityPhone,
-                w.EntityWeChat,
-                w.EntityWebsite,
-                w.EntityCountry,
-                w.AdditionalDetails,
-                w.EnquiryChecklist,
-                w.Status,
-                w.RequestedById,
-                w.AssignedToId,
-                w.ServiceTeamNotes,
-                w.ReplyMessage,
-                w.RepliedAt,
-                w.ResultEntityId,
-                w.ResolvedDate,
-                w.CreatedAt,
-                SubscriberCount = w.Subscribers.Count
-            })
-            .ToListAsync(ct);
-
-        // Resolve requester names
-        var requesterIds = items.Select(i => i.RequestedById).Distinct();
-        var nameMap = await _identityService.GetUserDisplayNamesAsync(requesterIds, ct);
-
-        var enrichedItems = items.Select(w => new
-        {
-            w.Id,
-            w.EntityName,
-            w.EntityPhone,
-            w.EntityWeChat,
-            w.EntityWebsite,
-            w.EntityCountry,
-            w.AdditionalDetails,
-            w.EnquiryChecklist,
-            w.Status,
-            w.RequestedById,
-            RequestedByName = nameMap.GetValueOrDefault(w.RequestedById),
-            w.AssignedToId,
-            w.ServiceTeamNotes,
-            w.ReplyMessage,
-            w.RepliedAt,
-            w.ResultEntityId,
-            w.ResolvedDate,
-            w.CreatedAt,
-            w.SubscriberCount
-        });
-
-        return Ok(new { items = enrichedItems, totalCount, page, pageSize });
     }
 
     /// <summary>
@@ -269,78 +198,6 @@ public class AdminController : ControllerBase
     }
 
     public record AdminMessageRequest(string Message, bool AddAsNote = true);
-
-    // ==================== ENQUIRY REPLY ====================
-
-    /// <summary>
-    /// Reply to a watch request/enquiry. For Admin role, queues for SuperAdmin approval.
-    /// SuperAdmin can reply directly.
-    /// </summary>
-    [HttpPost("watch-requests/{id:guid}/reply")]
-    public async Task<IActionResult> ReplyToEnquiry(Guid id, [FromBody] EnquiryReplyRequest request, CancellationToken ct)
-    {
-        var watchRequest = await _context.WatchRequests
-            .Include(w => w.Subscribers)
-            .FirstOrDefaultAsync(w => w.Id == id, ct);
-        if (watchRequest is null)
-            return NotFound(new { errors = new[] { "Enquiry not found." } });
-
-        if (IsSuperAdmin)
-        {
-            // Execute directly
-            watchRequest.ReplyMessage = request.ReplyMessage;
-            watchRequest.RepliedAt = DateTime.UtcNow;
-            watchRequest.Status = InvestigationStatus.Completed;
-            watchRequest.ResolvedDate = DateTime.UtcNow;
-            watchRequest.AssignedToId = CurrentUserId;
-            if (request.ServiceTeamNotes is not null)
-                watchRequest.ServiceTeamNotes = request.ServiceTeamNotes;
-
-            // Notify requester
-            _context.Notifications.Add(new Notification
-            {
-                UserId = watchRequest.RequestedById,
-                Type = NotificationType.EnquiryReply,
-                Title = "Supplier Enquiry Reply",
-                Message = $"Your enquiry about \"{watchRequest.EntityName}\" has been answered.",
-                IsRead = false
-            });
-
-            // Notify subscribers
-            foreach (var sub in watchRequest.Subscribers)
-            {
-                _context.Notifications.Add(new Notification
-                {
-                    UserId = sub.UserId,
-                    Type = NotificationType.EnquiryReply,
-                    Title = "Supplier Enquiry Reply",
-                    Message = $"The enquiry about \"{watchRequest.EntityName}\" that you subscribed to has been answered.",
-                    IsRead = false
-                });
-            }
-
-            await _context.SaveChangesAsync(ct);
-            return Ok(new { message = "Reply sent to user." });
-        }
-        else
-        {
-            // Queue for SuperAdmin approval
-            var payload = JsonSerializer.Serialize(new { request.ReplyMessage, request.ServiceTeamNotes });
-            _context.PendingAdminActions.Add(new PendingAdminAction
-            {
-                ActionType = AdminActionType.ReplyEnquiry,
-                TargetType = "WatchRequest",
-                TargetId = id,
-                Payload = payload,
-                ProposedById = CurrentUserId!,
-                Status = AdminActionStatus.Pending
-            });
-            await _context.SaveChangesAsync(ct);
-            return Ok(new { message = "Reply queued for SuperAdmin approval.", queued = true });
-        }
-    }
-
-    public record EnquiryReplyRequest(string ReplyMessage, string? ServiceTeamNotes = null);
 
     // ==================== PENDING ADMIN ACTIONS (APPROVAL QUEUE) ====================
 
@@ -670,7 +527,7 @@ public class AdminController : ControllerBase
             UserName = request.Email,
             EmailConfirmed = true,
             Role = role,
-            SubscriptionTier = SubscriptionTier.Enterprise,
+            SubscriptionTier = SubscriptionTier.Pro,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

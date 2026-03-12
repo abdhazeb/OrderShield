@@ -38,9 +38,9 @@ interface AppNotification {
       </div>
 
       @if (loading()) {
-        <app-loading-spinner message="Loading notifications..." />
+        <app-loading-spinner [message]="'notification.loading' | translate" />
       } @else if (notifications().length === 0) {
-        <app-empty-state icon="🔔" title="No Notifications" subtitle="You're all caught up!" />
+        <app-empty-state icon="🔔" [title]="'notification.noNotificationsTitle' | translate" [subtitle]="'notification.allCaughtUp' | translate" />
       } @else {
         <div class="notif-list">
           @for (notif of notifications(); track notif.id) {
@@ -64,7 +64,7 @@ interface AppNotification {
     </div>
   `,
   styles: [`
-    .notif-container { max-width: 680px; margin: 0 auto; padding: 24px 16px; }
+    .notif-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
     .notif-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .notif-header h1 { font-size: 24px; font-weight: 800; color: var(--text-primary); font-family: var(--font-display); }
     .mark-all-btn {
@@ -98,6 +98,11 @@ interface AppNotification {
     }
     .notif-item.clickable:hover { background: var(--accent-50); }
     .notif-item.clickable { cursor: pointer; }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .notif-content {
+      text-align: right;
+    }
   `]
 })
 export class NotificationsComponent implements OnInit, OnDestroy {

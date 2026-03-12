@@ -29,6 +29,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
     public DbSet<WatchRequestSubscriber> WatchRequestSubscribers => Set<WatchRequestSubscriber>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
+    public DbSet<SubscriptionRequest> SubscriptionRequests => Set<SubscriptionRequest>();
     public DbSet<UserFollowedEntity> UserFollowedEntities => Set<UserFollowedEntity>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
@@ -50,6 +51,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>, IApplica
         builder.ApplyConfiguration(new WatchRequestSubscriberConfiguration());
         builder.ApplyConfiguration(new NotificationConfiguration());
         builder.ApplyConfiguration(new SubscriptionPlanConfiguration());
+        builder.ApplyConfiguration(new SubscriptionRequestConfiguration());
         builder.ApplyConfiguration(new UserFollowedEntityConfiguration());
         builder.ApplyConfiguration(new ContactMessageConfiguration());
         builder.ApplyConfiguration(new ApplicationUserConfiguration());

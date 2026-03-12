@@ -16,4 +16,10 @@ public record UserProfileDto
     public int ReviewCount { get; init; }
     public int WatchlistCount { get; init; }
     public DateTime CreatedAt { get; init; }
+    public string? PhoneNumber { get; init; }
+    public string? BusinessName { get; init; }
+    public string? LicenseAddress { get; init; }
+    public string? BusinessPhone { get; init; }
+    public string? BusinessLicenseFilePath { get; init; }
+    public bool IsBusinessVerified { get; init; }
 }

@@ -18,7 +18,45 @@ export interface SubscriptionPlan {
 }
 
 export interface CurrentSubscription {
-  plan: SubscriptionPlan;
+  tier: SubscriptionTier;
+  planName: string;
   expiryDate?: string;
-  isActive: boolean;
+}
+
+export interface DurationOption {
+  years: number;
+  totalPrice: number;
+  discountPercent: number;
+  savedAmount: number;
+}
+
+export interface SubscriptionPricing {
+  tier: SubscriptionTier;
+  planName: string;
+  annualPrice: number;
+  options: DurationOption[];
+}
+
+export interface SubscriptionRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  requestedTier: SubscriptionTier;
+  durationYears: number;
+  totalAmount: number;
+  paymentProofFileName?: string;
+  paymentNotes?: string;
+  status: SubscriptionRequestStatus;
+  adminNotes?: string;
+  reviewedById?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+export enum SubscriptionRequestStatus {
+  Pending = 0,
+  Approved = 1,
+  Rejected = 2
 }

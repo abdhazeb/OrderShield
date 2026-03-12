@@ -46,7 +46,8 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
                 var newEntity = new TradeEntity
                 {
                     LegalName = request.EntityName.Trim(),
-                    Country = "Unknown",
+                    Country = request.SupplierCountry?.Trim() ?? "Unknown",
+                    Region = request.SupplierProvince?.Trim(),
                     EntityType = Domain.Enums.EntityType.Supplier,
                     VerificationStatus = Domain.Enums.VerificationStatus.Unverified,
                     CreatedBy = _currentUserService.UserId
@@ -74,6 +75,7 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
             ProductCategory = request.ProductCategory,
             IncidentDate = request.IncidentDate,
             OrderValue = request.OrderValue,
+            ContactName = request.ContactName,
             ContactPhoneUsed = request.ContactPhoneUsed,
             ContactWeChatUsed = request.ContactWeChatUsed,
             EvidenceLinks = request.EvidenceLinks,

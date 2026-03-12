@@ -33,7 +33,7 @@ import { SeverityLevel } from '../../../core/enums';
       @for (note of review.evidenceNotes; track note.id) {
         @if (note.isPubliclyVisible) {
           <div class="clarification-box">
-            <div class="clarification-title">⚡ Admin Clarification</div>
+            <div class="clarification-title">⚡ {{ 'review.clarification' | translate }}</div>
             <div>{{ note.summary }}</div>
           </div>
         }
@@ -91,7 +91,7 @@ import { SeverityLevel } from '../../../core/enums';
 
     .clarification-box {
       background: #fef3c7;
-      border-left: 3px solid #f59e0b;
+      border-inline-start: 3px solid #f59e0b;
       padding: 12px;
       margin-top: 12px;
       border-radius: 8px;
@@ -112,6 +112,23 @@ import { SeverityLevel } from '../../../core/enums';
         flex-direction: row;
         flex-wrap: wrap;
         gap: 1rem;
+      }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .review-header {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .review-title,
+    :host-context([dir="rtl"]) .review-content {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .review-meta {
+      text-align: right;
+    }
+    @media (min-width: 768px) {
+      :host-context([dir="rtl"]) .review-meta {
+        flex-direction: row-reverse;
       }
     }
   `]

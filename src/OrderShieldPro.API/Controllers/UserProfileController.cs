@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Users.Commands;
 using OrderShieldPro.Application.Users.Queries;
 using OrderShieldPro.Domain.Enums;
@@ -13,10 +14,12 @@ namespace OrderShieldPro.API.Controllers;
 public class UserProfileController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IFileStorageService _fileStorage;
 
-    public UserProfileController(IMediator mediator)
+    public UserProfileController(IMediator mediator, IFileStorageService fileStorage)
     {
         _mediator = mediator;
+        _fileStorage = fileStorage;
     }
 
     /// <summary>
@@ -65,4 +68,25 @@ public class UserProfileController : ControllerBase
     }
 
     public record UpdateLanguageRequest(Language Language);
+
+    /// <summary>
+    /// Upload business license file for verification.
+    /// </summary>
+    [HttpPost("business-license")]
+    public async Task<IActionResult> UploadBusinessLicense(IFormFile file, CancellationToken ct)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(new { errors = new[] { "No file provided." } });
+
+        if (file.Length > 10 * 1024 * 1024)
+            return BadRequest(new { errors = new[] { "File must be under 10 MB." } });
+
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf" };
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowed.Contains(ext))
+            return BadRequest(new { errors = new[] { "File type not allowed." } });
+
+        var savedPath = await _fileStorage.UploadFileAsync(file.OpenReadStream(), file.FileName, file.ContentType, ct);
+        return Ok(new { filePath = savedPath });
+    }
 }

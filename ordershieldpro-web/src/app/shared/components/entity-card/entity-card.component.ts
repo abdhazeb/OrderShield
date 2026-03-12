@@ -113,7 +113,7 @@ import { VerificationStatus } from '../../../core/enums';
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      margin-left: 8px;
+      margin-inline-start: 8px;
       white-space: nowrap;
       letter-spacing: 0.03em;
     }
@@ -165,6 +165,27 @@ import { VerificationStatus } from '../../../core/enums';
         gap: 1.5rem;
         font-size: 0.875rem;
       }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .entity-header {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .entity-meta {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .meta-item {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .entity-stats {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .entity-name,
+    :host-context([dir="rtl"]) .entity-trade-name {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .badge {
+      flex-direction: row-reverse;
     }
   `]
 })

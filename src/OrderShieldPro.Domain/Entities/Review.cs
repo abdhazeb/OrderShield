@@ -26,10 +26,11 @@ public class Review : AuditableEntity
     public string Narrative { get; set; } = string.Empty; // Min 100 chars
     public string? Product { get; set; }
     public string? ProductCategory { get; set; }
-    public DateTime IncidentDate { get; set; }
+    public DateTime? IncidentDate { get; set; }
     public decimal? OrderValue { get; set; }
 
     // Contact info used in the transaction (for rebrand cross-referencing)
+    public string? ContactName { get; set; }
     public string? ContactPhoneUsed { get; set; }
     public string? ContactWeChatUsed { get; set; }
 

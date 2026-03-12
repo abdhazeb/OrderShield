@@ -118,6 +118,18 @@ import { environment } from '../../../environments/environment';
     }
     .auth-footer a { color: var(--accent-600); font-weight: 600; text-decoration: none; }
     .auth-footer a:hover { text-decoration: underline; }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .back-btn {
+      flex-direction: row-reverse;
+    }
+    :host-context([dir="rtl"]) .form-label {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .form-input {
+      text-align: right;
+      direction: rtl;
+    }
   `]
 })
 export class ForgotPasswordComponent {

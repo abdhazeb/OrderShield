@@ -19,6 +19,7 @@ public interface IApplicationDbContext
     DbSet<WatchRequestSubscriber> WatchRequestSubscribers { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<SubscriptionPlan> SubscriptionPlans { get; }
+    DbSet<SubscriptionRequest> SubscriptionRequests { get; }
     DbSet<UserFollowedEntity> UserFollowedEntities { get; }
     DbSet<SystemSetting> SystemSettings { get; }
     DbSet<PendingAdminAction> PendingAdminActions { get; }

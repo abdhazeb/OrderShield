@@ -111,6 +111,75 @@
       }
     },
     {
+      "label": "📱 Phone: Start API (Network)",
+      "type": "shell",
+      "command": "dotnet run --launch-profile network",
+      "options": {
+        "cwd": "${workspaceFolder}/src/OrderShieldPro.API"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "dotnet",
+        "pattern": {
+          "regexp": "^(.*)\\((\\d+),(\\d+)\\):\\s+(error|warning)\\s+(.*):\\s+(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "severity": 4,
+          "code": 5,
+          "message": 6
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^.*Building\\.\\.\\..*$",
+          "endsPattern": "^.*Now listening on:.*$"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "phone"
+      }
+    },
+    {
+      "label": "📱 Phone: Start Angular (Network)",
+      "type": "shell",
+      "command": "npx ng serve --host 0.0.0.0 --port 4300",
+      "options": {
+        "cwd": "${workspaceFolder}/ordershieldpro-web"
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": {
+          "regexp": "^(.*)$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*",
+          "endsPattern": "Application bundle generation complete"
+        }
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "group": "phone"
+      }
+    },
+    {
+      "label": "📱 Phone: Start Full Stack (Network)",
+      "dependsOn": [
+        "📱 Phone: Start API (Network)",
+        "📱 Phone: Start Angular (Network)"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared"
+      }
+    },
+    {
       "label": "Kill All: Free Ports (5017 + 4300)",
       "type": "shell",
       "command": "Write-Host '--- Killing Backend (port 5017) ---'; $pids5017 = (Get-NetTCPConnection -LocalPort 5017 -ErrorAction SilentlyContinue).OwningProcess | Sort-Object -Unique; if ($pids5017) { $pids5017 | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; Write-Host \"Killed PID $_\" } } else { Write-Host 'No process on port 5017' }; Write-Host '--- Killing Frontend (port 4300) ---'; $pids4300 = (Get-NetTCPConnection -LocalPort 4300 -ErrorAction SilentlyContinue).OwningProcess | Sort-Object -Unique; if ($pids4300) { $pids4300 | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; Write-Host \"Killed PID $_\" } } else { Write-Host 'No process on port 4300' }; Write-Host '--- Done: Ports 5017 and 4300 are free ---'",
