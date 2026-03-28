@@ -1,0 +1,129 @@
+<div class="auth-page">
+      <div class="auth-card">
+        @if (registrationComplete()) {
+          <!-- Verification Step -->
+          <div class="verification-step">
+            <div class="success-icon">✅</div>
+            <h1>{{ 'auth.verificationTitle' | translate }}</h1>
+            <p class="verification-subtitle">{{ 'auth.verificationSubtitle' | translate }}</p>
+
+            <div class="verification-methods">
+              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'email'" (click)="selectedVerificationMethod.set('email')">
+                <span class="method-icon">✉️</span>
+                <div class="method-info">
+                  <span class="method-name">{{ 'auth.verifyByEmail' | translate }}</span>
+                  <span class="method-desc">{{ 'auth.verifyByEmailDesc' | translate }}</span>
+                </div>
+              </button>
+              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'sms'" (click)="selectedVerificationMethod.set('sms')">
+                <span class="method-icon">📱</span>
+                <div class="method-info">
+                  <span class="method-name">{{ 'auth.verifyBySMS' | translate }}</span>
+                  <span class="method-desc">{{ 'auth.verifyBySMSDesc' | translate }}</span>
+                </div>
+              </button>
+              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'whatsapp'" (click)="selectedVerificationMethod.set('whatsapp')">
+                <span class="method-icon">💬</span>
+                <div class="method-info">
+                  <span class="method-name">{{ 'auth.verifyByWhatsApp' | translate }}</span>
+                  <span class="method-desc">{{ 'auth.verifyByWhatsAppDesc' | translate }}</span>
+                </div>
+              </button>
+            </div>
+
+            <button class="btn btn-primary" (click)="confirmVerification()">
+              {{ 'auth.sendVerification' | translate }}
+            </button>
+
+            <button class="btn btn-skip" (click)="skipVerification()">
+              {{ 'auth.skipForNow' | translate }}
+            </button>
+          </div>
+        } @else {
+        <button class="back-btn" (click)="goBack()">← {{ 'common.back' | translate }}</button>
+
+        <div class="auth-header">
+          <span class="logo">🛡️</span>
+          <h1>{{ 'auth.register' | translate }}</h1>
+          <p>{{ 'auth.registerSubtitle' | translate }}</p>
+        </div>
+
+        @if (error()) {
+          <div class="error-alert">
+            @for (line of errorLines(); track $index) {
+              <div>{{ line }}</div>
+            }
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.fullName' | translate }}</label>
+            <input class="form-input" type="text" formControlName="fullName" [placeholder]="'auth.fullNameHint' | translate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.email' | translate }}</label>
+            <input class="form-input" type="email" formControlName="email" placeholder="your@email.com" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.phoneNumber' | translate }}</label>
+            <input class="form-input" type="tel" formControlName="phoneNumber" [placeholder]="'auth.phoneNumberHint' | translate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.password' | translate }}</label>
+            <input class="form-input" type="password" formControlName="password" [placeholder]="'auth.passwordHint' | translate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.confirmPassword' | translate }}</label>
+            <input class="form-input" type="password" formControlName="confirmPassword" [placeholder]="'auth.confirmPasswordHint' | translate" />
+            @if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
+              <span class="field-error">{{ 'auth.passwordMismatch' | translate }}</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'auth.organization' | translate }}</label>
+            <input class="form-input" type="text" formControlName="organization" [placeholder]="'auth.organizationHint' | translate" />
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="agreeToTerms" />
+              <span>{{ 'legal.agreePrefix' | translate }}
+                <a routerLink="/terms" target="_blank">{{ 'legal.termsTitle' | translate }}</a>
+                {{ 'legal.and' | translate }}
+                <a routerLink="/privacy" target="_blank">{{ 'legal.privacyTitle' | translate }}</a>
+              </span>
+            </label>
+            @if (form.get('agreeToTerms')?.touched && form.get('agreeToTerms')?.hasError('required')) {
+              <span class="field-error">{{ 'legal.mustAgree' | translate }}</span>
+            }
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="!form.valid || submitting()">
+            @if (submitting()) {
+              <span class="spinner-sm"></span>
+            }
+            {{ 'auth.registerButton' | translate }}
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>{{ 'auth.or' | translate }}</span>
+        </div>
+
+        <button class="btn btn-guest" (click)="continueAsGuest()">
+          {{ 'auth.continueAsGuest' | translate }}
+        </button>
+
+        <div class="auth-footer">
+          <span>{{ 'auth.hasAccount' | translate }}</span>
+          <a routerLink="/login">{{ 'auth.loginButton' | translate }}</a>
+        </div>
+        }
+      </div>
+    </div>

@@ -1,0 +1,71 @@
+/* ===== Content Card ===== */
+.content-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.empty-card { padding: 48px 24px; }
+
+/* ===== Team Section ===== */
+.team-section { display: flex; flex-direction: column; gap: 16px; }
+.team-header { display: flex; align-items: center; justify-content: space-between; }
+.team-header h3 { font-size: 18px; font-weight: 700; color: #0f172a; }
+.btn-primary-sm {
+  background: #3b82f6; color: white; padding: 8px 18px; border-radius: 8px;
+  font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: all 0.15s;
+}
+.btn-primary-sm:hover { background: #2563eb; }
+
+.new-admin-form { padding: 20px; }
+.form-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+.form-field label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.form-field input {
+  width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; font-family: inherit;
+}
+.form-field input:focus { outline: none; border-color: #3b82f6; }
+
+.toolbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+  border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; background: white; color: #374151; font-family: inherit; transition: all 0.15s ease;
+}
+.toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.toolbar-btn.btn-approve { background: #059669; color: white; border-color: #059669; }
+.toolbar-btn.btn-approve:hover:not(:disabled) { background: #047857; border-color: #047857; }
+
+.team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.team-card {
+  background: white; border-radius: 12px; padding: 18px; border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.team-card.inactive { opacity: 0.6; background: #f8fafc; }
+.team-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.team-name { font-size: 15px; font-weight: 700; color: #0f172a; margin: 0; }
+.team-email { font-size: 13px; color: #64748b; }
+.team-role-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+.role-super { background: #fef3c7; color: #92400e; }
+.role-admin { background: #dbeafe; color: #1e40af; }
+.team-card-meta {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+  font-size: 12px; color: #64748b;
+}
+.status-pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+.active-pill { background: #dcfce7; color: #166534; }
+.frozen-pill { background: #fecaca; color: #991b1b; }
+.team-actions { display: flex; gap: 8px; }
+.btn-sm {
+  padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer; transition: all 0.15s;
+}
+.btn-warn { background: #fef3c7; color: #92400e; }
+.btn-warn:hover { background: #fde68a; }
+.btn-unfreeze { background: #dcfce7; color: #166534; }
+.btn-unfreeze:hover { background: #bbf7d0; }
+.btn-danger { background: #fecaca; color: #991b1b; }
+.btn-danger:hover { background: #fca5a5; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .form-row { grid-template-columns: 1fr; }
+  .team-grid { grid-template-columns: 1fr; }
+}

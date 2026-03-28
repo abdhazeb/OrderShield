@@ -1,0 +1,55 @@
+/* ===== Content Card ===== */
+.content-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.empty-card { padding: 48px 24px; }
+
+/* ===== Queue Cards ===== */
+.queue-list { display: flex; flex-direction: column; gap: 12px; }
+.queue-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  overflow: hidden; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.queue-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px; transition: background 0.1s;
+}
+.card-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.action-type-badge {
+  display: inline-block; padding: 4px 10px; background: #fef3c7; color: #92400e;
+  border-radius: 6px; font-size: 12px; font-weight: 700; margin-right: 10px;
+}
+.card-title-group { flex: 1; min-width: 0; }
+.card-title {
+  font-size: 16px; font-weight: 600; color: #0f172a; margin: 0 0 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #64748b; flex-wrap: wrap; }
+.meta-sep { color: #cbd5e1; }
+
+/* ===== Card Body ===== */
+.queue-card-body { border-top: 1px solid #e2e8f0; padding: 20px; background: #fafbfc; }
+.detail-section { margin-bottom: 20px; }
+.detail-section:last-child { margin-bottom: 0; }
+.section-title {
+  font-size: 14px; font-weight: 700; color: #475569; text-transform: uppercase;
+  letter-spacing: 0.5px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+}
+.narrative-block {
+  background: white; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0;
+  font-size: 15px; line-height: 1.75; color: #334155; white-space: pre-wrap;
+}
+
+/* ===== Action Toolbar ===== */
+.action-toolbar { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.toolbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+  border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; background: white; color: #374151; font-family: inherit; transition: all 0.15s ease;
+}
+.toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.toolbar-btn.btn-approve { background: #059669; color: white; border-color: #059669; }
+.toolbar-btn.btn-approve:hover:not(:disabled) { background: #047857; border-color: #047857; }
+.toolbar-btn.btn-reject { background: white; color: #dc2626; border-color: #fca5a5; }
+.toolbar-btn.btn-reject:hover:not(:disabled) { background: #fef2f2; border-color: #f87171; }

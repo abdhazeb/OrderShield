@@ -399,7 +399,10 @@
     "next": "Next",
     "previous": "Previous",
     "viewAll": "View All",
-    "noData": "No data available"
+    "noData": "No data available",
+    "dismiss": "OK",
+    "yes": "Yes",
+    "no": "No"
   },
   "severity": {
     "info": "Info",

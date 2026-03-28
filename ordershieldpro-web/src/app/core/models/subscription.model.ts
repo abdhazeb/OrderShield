@@ -46,6 +46,7 @@ export interface SubscriptionRequest {
   durationYears: number;
   totalAmount: number;
   paymentProofFileName?: string;
+  paymentProofStoragePath?: string;
   paymentNotes?: string;
   status: SubscriptionRequestStatus;
   adminNotes?: string;

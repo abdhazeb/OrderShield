@@ -6,6 +6,9 @@ const USER_ID_KEY = 'osp_user_id';
 
 @Injectable({ providedIn: 'root' })
 export class TokenService {
+  private cachedDecoded: any | null = null;
+  private cachedToken: string | null = null;
+
   getAccessToken(): string | null {
     return localStorage.getItem(ACCESS_TOKEN_KEY);
   }
@@ -22,12 +25,16 @@ export class TokenService {
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     localStorage.setItem(USER_ID_KEY, userId);
+    this.cachedDecoded = null;
+    this.cachedToken = null;
   }
 
   clearTokens(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_ID_KEY);
+    this.cachedDecoded = null;
+    this.cachedToken = null;
   }
 
   isAuthenticated(): boolean {
@@ -35,7 +42,8 @@ export class TokenService {
     if (!token) return false;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = this.getDecodedToken();
+      if (!payload) return false;
       const expiry = payload.exp * 1000;
       return Date.now() < expiry;
     } catch {
@@ -47,9 +55,17 @@ export class TokenService {
     const token = this.getAccessToken();
     if (!token) return null;
 
+    if (token === this.cachedToken && this.cachedDecoded) {
+      return this.cachedDecoded;
+    }
+
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      this.cachedToken = token;
+      this.cachedDecoded = JSON.parse(atob(token.split('.')[1]));
+      return this.cachedDecoded;
     } catch {
+      this.cachedToken = null;
+      this.cachedDecoded = null;
       return null;
     }
   }

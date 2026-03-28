@@ -1,17 +1,25 @@
 import { Language, SubscriptionTier, UserRole } from '../enums';
 
 export interface UserProfile {
-  id: string;
+  id?: string;
   fullName: string;
   email: string;
-  role: UserRole;
+  role?: UserRole;
   region?: string;
-  languagePreference: Language;
-  subscriptionTier: SubscriptionTier;
+  languagePreference: Language | string;
+  subscriptionTier: SubscriptionTier | number;
   subscriptionExpiryDate?: string;
   trustScore: number;
-  isActive: boolean;
-  createdAt: string;
+  isActive?: boolean;
+  createdAt?: string;
+  reviewCount: number;
+  watchlistCount: number;
+  phoneNumber?: string;
+  businessName?: string;
+  licenseAddress?: string;
+  businessPhone?: string;
+  businessLicenseFilePath?: string;
+  isBusinessVerified?: boolean;
 }
 
 export interface UpdateProfileRequest {

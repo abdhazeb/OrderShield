@@ -1,0 +1,18 @@
+<div class="legal-page">
+      <div class="legal-card">
+        <button class="back-btn" (click)="goBack()">← {{ 'common.back' | translate }}</button>
+
+        <h1>{{ docType() === 'privacy' ? ('legal.privacyTitle' | translate) : ('legal.termsTitle' | translate) }}</h1>
+        <p class="last-updated">{{ 'legal.lastUpdated' | translate }}: {{ 'legal.updateDate' | translate }}</p>
+
+        <div class="legal-content" [innerHTML]="content()"></div>
+
+        <div class="legal-nav">
+          @if (docType() === 'privacy') {
+            <a routerLink="/terms" class="nav-link">{{ 'legal.termsTitle' | translate }} →</a>
+          } @else {
+            <a routerLink="/privacy" class="nav-link">{{ 'legal.privacyTitle' | translate }} →</a>
+          }
+        </div>
+      </div>
+    </div>

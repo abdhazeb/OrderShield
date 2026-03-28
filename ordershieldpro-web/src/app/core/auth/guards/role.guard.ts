@@ -11,13 +11,16 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  const user = authService.currentUser();
-  if (!user) {
+  const userRole = authService.getUserRole();
+  if (userRole === null) {
     router.navigate(['/login']);
     return false;
   }
 
-  if (requiredRoles.includes(user.role)) {
+  const roleNames: Record<number, string> = { 0: 'Broker', 1: 'Buyer', 2: 'ServiceTeam', 3: 'Admin', 4: 'SuperAdmin' };
+  const userRoleName = roleNames[userRole] ?? '';
+
+  if (requiredRoles.includes(userRoleName)) {
     return true;
   }
 

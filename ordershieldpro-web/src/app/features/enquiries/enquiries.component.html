@@ -1,0 +1,127 @@
+<div class="enquiries-page">
+      <!-- Hero Section -->
+      <div class="page-hero">
+        <div class="hero-content">
+          <h1 class="page-title">{{ 'enquiries.title' | translate }}</h1>
+          <p class="page-subtitle">{{ 'enquiries.subtitle' | translate }}</p>
+          @if (authService.isAuthenticated()) {
+            <a routerLink="/search" [queryParams]="{openEnquiry: 'true'}" class="btn-add-enquiry">
+              ＋ {{ 'enquiries.addEnquiry' | translate }}
+            </a>
+          }
+        </div>
+      </div>
+
+      <!-- Status Filter Tabs -->
+      <div class="filter-tabs">
+        <button class="tab-btn" [class.active]="activeFilter() === 'all'" (click)="setFilter('all')">
+          {{ 'enquiries.filterAll' | translate }}
+          <span class="tab-count">{{ totalCount() }}</span>
+        </button>
+        <button class="tab-btn" [class.active]="activeFilter() === 'Pending'" (click)="setFilter('Pending')">
+          <span class="status-dot pending"></span>
+          {{ 'enquiries.filterPending' | translate }}
+        </button>
+        <button class="tab-btn" [class.active]="activeFilter() === 'InProgress'" (click)="setFilter('InProgress')">
+          <span class="status-dot in-progress"></span>
+          {{ 'enquiries.filterInProgress' | translate }}
+        </button>
+        <button class="tab-btn" [class.active]="activeFilter() === 'Completed'" (click)="setFilter('Completed')">
+          <span class="status-dot completed"></span>
+          {{ 'enquiries.filterCompleted' | translate }}
+        </button>
+      </div>
+
+      <!-- Loading -->
+      @if (loading()) {
+        <app-loading-spinner />
+      } @else if (enquiries().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <h3>{{ 'enquiries.noEnquiries' | translate }}</h3>
+          <p>{{ 'enquiries.noEnquiriesDesc' | translate }}</p>
+          <a routerLink="/search" class="btn-primary">{{ 'enquiries.goSearch' | translate }}</a>
+        </div>
+      } @else {
+        <!-- Enquiries Grid -->
+        <div class="enquiries-grid">
+          @for (enquiry of enquiries(); track enquiry.id) {
+            <div class="enquiry-card" [class.completed]="enquiry.status === 'Completed'" [class.in-progress]="enquiry.status === 'InProgress'">
+              <div class="card-header">
+                <div class="entity-info">
+                  <h3 class="entity-name">{{ enquiry.entityName }}</h3>
+                  @if (enquiry.entityCountry) {
+                    <span class="entity-country">📍 {{ enquiry.entityCountry }}</span>
+                  }
+                </div>
+                <span class="status-badge" [class]="'status-' + enquiry.status.toLowerCase()">
+                  @switch (enquiry.status) {
+                    @case ('Pending') { ⏳ {{ 'enquiries.statusPending' | translate }} }
+                    @case ('InProgress') { 🔍 {{ 'enquiries.statusInProgress' | translate }} }
+                    @case ('Completed') { ✅ {{ 'enquiries.statusCompleted' | translate }} }
+                    @default { {{ enquiry.status }} }
+                  }
+                </span>
+              </div>
+
+              <!-- Checklist tags -->
+              @if (enquiry.enquiryChecklist) {
+                <div class="checklist-tags">
+                  @for (tag of parseChecklist(enquiry.enquiryChecklist); track tag) {
+                    <span class="tag">{{ getChecklistLabel(tag) | translate }}</span>
+                  }
+                </div>
+              }
+
+              <!-- Reply section for completed enquiries -->
+              @if (enquiry.status === 'Completed' && enquiry.replyMessage) {
+                <div class="reply-section">
+                  <div class="reply-label">{{ 'enquiry.teamReply' | translate }}</div>
+                  <p class="reply-text">{{ enquiry.replyMessage }}</p>
+                  @if (enquiry.repliedAt) {
+                    <span class="reply-date">{{ enquiry.repliedAt | date:'MMM d, yyyy' }}</span>
+                  }
+                </div>
+              }
+
+              <!-- If resolved to an entity, show link -->
+              @if (enquiry.resultEntityId) {
+                <a [routerLink]="'/entity/' + enquiry.resultEntityId" class="view-entity-link">
+                  {{ 'enquiries.viewEntity' | translate }} →
+                </a>
+              }
+
+              <div class="card-footer">
+                <div class="footer-meta">
+                  <span class="date">{{ enquiry.createdAt | date:'MMM d, yyyy' }}</span>
+                  <span class="subscribers">👥 {{ enquiry.subscriberCount }} {{ 'enquiry.interested' | translate }}</span>
+                </div>
+                @if (authService.isAuthenticated() && enquiry.status !== 'Completed') {
+                  @if (subscribedIds().has(enquiry.id)) {
+                    <span class="subscribed-label">✅ {{ 'enquiry.alreadySubscribed' | translate }}</span>
+                  } @else {
+                    <button class="btn-subscribe" [disabled]="subscribingId() === enquiry.id" (click)="subscribe(enquiry.id)">
+                      🔔 {{ subscribingId() === enquiry.id ? ('common.loading' | translate) : ('enquiry.notifyMe' | translate) }}
+                    </button>
+                  }
+                } @else if (!authService.isAuthenticated() && enquiry.status !== 'Completed') {
+                  <a routerLink="/login" class="btn-subscribe-link">🔒 {{ 'enquiries.loginToSubscribe' | translate }}</a>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Load more -->
+        @if (hasNextPage()) {
+          <button class="btn-load-more" [disabled]="loadingMore()" (click)="loadMore()">
+            {{ loadingMore() ? ('common.loading' | translate) : ('enquiries.loadMore' | translate) }}
+          </button>
+        }
+      }
+
+      <!-- Toast -->
+      @if (showToast()) {
+        <div class="toast-message toast-success">{{ toastMessage() }}</div>
+      }
+    </div>

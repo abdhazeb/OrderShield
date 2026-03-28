@@ -1,0 +1,293 @@
+.search-page { padding: 16px; }
+    .search-header { margin-bottom: 16px; }
+
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .search-row app-search-bar { flex: 1; }
+
+    .filters-toggle-btn {
+      background: var(--surface-0);
+      border: 1.5px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 12px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--font-body);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+      flex-shrink: 0;
+    }
+    .filters-toggle-btn:hover { border-color: var(--accent-400); color: var(--accent-600); }
+    .filters-toggle-btn.active { background: var(--accent-50); border-color: var(--accent-400); color: var(--accent-600); }
+
+    .no-results-actions {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .btn-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: var(--radius-lg);
+      font-weight: 700;
+      font-size: 15px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all var(--transition-base);
+      border: none;
+    }
+    .btn-review {
+      background: var(--accent-600);
+      color: white;
+      box-shadow: 0 2px 8px rgba(13, 115, 119, 0.2);
+    }
+    .btn-review:hover { background: var(--accent-500); transform: translateY(-1px); box-shadow: var(--shadow-accent); }
+    .btn-enquiry {
+      background: var(--surface-0);
+      color: var(--accent-600);
+      border: 2px solid var(--accent-400);
+    }
+    .btn-enquiry:hover { background: var(--accent-50); transform: translateY(-1px); }
+
+    .filters-panel {
+      background: var(--surface-0);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--surface-border-subtle);
+      box-shadow: var(--shadow-sm);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .filter-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-family: var(--font-body);
+      color: var(--text-primary);
+      background: var(--surface-0);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+
+    .filter-group select:focus,
+    .filter-group input:focus {
+      outline: none;
+      border-color: var(--accent-400);
+      box-shadow: 0 0 0 3px rgba(15, 145, 151, 0.1);
+    }
+
+    .results-count {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+
+    .btn-load-more {
+      width: 100%;
+      padding: 12px;
+      background: var(--surface-0);
+      border: 1.5px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      color: var(--accent-600);
+      font-weight: 600;
+      font-size: 14px;
+      font-family: var(--font-body);
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all var(--transition-fast);
+    }
+    .btn-load-more:hover { background: var(--accent-50); border-color: var(--accent-400); }
+
+    .guest-limit-banner {
+      background: linear-gradient(135deg, var(--navy-50) 0%, var(--navy-100) 100%);
+      border: 1.5px solid var(--navy-200);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      text-align: center;
+      margin-top: 16px;
+    }
+    .limit-icon { font-size: 36px; margin-bottom: 8px; }
+    .guest-limit-banner h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--navy-900); margin-bottom: 8px; }
+    .guest-limit-banner p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+    .btn-signup {
+      display: inline-block; background: var(--navy-900); color: white; padding: 12px 32px;
+      border-radius: var(--radius-lg); font-weight: 700; font-size: 15px; text-decoration: none;
+      transition: all var(--transition-base);
+    }
+    .btn-signup:hover { background: var(--navy-800); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .limit-count { font-size: 12px; color: var(--text-tertiary); margin-top: 12px; }
+
+    /* ===== No Results / Enquiry Styles ===== */
+    .no-results-section { text-align: center; padding: 16px 0; }
+    .no-results-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.7; }
+    .no-results-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+    .no-results-subtitle { font-size: 14px; color: var(--text-tertiary); margin-bottom: 24px; }
+
+    .login-prompt-card {
+      background: linear-gradient(135deg, var(--navy-50) 0%, var(--navy-100) 100%);
+      border: 1.5px solid var(--navy-200);
+      border-radius: var(--radius-xl); padding: 32px; max-width: 420px; margin: 0 auto;
+    }
+    .prompt-icon { font-size: 36px; margin-bottom: 12px; }
+    .login-prompt-card h3 { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--navy-900); margin-bottom: 8px; }
+    .login-prompt-card p { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+    .prompt-actions { display: flex; gap: 12px; justify-content: center; }
+
+    .btn-primary {
+      display: inline-block; background: var(--accent-600); color: white; padding: 10px 24px;
+      border-radius: var(--radius-md); font-weight: 600; font-size: 14px; border: none; cursor: pointer;
+      font-family: var(--font-body);
+      text-decoration: none; transition: all var(--transition-base);
+    }
+    .btn-primary:hover { background: var(--accent-500); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-secondary {
+      display: inline-block; background: var(--surface-0); color: var(--accent-600); padding: 10px 24px;
+      border-radius: var(--radius-md); font-weight: 600; font-size: 14px; border: 1.5px solid var(--accent-400);
+      font-family: var(--font-body);
+      cursor: pointer; text-decoration: none; transition: all var(--transition-fast);
+    }
+    .btn-secondary:hover { background: var(--accent-50); }
+
+    .btn-link {
+      background: none; border: none; color: var(--accent-600); font-size: 13px;
+      cursor: pointer; text-decoration: underline; margin-top: 12px;
+      font-family: var(--font-body);
+      display: block;
+    }
+
+    /* Existing enquiry card */
+    .existing-enquiry-card {
+      background: var(--surface-0); border-radius: var(--radius-xl); padding: 24px; max-width: 500px;
+      margin: 0 auto; box-shadow: var(--shadow-md);
+      border: 1px solid var(--surface-border-subtle); text-align: center;
+    }
+    .enquiry-badge {
+      display: inline-block; padding: 6px 16px; border-radius: var(--radius-full);
+      font-weight: 600; font-size: 14px; margin-bottom: 16px;
+    }
+    .enquiry-badge.completed { background: var(--success-bg); color: var(--success); }
+    .enquiry-badge.pending { background: var(--severity-warning-bg); color: var(--severity-warning); }
+    .enquiry-info { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+    .subscriber-count { display: block; font-size: 13px; color: var(--text-tertiary); margin-bottom: 16px; }
+    .btn-subscribe { margin-bottom: 8px; }
+    .subscribed-badge {
+      display: inline-block; padding: 8px 20px; background: var(--success-bg); color: var(--success);
+      border-radius: var(--radius-md); font-weight: 600; font-size: 14px; margin-bottom: 12px;
+    }
+    .reply-block {
+      background: var(--accent-50); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px;
+      text-align: start; border: 1px solid var(--accent-100);
+    }
+    .reply-block h4 { font-size: 14px; font-weight: 700; color: var(--accent-600); margin-bottom: 8px; }
+    .reply-text { font-size: 14px; color: var(--text-primary); line-height: 1.6; margin-bottom: 8px; }
+    .reply-date { font-size: 12px; color: var(--text-muted); }
+
+    /* Enquiry form card */
+    .enquiry-form-card {
+      background: var(--surface-0); border-radius: var(--radius-xl); padding: 24px; max-width: 600px;
+      margin: 0 auto; box-shadow: var(--shadow-md);
+      border: 1px solid var(--surface-border-subtle); text-align: start;
+    }
+    .form-title { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .form-subtitle { font-size: 14px; color: var(--text-tertiary); margin-bottom: 20px; }
+
+    .form-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+    }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full-width { grid-column: span 2; }
+    .form-group label { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
+    .form-group input, .form-group textarea {
+      padding: 10px 12px; border: 1.5px solid var(--surface-border); border-radius: var(--radius-md);
+      font-size: 14px; font-family: var(--font-body); resize: vertical; color: var(--text-primary);
+      transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      outline: none; border-color: var(--accent-400);
+      box-shadow: 0 0 0 3px rgba(15, 145, 151, 0.1);
+    }
+
+    .checklist-section { margin-bottom: 16px; }
+    .checklist-section h4 { font-size: 14px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; }
+    .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .checklist-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      border: 1.5px solid var(--surface-border); border-radius: var(--radius-md); cursor: pointer;
+      font-size: 13px; color: var(--text-primary); transition: all var(--transition-fast);
+    }
+    .checklist-item:hover { border-color: var(--accent-300); background: var(--accent-50); }
+    .checklist-item.checked { border-color: var(--accent-400); background: var(--accent-50); }
+    .checklist-item input[type="checkbox"] { display: none; }
+    .check-icon { font-size: 16px; }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+    .btn-submit-enquiry { flex: 1; padding: 12px; font-size: 15px; }
+
+    /* Toast */
+    .toast-message {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      padding: 14px 28px; border-radius: var(--radius-lg); font-weight: 600; font-size: 14px;
+      box-shadow: var(--shadow-xl); z-index: 1000; animation: slideUp 0.3s var(--ease-out);
+    }
+    .toast-success { background: #0d6b4a; color: white; }
+    .toast-info { background: var(--navy-800); color: white; }
+    @keyframes slideUp { from { transform: translateX(-50%) translateY(20px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+    @media (min-width: 768px) {
+      .search-page { padding: 2rem 0; }
+      .filters-panel { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .form-group.full-width { grid-column: span 1; }
+      .checklist-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== RTL overrides ===== */
+    :host-context([dir="rtl"]) .form-group label,
+    :host-context([dir="rtl"]) .form-group input,
+    :host-context([dir="rtl"]) .form-group textarea,
+    :host-context([dir="rtl"]) .filter-group label,
+    :host-context([dir="rtl"]) .filter-group input,
+    :host-context([dir="rtl"]) .filter-group select {
+      text-align: right;
+      direction: rtl;
+    }
+    :host-context([dir="rtl"]) .enquiry-form-card,
+    :host-context([dir="rtl"]) .reply-block {
+      text-align: right;
+    }
+    :host-context([dir="rtl"]) .existing-enquiry-card {
+      text-align: center;
+    }
+    :host-context([dir="rtl"]) .form-title,
+    :host-context([dir="rtl"]) .form-subtitle,
+    :host-context([dir="rtl"]) .checklist-section h4,
+    :host-context([dir="rtl"]) .results-count {
+      text-align: right;
+    }

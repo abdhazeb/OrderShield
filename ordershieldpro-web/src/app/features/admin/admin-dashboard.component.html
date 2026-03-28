@@ -1,0 +1,67 @@
+<div class="admin-page" dir="ltr">
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-item" [class.active]="activeTab() === 'queue'" (click)="activeTab.set('queue')">
+      {{ 'admin.reviewsRequests' | translate }}
+      @if (pendingCount() > 0) {
+        <span class="tab-badge">{{ pendingCount() }}</span>
+      }
+    </button>
+    <button class="tab-item" [class.active]="activeTab() === 'analytics'" (click)="activeTab.set('analytics')">
+      {{ 'admin.analytics' | translate }}
+    </button>
+    <button class="tab-item" [class.active]="activeTab() === 'messages'" (click)="activeTab.set('messages')">
+      {{ 'admin.contactMessages' | translate }}
+      @if (unreadMsgCount() > 0) {
+        <span class="tab-badge">{{ unreadMsgCount() }}</span>
+      }
+    </button>
+    <button class="tab-item" [class.active]="activeTab() === 'subscriptions'" (click)="activeTab.set('subscriptions')">
+      {{ 'admin.subscriptions' | translate }}
+      @if (pendingSubCount() > 0) {
+        <span class="tab-badge">{{ pendingSubCount() }}</span>
+      }
+    </button>
+    @if (authService.isSuperAdmin()) {
+      <button class="tab-item" [class.active]="activeTab() === 'approvals'" (click)="activeTab.set('approvals')">
+        {{ 'admin.approvals' | translate }}
+        @if (pendingActionCount() > 0) {
+          <span class="tab-badge">{{ pendingActionCount() }}</span>
+        }
+      </button>
+      <button class="tab-item" [class.active]="activeTab() === 'team'" (click)="activeTab.set('team')">
+        {{ 'admin.team' | translate }}
+      </button>
+      <button class="tab-item" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">
+        {{ 'admin.settings' | translate }}
+      </button>
+    }
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    @switch (activeTab()) {
+      @case ('queue') {
+        <app-moderation-queue (countChange)="pendingCount.set($event)" />
+      }
+      @case ('analytics') {
+        <app-admin-analytics />
+      }
+      @case ('messages') {
+        <app-contact-messages (countChange)="unreadMsgCount.set($event)" />
+      }
+      @case ('subscriptions') {
+        <app-subscription-requests (countChange)="pendingSubCount.set($event)" />
+      }
+      @case ('approvals') {
+        <app-admin-approvals (countChange)="pendingActionCount.set($event)" />
+      }
+      @case ('team') {
+        <app-admin-team />
+      }
+      @case ('settings') {
+        <app-admin-settings />
+      }
+    }
+  </div>
+</div>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LanguageService, SupportedLanguage } from './core/services/language.service';
 
@@ -6,7 +6,8 @@ import { LanguageService, SupportedLanguage } from './core/services/language.ser
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent implements OnInit {
   private languageService = inject(LanguageService);

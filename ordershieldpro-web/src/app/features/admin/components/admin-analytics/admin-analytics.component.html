@@ -1,0 +1,55 @@
+@if (loadingAnalytics()) {
+  <div class="content-card"><app-loading-spinner [message]="'admin.loadingAnalytics' | translate" /></div>
+} @else if (analytics()) {
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon blue-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ analytics()!.totalReviews }}</span>
+        <span class="kpi-label">{{ 'admin.totalReviews' | translate }}</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon amber-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="2"/><path d="M12 6v6l4 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ analytics()!.pendingReviews }}</span>
+        <span class="kpi-label">{{ 'admin.pendingReviews' | translate }}</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon green-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 4L12 14.01l-3-3" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ analytics()!.publishedReviews }}</span>
+        <span class="kpi-label">{{ 'admin.publishedReviews' | translate }}</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon purple-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ analytics()!.avgTurnaroundHours | number:'1.0-0' }}<small>h</small></span>
+        <span class="kpi-label">{{ 'admin.avgTurnaround' | translate }}</span>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon teal-bg"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" stroke="white" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="kpi-data">
+        <span class="kpi-value">{{ analytics()!.totalEntities }}</span>
+        <span class="kpi-label">{{ 'admin.totalEntities' | translate }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <h3 class="card-section-title">{{ 'admin.verificationRate' | translate }}</h3>
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="analytics()!.verificationRate"></div>
+      </div>
+      <span class="progress-label">{{ analytics()!.verificationRate | number:'1.0-1' }}% {{ 'admin.verificationDesc' | translate }}</span>
+    </div>
+  </div>
+} @else {
+  <div class="content-card empty-card">
+    <app-empty-state [title]="'admin.noAnalytics' | translate" [subtitle]="'admin.noAnalyticsDesc' | translate" />
+  </div>
+}

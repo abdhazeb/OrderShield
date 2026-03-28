@@ -1,0 +1,29 @@
+<div class="review-item">
+      <div class="review-header">
+        <app-severity-badge [severity]="getSeverityLabel()" />
+        <span class="review-date">{{ review().createdAt | date:'mediumDate' }}</span>
+      </div>
+      <div class="review-title">{{ review().title }}</div>
+      <div class="review-content">{{ review().narrative | slice:0:200 }}{{ review().narrative.length > 200 ? '...' : '' }}</div>
+      <div class="review-meta">
+        @if (review().product) {
+          <span>📦 {{ review().product }}</span>
+        }
+        @if (review().orderValue) {
+          <span>💰 {{ formatCurrency(review().orderValue) }}</span>
+        }
+        @if (review().incidentDate) {
+          <span>📅 {{ review().incidentDate | date:'mediumDate' }}</span>
+        }
+        <span>👤 {{ review().reviewerType }} · {{ review().transactionRole }}</span>
+      </div>
+
+      @for (note of review().evidenceNotes; track note.id) {
+        @if (note.isPubliclyVisible) {
+          <div class="clarification-box">
+            <div class="clarification-title">⚡ {{ 'review.clarification' | translate }}</div>
+            <div>{{ note.summary }}</div>
+          </div>
+        }
+      }
+    </div>

@@ -1,0 +1,69 @@
+<div class="team-section">
+  <div class="team-header">
+    <h3>{{ 'admin.teamMembers' | translate }}</h3>
+    <button class="btn-primary-sm" (click)="showNewAdminForm.set(!showNewAdminForm())">
+      {{ showNewAdminForm() ? ('admin.cancel' | translate) : ('admin.addAdmin' | translate) }}
+    </button>
+  </div>
+
+  @if (showNewAdminForm()) {
+    <div class="new-admin-form content-card">
+      <div class="form-row">
+        <div class="form-field">
+          <label>{{ 'auth.fullName' | translate }}</label>
+          <input type="text" [(ngModel)]="newAdmin.fullName" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'auth.email' | translate }}</label>
+          <input type="email" [(ngModel)]="newAdmin.email" />
+        </div>
+        <div class="form-field">
+          <label>{{ 'auth.password' | translate }}</label>
+          <input type="password" [(ngModel)]="newAdmin.password" />
+        </div>
+      </div>
+      <button class="toolbar-btn btn-approve" [disabled]="!newAdmin.fullName || !newAdmin.email || !newAdmin.password || creatingAdmin()"
+        (click)="createAdmin()">
+        {{ creatingAdmin() ? ('common.loading' | translate) : ('admin.createAdmin' | translate) }}
+      </button>
+    </div>
+  }
+
+  @if (loadingTeam()) {
+    <app-loading-spinner [message]="'admin.loadingTeam' | translate" />
+  } @else if (teamMembers().length === 0) {
+    <div class="content-card empty-card"><app-empty-state [title]="'admin.noTeamMembers' | translate" [subtitle]="'admin.noTeamMembersDesc' | translate" /></div>
+  } @else {
+    <div class="team-grid">
+      @for (member of teamMembers(); track member.id) {
+        <div class="team-card" [class.inactive]="!member.isActive">
+          <div class="team-card-top">
+            <div>
+              <h4 class="team-name">{{ member.fullName }}</h4>
+              <span class="team-email">{{ member.email }}</span>
+            </div>
+            <span class="team-role-badge" [class]="member.role === 'SuperAdmin' ? 'role-super' : 'role-admin'">
+              {{ member.role }}
+            </span>
+          </div>
+          <div class="team-card-meta">
+            <span>{{ 'admin.joined' | translate }}: {{ member.createdAt | date:'MMM d, yyyy' }}</span>
+            <span class="status-pill" [class]="member.isActive ? 'active-pill' : 'frozen-pill'">
+              {{ member.isActive ? ('admin.active' | translate) : ('admin.frozen' | translate) }}
+            </span>
+          </div>
+          @if (member.role !== 'SuperAdmin') {
+            <div class="team-actions">
+              <button class="btn-sm" [class]="member.isActive ? 'btn-warn' : 'btn-unfreeze'" (click)="toggleAdminActive(member.id, member.isActive)">
+                {{ member.isActive ? ('admin.freeze' | translate) : ('admin.unfreeze' | translate) }}
+              </button>
+              <button class="btn-sm btn-danger" (click)="deleteAdmin(member.id, member.fullName)">
+                {{ 'common.delete' | translate }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

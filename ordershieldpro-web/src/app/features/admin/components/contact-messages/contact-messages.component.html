@@ -1,0 +1,51 @@
+@if (loadingMessages()) {
+  <div class="content-card"><app-loading-spinner [message]="'admin.loadingMessages' | translate" /></div>
+} @else if (contactMessages().length === 0) {
+  <div class="content-card empty-card">
+    <app-empty-state [title]="'admin.noMessages' | translate" [subtitle]="'admin.noMessagesDesc' | translate" />
+  </div>
+} @else {
+  <div class="queue-list">
+    @for (msg of contactMessages(); track msg.id) {
+      <div class="queue-card" [class.unread]="!msg.isRead" [class.selected]="selectedMsg()?.id === msg.id">
+        <div class="queue-card-header" (click)="toggleMsg(msg)">
+          <div class="card-left">
+            <span class="msg-dot" [class.unread-dot]="!msg.isRead"></span>
+            <div class="card-title-group">
+              <h3 class="card-title">{{ msg.subject }}</h3>
+              <div class="card-meta">
+                <span>{{ msg.fullName }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span>{{ msg.email }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span>{{ msg.createdAt | date:'MMM d, yyyy HH:mm' }}</span>
+              </div>
+            </div>
+          </div>
+          <button class="expand-btn" [class.rotated]="selectedMsg()?.id === msg.id">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        @if (selectedMsg()?.id === msg.id) {
+          <div class="queue-card-body">
+            <div class="detail-section">
+              <div class="msg-body">{{ msg.message }}</div>
+              <div class="msg-footer">
+                @if (!msg.isRead) {
+                  <button class="btn-sm btn-mark-read" (click)="markMsgRead(msg.id)">
+                    ✓ {{ 'admin.markRead' | translate }}
+                  </button>
+                } @else {
+                  <span class="read-badge">✓ {{ 'admin.readAt' | translate }}: {{ msg.readAt | date:'MMM d, yyyy HH:mm' }}</span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

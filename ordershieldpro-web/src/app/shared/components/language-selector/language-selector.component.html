@@ -1,0 +1,20 @@
+<div class="lang-selector">
+      <button class="lang-btn" (click)="toggleDropdown($event)">
+        {{ getCurrentLabel() }}
+      </button>
+      @if (isOpen()) {
+        <div class="lang-dropdown">
+          @for (lang of languageService.languageOptions; track lang.code) {
+            <button
+              class="lang-option"
+              [class.active]="languageService.currentLanguage() === lang.code"
+              (click)="selectLanguage(lang.code, $event)">
+              <span class="lang-label">{{ lang.label }}</span>
+              @if (languageService.currentLanguage() === lang.code) {
+                <span class="check">&#10003;</span>
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>

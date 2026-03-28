@@ -1,0 +1,32 @@
+<div
+      class="upload-area"
+      [class.dragover]="isDragover"
+      (dragover)="onDragOver($event)"
+      (dragleave)="isDragover = false"
+      (drop)="onDrop($event)"
+      (click)="fileInput.click()">
+      <span class="upload-icon">📎</span>
+      <div class="upload-text">
+        {{ label() || ('review.uploadEvidence' | translate) }}
+      </div>
+      <div class="upload-hint">{{ hint() || ('fileUpload.hint' | translate) }}</div>
+      <input
+        #fileInput
+        type="file"
+        [accept]="accept()"
+        [multiple]="multiple()"
+        (change)="onFileSelect($event)"
+        style="display: none"
+      />
+    </div>
+    @if (files.length > 0) {
+      <div class="file-list">
+        @for (file of files; track file.name; let i = $index) {
+          <div class="file-item">
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ file.size | fileSize }}</span>
+            <button class="remove-btn" (click)="removeFile(i)">✕</button>
+          </div>
+        }
+      </div>
+    }

@@ -1,0 +1,104 @@
+@if (loadingSubRequests()) {
+  <div class="content-card"><app-loading-spinner [message]="'admin.loadingSubscriptions' | translate" /></div>
+} @else if (subRequests().length === 0) {
+  <div class="content-card empty-card">
+    <app-empty-state [title]="'admin.noSubscriptionRequests' | translate" [subtitle]="'admin.noSubscriptionRequestsDesc' | translate" />
+  </div>
+} @else {
+  <div class="queue-list">
+    @for (req of subRequests(); track req.id) {
+      <div class="queue-card" [class.selected]="selectedSubRequest()?.id === req.id">
+        <div class="queue-card-header" (click)="toggleSubRequest(req)">
+          <div class="card-left">
+            <span class="severity-dot" [class]="'dot-sub-' + getSubStatusClass(req.status)"></span>
+            <div class="card-title-group">
+              <h3 class="card-title">{{ req.userName || req.userEmail || 'User' }} — {{ getSubTierLabel(req.requestedTier) }}</h3>
+              <div class="card-meta">
+                <span>{{ req.durationYears }} {{ req.durationYears === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span>{{ req.createdAt | date:'MMM d, yyyy' }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span class="meta-severity" [class]="'sev-sub-' + getSubStatusClass(req.status)">
+                  {{ getSubStatusLabel(req.status) | uppercase }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button class="expand-btn" [class.rotated]="selectedSubRequest()?.id === req.id">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        @if (selectedSubRequest()?.id === req.id) {
+          <div class="queue-card-body">
+            <div class="detail-section">
+              <h4 class="section-title">{{ 'admin.requestDetails' | translate }}</h4>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.requester' | translate }}</span>
+                  <span class="detail-val">{{ req.userName || req.userEmail || 'Unknown' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'subscription.requestedTier' | translate }}</span>
+                  <span class="detail-val">{{ getSubTierLabel(req.requestedTier) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'subscription.duration' | translate }}</span>
+                  <span class="detail-val">{{ req.durationYears }} {{ req.durationYears === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'subscription.amount' | translate }}</span>
+                  <span class="detail-val">{{ req.totalAmount | currency:'USD' }}</span>
+                </div>
+                @if (req.paymentProofStoragePath) {
+                  <div class="detail-item">
+                    <span class="detail-key">{{ 'subscription.paymentProof' | translate }}</span>
+                    <a class="detail-val file-link" [href]="getPaymentProofUrl(req.paymentProofStoragePath)" target="_blank" rel="noopener">📎 {{ req.paymentProofFileName }}</a>
+                  </div>
+                }
+                @if (req.paymentNotes) {
+                  <div class="detail-item full-width">
+                    <span class="detail-key">{{ 'subscription.paymentNotes' | translate }}</span>
+                    <span class="detail-val">{{ req.paymentNotes }}</span>
+                  </div>
+                }
+                @if (req.adminNotes) {
+                  <div class="detail-item full-width">
+                    <span class="detail-key">{{ 'subscription.adminNotes' | translate }}</span>
+                    <span class="detail-val">{{ req.adminNotes }}</span>
+                  </div>
+                }
+                @if (req.reviewedByName) {
+                  <div class="detail-item">
+                    <span class="detail-key">{{ 'admin.reviewedBy' | translate }}</span>
+                    <span class="detail-val">{{ req.reviewedByName }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            @if (req.status === 0) {
+              <div class="action-bar">
+                <div class="admin-notes-input">
+                  <input type="text" [(ngModel)]="subAdminNotes" [placeholder]="'subscription.adminNotesPlaceholder' | translate" class="setting-input" />
+                </div>
+                <div class="action-buttons">
+                  <button class="toolbar-btn btn-approve" [disabled]="processingSubId()" (click)="approveSubRequest(req.id)">
+                    @if (processingSubId() === req.id + '-approve') { <span class="btn-spinner"></span> }
+                    {{ 'admin.approve' | translate }}
+                  </button>
+                  <button class="toolbar-btn btn-reject" [disabled]="processingSubId()" (click)="rejectSubRequest(req.id)">
+                    @if (processingSubId() === req.id + '-reject') { <span class="btn-spinner"></span> }
+                    {{ 'admin.reject' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

@@ -1,0 +1,157 @@
+@if (loadingReviews()) {
+  <div class="content-card"><app-loading-spinner [message]="'admin.loadingQueue' | translate" /></div>
+} @else if (pendingReviews().length === 0) {
+  <div class="content-card empty-card">
+    <app-empty-state [title]="'admin.queueEmpty' | translate" [subtitle]="'admin.queueEmptyDesc' | translate" />
+  </div>
+} @else {
+  <div class="queue-list">
+    @for (review of pendingReviews(); track review.id) {
+      <div class="queue-card" [class.selected]="selectedReview()?.id === review.id">
+        <div class="queue-card-header" (click)="toggleReview(review)">
+          <div class="card-left">
+            <span class="severity-dot" [class]="'dot-' + getSeverityString(review.severity)"></span>
+            <div class="card-title-group">
+              <h3 class="card-title">{{ review.title }}</h3>
+              <div class="card-meta">
+                <span>{{ review.tradeEntityName }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span>{{ review.createdAt | date:'MMM d, yyyy' }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
+                  {{ getSeverityString(review.severity) | uppercase }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button class="expand-btn" [class.rotated]="selectedReview()?.id === review.id">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        @if (selectedReview()?.id === review.id) {
+          <div class="queue-card-body">
+            <div class="detail-section">
+              <h4 class="section-title">{{ 'admin.reviewDetails' | translate }}</h4>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.entity' | translate }}</span>
+                  <span class="detail-val">{{ review.tradeEntityName }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.reviewer' | translate }}</span>
+                  <span class="detail-val">{{ review.reviewerName || ('admin.anonymous' | translate) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.reviewerType' | translate }}</span>
+                  <span class="detail-val">{{ getReviewerTypeLabel(review.reviewerType) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.severity' | translate }}</span>
+                  <span class="detail-val sev-badge" [class]="'sev-' + getSeverityString(review.severity)">
+                    {{ getSeverityString(review.severity) | uppercase }}
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.incidentDate' | translate }}</span>
+                  <span class="detail-val">{{ review.incidentDate | date:'MMM d, yyyy' }}</span>
+                </div>
+                @if (review.orderValue) {
+                  <div class="detail-item">
+                    <span class="detail-key">{{ 'admin.orderValue' | translate }}</span>
+                    <span class="detail-val">{{ review.orderValue | currency:'USD':'symbol':'1.0-0' }}</span>
+                  </div>
+                }
+                @if (review.product) {
+                  <div class="detail-item">
+                    <span class="detail-key">{{ 'admin.product' | translate }}</span>
+                    <span class="detail-val">{{ review.product }}</span>
+                  </div>
+                }
+                @if (review.productCategory) {
+                  <div class="detail-item">
+                    <span class="detail-key">{{ 'admin.category' | translate }}</span>
+                    <span class="detail-val">{{ review.productCategory }}</span>
+                  </div>
+                }
+                <div class="detail-item">
+                  <span class="detail-key">{{ 'admin.submitted' | translate }}</span>
+                  <span class="detail-val">{{ review.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h4 class="section-title">{{ 'admin.narrative' | translate }}</h4>
+              <div class="narrative-block">{{ review.narrative }}</div>
+            </div>
+
+            @if (review.evidenceFiles.length > 0) {
+              <div class="detail-section">
+                <h4 class="section-title">{{ 'admin.evidenceFiles' | translate }} ({{ review.evidenceFiles.length }})</h4>
+                <div class="file-list">
+                  @for (file of review.evidenceFiles; track file.id) {
+                    <div class="file-row">
+                      <span class="file-name">{{ file.fileName }}</span>
+                      <span class="file-size">{{ file.fileSizeBytes | fileSize }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (review.publicEvidenceNotes.length > 0) {
+              <div class="detail-section">
+                <h4 class="section-title">{{ 'admin.existingNotes' | translate }}</h4>
+                @for (note of review.publicEvidenceNotes; track note.id) {
+                  <div class="note-card">
+                    <p>{{ note.summary }}</p>
+                    <span class="note-date">{{ note.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
+                  </div>
+                }
+              </div>
+            }
+
+            <div class="action-toolbar">
+              <button class="toolbar-btn btn-approve" (click)="publishReview(review.id); $event.stopPropagation()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.3 4L6 11.3L2.7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {{ 'admin.publish' | translate }}
+              </button>
+              <button class="toolbar-btn btn-reject" (click)="rejectReview(review.id); $event.stopPropagation()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                {{ 'admin.reject' | translate }}
+              </button>
+              <button class="toolbar-btn btn-message" (click)="openMessageForm(review); $event.stopPropagation()">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 10.67A1.33 1.33 0 0 1 12.67 12H4.67L2 14.67V3.33A1.33 1.33 0 0 1 3.33 2h9.34A1.33 1.33 0 0 1 14 3.33v7.34z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                {{ 'admin.messageReviewer' | translate }}
+              </button>
+            </div>
+
+            @if (showMessageForm() && messageReviewId() === review.id) {
+              <div class="message-panel">
+                <h4 class="section-title">{{ 'admin.contactReviewer' | translate }}</h4>
+                <p class="message-desc">{{ 'admin.contactDesc' | translate }}</p>
+                <textarea
+                  class="msg-textarea"
+                  rows="4"
+                  [(ngModel)]="messageText"
+                  [placeholder]="'admin.placeholder.message' | translate"></textarea>
+                <div class="msg-actions">
+                  <button class="toolbar-btn btn-approve" [disabled]="!messageText.trim() || sendingMessage()" (click)="sendMessage(review.id)">
+                    {{ sendingMessage() ? ('admin.sending' | translate) : ('admin.sendMessage' | translate) }}
+                  </button>
+                  <button class="toolbar-btn" (click)="showMessageForm.set(false); messageText = ''">{{ messageSent() ? ('admin.close' | translate) : ('admin.cancel' | translate) }}</button>
+                </div>
+                @if (messageSent()) {
+                  <div class="toast-success">{{ 'admin.messageSent' | translate }}</div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

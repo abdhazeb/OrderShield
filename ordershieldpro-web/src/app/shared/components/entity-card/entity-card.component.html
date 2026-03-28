@@ -1,0 +1,32 @@
+<div class="entity-card" [routerLink]="['/entity', entity().id]">
+      <div class="entity-header">
+        <div>
+          <div class="entity-name">{{ entity().legalName }}</div>
+          @if (entity().tradeName && entity().tradeName !== entity().legalName) {
+            <div class="entity-trade-name">{{ entity().tradeName }}</div>
+          }
+        </div>
+      </div>
+      <div class="entity-meta">
+        @if (entity().country) {
+          <span class="meta-item">📍 {{ entity().country }}</span>
+        }
+        @if (entity().productCategories) {
+          <span class="meta-item">📦 {{ entity().productCategories }}</span>
+        }
+      </div>
+      <div class="entity-stats">
+        @if (isVerified()) {
+          <span class="badge badge-verified">✓ {{ 'verification.verified' | translate }}</span>
+        }
+        @if (entity().infoReviewCount > 0) {
+          <app-severity-badge severity="info" [count]="entity().infoReviewCount" />
+        }
+        @if (entity().warningReviewCount > 0) {
+          <app-severity-badge severity="warning" [count]="entity().warningReviewCount" />
+        }
+        @if (entity().criticalReviewCount > 0) {
+          <app-severity-badge severity="critical" [count]="entity().criticalReviewCount" />
+        }
+      </div>
+    </div>

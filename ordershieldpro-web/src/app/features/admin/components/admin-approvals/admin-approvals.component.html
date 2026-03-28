@@ -1,0 +1,43 @@
+@if (loadingActions()) {
+  <div class="content-card"><app-loading-spinner [message]="'admin.loadingPendingActions' | translate" /></div>
+} @else if (pendingActions().length === 0) {
+  <div class="content-card empty-card">
+    <app-empty-state [title]="'admin.noPendingActions' | translate" [subtitle]="'admin.noPendingActionsDesc' | translate" />
+  </div>
+} @else {
+  <div class="queue-list">
+    @for (action of pendingActions(); track action.id) {
+      <div class="queue-card">
+        <div class="queue-card-header">
+          <div class="card-left">
+            <span class="action-type-badge">{{ getActionTypeLabel(action.actionType) }}</span>
+            <div class="card-title-group">
+              <h3 class="card-title">{{ action.targetType }} #{{ action.targetId.substring(0, 8) }}</h3>
+              <div class="card-meta">
+                <span>{{ 'admin.proposedBy' | translate }}: {{ action.proposedByName || 'Admin' }}</span>
+                <span class="meta-sep">&middot;</span>
+                <span>{{ action.createdAt | date:'MMM d, yyyy HH:mm' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="queue-card-body">
+          @if (action.payload) {
+            <div class="detail-section">
+              <h4 class="section-title">{{ 'admin.actionPayload' | translate }}</h4>
+              <div class="narrative-block">{{ action.payload }}</div>
+            </div>
+          }
+          <div class="action-toolbar">
+            <button class="toolbar-btn btn-approve" (click)="approveAction(action.id)">
+              ✓ {{ 'admin.approveAction' | translate }}
+            </button>
+            <button class="toolbar-btn btn-reject" (click)="rejectAction(action.id)">
+              ✗ {{ 'admin.rejectAction' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

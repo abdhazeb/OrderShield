@@ -1,0 +1,10 @@
+<div class="empty-state">
+      <div class="empty-icon">{{ icon() }}</div>
+      <div class="empty-title">{{ title() }}</div>
+      @if (subtitle()) {
+        <div class="empty-subtitle">{{ subtitle() }}</div>
+      }
+      @if (actionLabel()) {
+        <button class="empty-action" (click)="action.emit()">{{ actionLabel() }}</button>
+      }
+    </div>

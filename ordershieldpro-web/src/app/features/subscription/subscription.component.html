@@ -1,0 +1,269 @@
+<div class="subscription-page">
+      <!-- Page Header -->
+      <div class="page-header">
+        <a routerLink="/profile" class="back-link">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          {{ 'subscription.backToProfile' | translate }}
+        </a>
+        <h1 class="page-title">{{ 'subscription.manageTitle' | translate }}</h1>
+        <p class="page-subtitle">{{ 'subscription.manageSubtitle' | translate }}</p>
+      </div>
+
+      @if (loading()) {
+        <app-loading-spinner />
+      } @else {
+        <!-- Current Plan Card -->
+        <div class="current-plan-card">
+          <div class="plan-header-row">
+            <div>
+              <span class="plan-tier-badge" [class]="'tier-' + currentTierClass()">
+                {{ getTierLabel(current()?.tier) }}
+              </span>
+              <h2 class="current-plan-name">{{ 'subscription.currentPlan' | translate }}</h2>
+            </div>
+            <div class="expiry-info">
+              @if (current()?.expiryDate) {
+                <span class="expiry-label">{{ 'subscription.expiresOn' | translate }}</span>
+                <span class="expiry-date" [class.expiring-soon]="isExpiringSoon()">
+                  {{ current()!.expiryDate | date:'mediumDate' }}
+                </span>
+              }
+            </div>
+          </div>
+          @if (isExpiringSoon()) {
+            <div class="expiry-warning">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 5.333V8M8 10.667h.007M14 8A6 6 0 112 8a6 6 0 0112 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {{ 'subscription.expiryWarning' | translate }}
+            </div>
+          }
+          @if (hasPendingRequest()) {
+            <div class="pending-notice">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3l2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              {{ 'subscription.pendingNotice' | translate }}
+            </div>
+          }
+        </div>
+
+        <!-- Pricing Section -->
+        @if (!hasPendingRequest()) {
+          <div class="pricing-section">
+            <div class="section-header-row">
+              <div>
+                <h2 class="section-heading">{{ 'subscription.choosePlan' | translate }}</h2>
+                <p class="section-desc">{{ 'subscription.choosePlanDesc' | translate }}</p>
+              </div>
+              <div class="currency-selector">
+                <label class="currency-label">{{ 'subscription.currency' | translate }}</label>
+                <div class="currency-buttons">
+                  @for (c of currencies; track c.code) {
+                    <button class="currency-btn" [class.active]="selectedCurrency() === c.code" (click)="setCurrency(c.code)">
+                      {{ c.code }}
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+
+            @for (plan of pricing(); track plan.tier) {
+              <div class="pricing-card" [class.highlighted]="plan.tier === 1">
+                @if (plan.tier === 1) {
+                  <div class="popular-ribbon">{{ 'subscription.popular' | translate }}</div>
+                }
+                <div class="pricing-card-header">
+                  <h3 class="pricing-plan-name">{{ plan.planName }}</h3>
+                  <div class="pricing-annual">
+                    <span class="annual-amount">{{ convertPrice(plan.annualPrice) }}</span>
+                    <span class="annual-label">{{ 'subscription.perYear' | translate }}</span>
+                  </div>
+                </div>
+
+                <div class="duration-options">
+                  @for (opt of plan.options; track opt.years) {
+                    <button
+                      class="duration-option"
+                      [class.selected]="selectedTier() === plan.tier && selectedYears() === opt.years"
+                      (click)="selectPlan(plan.tier, opt.years, opt.totalPrice)">
+                      <div class="dur-left">
+                        <span class="dur-years">{{ opt.years }} {{ opt.years === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                        @if (opt.discountPercent > 0) {
+                          <span class="dur-discount">{{ 'subscription.save' | translate }} {{ opt.discountPercent }}%</span>
+                        }
+                      </div>
+                      <div class="dur-right">
+                        <span class="dur-price">{{ convertPrice(opt.totalPrice) }}</span>
+                        @if (opt.savedAmount > 0) {
+                          <span class="dur-saved">{{ 'subscription.youSave' | translate }} {{ convertPrice(opt.savedAmount) }}</span>
+                        }
+                      </div>
+                      <div class="dur-check">
+                        @if (selectedTier() === plan.tier && selectedYears() === opt.years) {
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" fill="var(--accent-600)"/><path d="M6 10l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        } @else {
+                          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="var(--surface-border)" stroke-width="1.5"/></svg>
+                        }
+                      </div>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Payment Method Selector -->
+          @if (selectedTier() !== null) {
+            <div class="payment-method-section">
+              <h2 class="section-heading">{{ 'subscription.paymentMethod' | translate }}</h2>
+              <p class="section-desc">{{ 'subscription.paymentMethodDesc' | translate }}</p>
+
+              <div class="payment-methods">
+                @for (method of paymentMethods; track method.id) {
+                  <button
+                    class="payment-method-btn"
+                    [class.selected]="selectedPaymentMethod() === method.id"
+                    (click)="selectedPaymentMethod.set(method.id)">
+                    <span class="pm-icon">{{ method.icon }}</span>
+                    <span class="pm-label">{{ method.labelKey | translate }}</span>
+                    @if (selectedPaymentMethod() === method.id) {
+                      <span class="pm-check">✓</span>
+                    }
+                  </button>
+                }
+              </div>
+
+              @if (selectedPaymentMethod() && selectedPaymentMethod() !== 'bank_transfer') {
+                <div class="online-payment-note">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 5.333V8M8 10.667h.007M14 8A6 6 0 112 8a6 6 0 0112 0z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {{ 'subscription.onlinePaymentNote' | translate }}
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Upload Payment Proof (only for Bank Transfer) -->
+          @if (selectedTier() !== null && selectedPaymentMethod() === 'bank_transfer') {
+            <div class="upload-section">
+              <h2 class="section-heading">{{ 'subscription.uploadProof' | translate }}</h2>
+              <p class="section-desc">{{ 'subscription.bankTransferNote' | translate }}</p>
+
+              <div
+                class="file-dropzone"
+                [class.has-file]="selectedFile()"
+                [class.drag-over]="isDragOver()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="isDragOver.set(false)"
+                (drop)="onDrop($event)"
+                (click)="fileInput.click()">
+                <input
+                  #fileInput
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf"
+                  (change)="onFileSelected($event)"
+                  style="display:none" />
+
+                @if (selectedFile()) {
+                  <div class="file-preview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span class="file-name">{{ selectedFile()!.name }}</span>
+                    <span class="file-size">({{ selectedFile()!.size | fileSize }})</span>
+                    <button class="remove-file" (click)="removeFile($event)">✕</button>
+                  </div>
+                } @else {
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <p class="dropzone-text">{{ 'subscription.dropzoneText' | translate }}</p>
+                  <p class="dropzone-hint">{{ 'subscription.dropzoneHint' | translate }}</p>
+                }
+              </div>
+
+              <!-- Payment Notes -->
+              <div class="notes-field">
+                <label class="field-label">{{ 'subscription.paymentNotes' | translate }}</label>
+                <textarea
+                  class="notes-textarea"
+                  rows="3"
+                  [placeholder]="'subscription.paymentNotesPlaceholder' | translate"
+                  (input)="paymentNotes.set($any($event.target).value)">
+                </textarea>
+              </div>
+
+              <!-- Submit Button -->
+              <button
+                class="btn-submit"
+                [disabled]="!canSubmit() || submitting()"
+                (click)="submitRequest()">
+                @if (submitting()) {
+                  <span class="spinner"></span>
+                }
+                {{ 'subscription.submitRequest' | translate }}
+              </button>
+
+              @if (submitError()) {
+                <div class="error-msg">{{ submitError() }}</div>
+              }
+            </div>
+          }
+
+          <!-- Submit Button for online payment methods (no proof needed) -->
+          @if (selectedTier() !== null && selectedPaymentMethod() && selectedPaymentMethod() !== 'bank_transfer') {
+            <div class="upload-section">
+              <button
+                class="btn-submit"
+                [disabled]="!canSubmitOnline() || submitting()"
+                (click)="submitRequest()">
+                @if (submitting()) {
+                  <span class="spinner"></span>
+                }
+                {{ 'subscription.submitRequest' | translate }}
+              </button>
+
+              @if (submitError()) {
+                <div class="error-msg">{{ submitError() }}</div>
+              }
+            </div>
+          }
+        }
+
+        <!-- Request History -->
+        @if (requests().length > 0) {
+          <div class="history-section">
+            <h2 class="section-heading">{{ 'subscription.requestHistory' | translate }}</h2>
+            @for (req of requests(); track req.id) {
+              <div class="history-card">
+                <div class="history-header">
+                  <div class="history-left">
+                    <span class="history-tier" [class]="'tier-' + tierClass(req.requestedTier)">
+                      {{ getTierLabel(req.requestedTier) }}
+                    </span>
+                    <span class="history-duration">{{ req.durationYears }} {{ req.durationYears === 1 ? ('subscription.year' | translate) : ('subscription.years' | translate) }}</span>
+                  </div>
+                  <span class="status-badge" [class]="'status-' + getStatusClass(req.status)">
+                    {{ getStatusLabel(req.status) }}
+                  </span>
+                </div>
+                <div class="history-details">
+                  <div class="history-detail">
+                    <span class="detail-label">{{ 'subscription.amount' | translate }}</span>
+                    <span class="detail-value">{{ convertPrice(req.totalAmount, 2) }}</span>
+                  </div>
+                  <div class="history-detail">
+                    <span class="detail-label">{{ 'subscription.submittedOn' | translate }}</span>
+                    <span class="detail-value">{{ req.createdAt | date:'mediumDate' }}</span>
+                  </div>
+                  @if (req.adminNotes) {
+                    <div class="history-detail full-width" [class.rejection-notice]="req.status === 2">
+                      <span class="detail-label">
+                        @if (req.status === 2) {
+                          {{ 'subscription.rejectionMessage' | translate }}
+                        } @else {
+                          {{ 'subscription.adminNotes' | translate }}
+                        }
+                      </span>
+                      <span class="detail-value" [class.rejection-text]="req.status === 2">{{ req.adminNotes }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>

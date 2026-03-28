@@ -1,0 +1,35 @@
+<div class="notif-container">
+      <div class="notif-header">
+        <h1>{{ 'notification.title' | translate }}</h1>
+        @if (notifications().length > 0) {
+          <button class="mark-all-btn" (click)="markAllRead()">
+            {{ 'notification.markAsRead' | translate }}
+          </button>
+        }
+      </div>
+
+      @if (loading()) {
+        <app-loading-spinner [message]="'notification.loading' | translate" />
+      } @else if (notifications().length === 0) {
+        <app-empty-state icon="🔔" [title]="'notification.noNotificationsTitle' | translate" [subtitle]="'notification.allCaughtUp' | translate" />
+      } @else {
+        <div class="notif-list">
+          @for (notif of notifications(); track notif.id) {
+            <div class="notif-item" [class.unread]="!notif.isRead" [class.clickable]="hasLink(notif)" (click)="onNotifClick(notif)">
+              <span class="notif-icon">{{ getIcon(notif.type) }}</span>
+              <div class="notif-content">
+                <strong class="notif-title">{{ notif.title }}</strong>
+                <p class="notif-message">{{ notif.message }}</p>
+                <span class="notif-time">{{ notif.createdAt | relativeDate }}</span>
+              </div>
+              @if (hasLink(notif)) {
+                <span class="nav-arrow">→</span>
+              }
+              @if (!notif.isRead) {
+                <span class="unread-dot"></span>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>

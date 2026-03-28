@@ -1,0 +1,207 @@
+<div class="search-page">
+      <!-- Search Header -->
+      <div class="search-header">
+        <div class="search-row">
+          <app-search-bar
+            [searchTerm]="searchQuery()"
+            [showFilter]="false"
+            (searchTermChange)="onSearchInput($event)"
+            (search)="performSearch()"
+          />
+          <button class="filters-toggle-btn" [class.active]="showFilters()" (click)="showFilters.set(!showFilters())">
+            🔍 {{ 'search.filters' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters Panel -->
+      @if (showFilters()) {
+        <div class="filters-panel">
+          <div class="filter-group">
+            <label>{{ 'search.country' | translate }}</label>
+            <input type="text" [(ngModel)]="filters.country" (input)="performSearch()" [placeholder]="'search.filterPlaceholder.country' | translate" />
+          </div>
+          <div class="filter-group">
+            <label>{{ 'search.category' | translate }}</label>
+            <input type="text" [(ngModel)]="filters.category" (input)="performSearch()" [placeholder]="'search.filterPlaceholder.category' | translate" />
+          </div>
+          <div class="filter-group">
+            <label>{{ 'search.reviewType' | translate }}</label>
+            <select [(ngModel)]="filters.severity" (change)="performSearch()">
+              <option value="">{{ 'search.allTypes' | translate }}</option>
+              <option value="0">{{ 'severity.info' | translate }}</option>
+              <option value="1">{{ 'severity.warning' | translate }}</option>
+              <option value="2">{{ 'severity.critical' | translate }}</option>
+              <option value="3">{{ 'severity.behavior' | translate }}</option>
+              <option value="4">{{ 'severity.fraud' | translate }}</option>
+              <option value="5">{{ 'severity.quality' | translate }}</option>
+              <option value="6">{{ 'severity.delivery' | translate }}</option>
+              <option value="7">{{ 'severity.payment' | translate }}</option>
+              <option value="8">{{ 'severity.financiallyDistressed' | translate }}</option>
+              <option value="9">{{ 'severity.bankrupt' | translate }}</option>
+              <option value="10">{{ 'severity.poorManagement' | translate }}</option>
+              <option value="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
+              <option value="12">{{ 'severity.bribeOthers' | translate }}</option>
+              <option value="13">{{ 'severity.fakeSupplier' | translate }}</option>
+              <option value="14">{{ 'severity.other' | translate }}</option>
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Results -->
+      <div class="search-results">
+        @if (hasSearched() && !loading()) {
+          <div class="results-count">
+            {{ 'search.results' | translate:{ count: totalCount() } }}
+          </div>
+        }
+
+        @if (loading()) {
+          <app-loading-spinner />
+        } @else if (hasSearched() && entities().length === 0) {
+          <!-- No Results -->
+          <div class="no-results-section">
+            @if (!directEnquiryMode()) {
+              <div class="no-results-icon">🔍</div>
+              <h2 class="no-results-title">{{ 'search.noResults' | translate }}</h2>
+              <p class="no-results-subtitle">{{ 'enquiry.noResultsHint' | translate }}</p>
+            }
+
+            @if (!showNewEnquiryForm()) {
+              <!-- Action Buttons -->
+              <div class="no-results-actions">
+                <a routerLink="/submit-review" class="btn-action btn-review">
+                  ✍️ {{ 'nav.submit' | translate }}
+                </a>
+                @if (authService.isAuthenticated()) {
+                  <button class="btn-action btn-enquiry" (click)="openEnquiryForm()">
+                    📋 {{ 'enquiry.formTitle' | translate }}
+                  </button>
+                } @else {
+                  <a routerLink="/login" class="btn-action btn-enquiry">
+                    🔒 {{ 'nav.login' | translate }}
+                  </a>
+                }
+              </div>
+            } @else {
+              <!-- Enquiry Panel (shown after clicking Send Enquiry) -->
+              @if (checkingExisting()) {
+                <app-loading-spinner />
+              } @else if (existingEnquiry()) {
+                <div class="existing-enquiry-card">
+                  @if (existingEnquiry()!.status === InvestigationStatus.Completed && existingEnquiry()!.replyMessage) {
+                    <div class="enquiry-badge completed">✅ {{ 'enquiry.alreadyCompleted' | translate }}</div>
+                    <div class="reply-block">
+                      <h4>{{ 'enquiry.teamReply' | translate }}</h4>
+                      <p class="reply-text">{{ existingEnquiry()!.replyMessage }}</p>
+                      <span class="reply-date">{{ existingEnquiry()!.repliedAt | date:'MMM d, yyyy' }}</span>
+                    </div>
+                    <button class="btn-secondary" (click)="openNewEnquiryForm()">{{ 'enquiry.submitNewAnyway' | translate }}</button>
+                  } @else {
+                    <div class="enquiry-badge pending">⏳ {{ 'enquiry.alreadyPending' | translate }}</div>
+                    <p class="enquiry-info">
+                      {{ 'enquiry.pendingDesc' | translate:{ name: existingEnquiry()!.entityName } }}
+                    </p>
+                    @if (existingEnquiry()!.subscriberCount !== undefined) {
+                      <span class="subscriber-count">
+                        👥 {{ existingEnquiry()!.subscriberCount }} {{ 'enquiry.interested' | translate }}
+                      </span>
+                    }
+                    @if (!alreadySubscribed()) {
+                      <button class="btn-primary btn-subscribe" [disabled]="subscribing()" (click)="subscribeToEnquiry()">
+                        🔔 {{ subscribing() ? ('common.loading' | translate) : ('enquiry.notifyMe' | translate) }}
+                      </button>
+                    } @else {
+                      <div class="subscribed-badge">✅ {{ 'enquiry.alreadySubscribed' | translate }}</div>
+                    }
+                    <button class="btn-link" (click)="openNewEnquiryForm()">{{ 'enquiry.submitNewAnyway' | translate }}</button>
+                  }
+                </div>
+              } @else {
+                <!-- Enquiry Form -->
+                <div class="enquiry-form-card">
+                  <h3 class="form-title">📋 {{ 'enquiry.formTitle' | translate }}</h3>
+                  <p class="form-subtitle">{{ 'enquiry.formSubtitle' | translate }}</p>
+
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label>{{ 'enquiry.supplierName' | translate }} *</label>
+                      <input type="text" [ngModel]="enquiryEntityName()" (ngModelChange)="enquiryEntityName.set($event)" [placeholder]="'enquiry.supplierNameHint' | translate" />
+                    </div>
+                    <div class="form-group">
+                      <label>{{ 'enquiry.country' | translate }}</label>
+                      <input type="text" [(ngModel)]="enquiryForm.entityCountry" [placeholder]="'enquiry.placeholder.country' | translate" />
+                    </div>
+                    <div class="form-group">
+                      <label>{{ 'enquiry.phone' | translate }}</label>
+                      <input type="text" [(ngModel)]="enquiryForm.entityPhone" [placeholder]="'enquiry.placeholder.phone' | translate" />
+                    </div>
+                    <div class="form-group">
+                      <label>{{ 'enquiry.wechat' | translate }}</label>
+                      <input type="text" [(ngModel)]="enquiryForm.entityWeChat" [placeholder]="'enquiry.placeholder.wechat' | translate" />
+                    </div>
+                    <div class="form-group full-width">
+                      <label>{{ 'enquiry.website' | translate }}</label>
+                      <input type="text" [(ngModel)]="enquiryForm.entityWebsite" placeholder="https://..." />
+                    </div>
+                  </div>
+
+                  <div class="checklist-section">
+                    <h4>{{ 'enquiry.whatToKnow' | translate }}</h4>
+                    <div class="checklist-grid">
+                      @for (item of checklistItems; track item.key) {
+                        <label class="checklist-item" [class.checked]="item.checked">
+                          <input type="checkbox" [(ngModel)]="item.checked" />
+                          <span class="check-icon">{{ item.checked ? '✅' : '⬜' }}</span>
+                          <span>{{ item.labelKey | translate }}</span>
+                        </label>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label>{{ 'enquiry.additionalNotes' | translate }}</label>
+                    <textarea [(ngModel)]="enquiryForm.additionalDetails" rows="3" [placeholder]="'enquiry.additionalNotesHint' | translate"></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn-primary btn-submit-enquiry" [disabled]="!enquiryFormValid() || submittingEnquiry()" (click)="submitEnquiry()">
+                      {{ submittingEnquiry() ? ('common.loading' | translate) : ('enquiry.submit' | translate) }}
+                    </button>
+                    <button class="btn-secondary" (click)="closeEnquiryPanel()">{{ 'common.cancel' | translate }}</button>
+                  </div>
+                </div>
+              }
+            }
+
+            <!-- Toast -->
+            @if (showToast()) {
+              <div class="toast-message" [class.toast-success]="toastType() === 'success'" [class.toast-info]="toastType() === 'info'">
+                {{ toastMessage() }}
+              </div>
+            }
+          </div>
+        } @else {
+          @for (entity of displayedEntities(); track entity.id) {
+            <app-entity-card [entity]="entity" />
+          }
+
+          @if (isGuestLimited()) {
+            <div class="guest-limit-banner">
+              <div class="limit-icon">🔒</div>
+              <h3>{{ 'guest.limitReached' | translate }}</h3>
+              <p>{{ 'guest.limitMessage' | translate }}</p>
+              <a routerLink="/register" class="btn-signup">{{ 'guest.signUpNow' | translate }}</a>
+              <div class="limit-count">
+                {{ 'guest.resultsLimited' | translate:{ count: guestLimit, total: totalCount() } }}
+              </div>
+            </div>
+          } @else if (hasNextPage()) {
+            <button class="btn-load-more" (click)="loadMore()">
+              {{ 'common.viewAll' | translate }}
+            </button>
+          }
+        }
+      </div>
+    </div>

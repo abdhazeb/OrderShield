@@ -1,0 +1,28 @@
+<div class="settings-section">
+  <h3 class="settings-title">{{ 'admin.systemSettings' | translate }}</h3>
+  @if (loadingSettings()) {
+    <app-loading-spinner [message]="'admin.loadingSettings' | translate" />
+  } @else {
+    <div class="content-card settings-card-unified">
+      <div class="settings-grid">
+        @for (setting of systemSettings(); track setting.key) {
+          <div class="setting-field">
+            <label class="setting-label">{{ getSettingLabel(setting.key) }}</label>
+            @if (setting.description) {
+              <span class="setting-desc">{{ getSettingDescription(setting.key, setting.description) }}</span>
+            }
+            <input type="text" [(ngModel)]="setting.value" class="setting-input" />
+          </div>
+        }
+      </div>
+      <div class="settings-actions">
+        <button class="toolbar-btn btn-approve settings-save-all" (click)="saveAllSettings()" [disabled]="savingAllSettings()">
+          @if (savingAllSettings()) {
+            <span class="btn-spinner"></span>
+          }
+          {{ 'common.save' | translate }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,43 @@
+/* ===== Content Card ===== */
+.content-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.empty-card { padding: 48px 24px; }
+.card-section-title { font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 16px; }
+
+/* ===== KPI Grid ===== */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;
+}
+.kpi-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px;
+  display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+}
+.kpi-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.blue-bg { background: #3b82f6; }
+.amber-bg { background: #f59e0b; }
+.green-bg { background: #10b981; }
+.purple-bg { background: #8b5cf6; }
+.teal-bg { background: #14b8a6; }
+.kpi-data { display: flex; flex-direction: column; }
+.kpi-value { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1; }
+.kpi-value small { font-size: 16px; font-weight: 600; color: #64748b; }
+.kpi-label { font-size: 14px; color: #64748b; margin-top: 2px; }
+
+/* ===== Progress Bar ===== */
+.progress-bar { height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 5px; transition: width 0.6s ease;
+}
+.progress-label { font-size: 14px; color: #64748b; margin-top: 8px; display: block; }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}

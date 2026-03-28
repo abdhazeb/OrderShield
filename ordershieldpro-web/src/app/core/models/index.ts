@@ -5,3 +5,5 @@ export * from './watch-request.model';
 export * from './notification.model';
 export * from './subscription.model';
 export * from './paginated-result.model';
+export * from './admin.model';
+export * from './enquiry.model';

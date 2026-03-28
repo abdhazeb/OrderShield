@@ -1,133 +1,39 @@
-import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { timer, switchMap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { RelativeDatePipe } from '../../shared/pipes/relative-date.pipe';
 import { NotificationType } from '../../core/enums';
-
-interface AppNotification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  isRead: boolean;
-  createdAt: string;
-  referenceEntityId?: string;
-  referenceReviewId?: string;
-  // Aliases for demo data
-  entityId?: string;
-  reviewId?: string;
-}
+import { AppNotification } from '../../core/models';
 
 @Component({
   selector: 'app-notifications',
   standalone: true,
   imports: [TranslateModule, LoadingSpinnerComponent, EmptyStateComponent, RelativeDatePipe],
-  template: `
-    <div class="notif-container">
-      <div class="notif-header">
-        <h1>{{ 'notification.title' | translate }}</h1>
-        @if (notifications().length > 0) {
-          <button class="mark-all-btn" (click)="markAllRead()">
-            {{ 'notification.markAsRead' | translate }}
-          </button>
-        }
-      </div>
-
-      @if (loading()) {
-        <app-loading-spinner [message]="'notification.loading' | translate" />
-      } @else if (notifications().length === 0) {
-        <app-empty-state icon="🔔" [title]="'notification.noNotificationsTitle' | translate" [subtitle]="'notification.allCaughtUp' | translate" />
-      } @else {
-        <div class="notif-list">
-          @for (notif of notifications(); track notif.id) {
-            <div class="notif-item" [class.unread]="!notif.isRead" [class.clickable]="hasLink(notif)" (click)="onNotifClick(notif)">
-              <span class="notif-icon">{{ getIcon(notif.type) }}</span>
-              <div class="notif-content">
-                <strong class="notif-title">{{ notif.title }}</strong>
-                <p class="notif-message">{{ notif.message }}</p>
-                <span class="notif-time">{{ notif.createdAt | relativeDate }}</span>
-              </div>
-              @if (hasLink(notif)) {
-                <span class="nav-arrow">→</span>
-              }
-              @if (!notif.isRead) {
-                <span class="unread-dot"></span>
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
-  `,
-  styles: [`
-    .notif-container { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
-    .notif-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .notif-header h1 { font-size: 24px; font-weight: 800; color: var(--text-primary); font-family: var(--font-display); }
-    .mark-all-btn {
-      padding: 8px 16px; border: 1px solid var(--surface-border); border-radius: var(--radius-sm);
-      background: var(--surface-0); color: var(--accent-600); font-weight: 600; font-size: 13px;
-      cursor: pointer; font-family: var(--font-body); transition: all var(--transition-fast);
-    }
-    .mark-all-btn:hover { background: var(--accent-50); }
-
-    .notif-list { display: flex; flex-direction: column; gap: 4px; }
-    .notif-item {
-      display: flex; align-items: flex-start; gap: 14px; padding: 16px;
-      background: var(--surface-0); border-radius: var(--radius-lg); border: 1px solid var(--surface-border);
-      cursor: pointer; transition: all var(--transition-fast);
-    }
-    .notif-item:hover { background: var(--surface-50); }
-    .notif-item.unread { background: var(--accent-50); border-color: var(--accent-200); }
-
-    .notif-icon { font-size: 28px; flex-shrink: 0; }
-    .notif-content { flex: 1; min-width: 0; }
-    .notif-title { font-size: 14px; display: block; margin-bottom: 4px; color: var(--text-primary); font-weight: 600; }
-    .notif-message { font-size: 13px; color: var(--text-tertiary); line-height: 1.4; margin: 0 0 6px; }
-    .notif-time { font-size: 12px; color: var(--text-muted); }
-
-    .unread-dot {
-      width: 10px; height: 10px; background: var(--accent-600); border-radius: 50%;
-      flex-shrink: 0; margin-top: 6px;
-    }
-    .nav-arrow {
-      color: var(--accent-600); font-size: 18px; font-weight: 700; flex-shrink: 0; margin-top: 4px;
-    }
-    .notif-item.clickable:hover { background: var(--accent-50); }
-    .notif-item.clickable { cursor: pointer; }
-
-    /* ===== RTL overrides ===== */
-    :host-context([dir="rtl"]) .notif-content {
-      text-align: right;
-    }
-  `]
+  templateUrl: './notifications.component.html',
+  styleUrl: './notifications.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class NotificationsComponent implements OnInit, OnDestroy {
+export class NotificationsComponent implements OnInit {
   private apiService = inject(ApiService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
   notifications = signal<AppNotification[]>([]);
   loading = signal(false);
-  private pollingInterval: any;
 
   ngOnInit(): void {
-    this.loadNotifications();
-    this.pollingInterval = setInterval(() => this.loadNotifications(), 30000);
-  }
-
-  ngOnDestroy(): void {
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-    }
-  }
-
-  private loadNotifications(): void {
-    if (this.notifications().length === 0) this.loading.set(true);
-    this.apiService.get<AppNotification[]>('notifications').subscribe({
+    this.loading.set(true);
+    timer(0, 30000).pipe(
+      switchMap(() => this.apiService.get<AppNotification[]>('notifications')),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
       next: (data) => {
         const items = Array.isArray(data) ? data : (data as any).items || [];
         this.notifications.set(items);

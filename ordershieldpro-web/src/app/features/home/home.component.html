@@ -1,0 +1,51 @@
+<div class="home-page">
+      <!-- Hero Section -->
+      <div class="hero-section">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-content">
+          <div class="hero-badge">
+            <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><path d="M14 2L3 7v7c0 7.18 4.69 13.89 11 15.5C20.31 27.89 25 21.18 25 14V7L14 2z" fill="currentColor" opacity="0.4"/><path d="M10 14l3 3 5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>{{ 'home.welcome' | translate }}</span>
+          </div>
+          <h1 class="hero-heading">{{ 'home.subtitle' | translate }}</h1>
+          <div class="hero-search">
+            <app-search-bar
+              [showFilter]="false"
+              [searchTerm]="searchQuery"
+              (searchTermChange)="searchQuery = $event"
+              (search)="navigateToSearch()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action -->
+      <div class="quick-action">
+        <a routerLink="/submit-review" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          {{ 'nav.submit' | translate }}
+        </a>
+      </div>
+
+      <!-- Recent Entities Section -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">{{ 'home.recentReviews' | translate }}</h2>
+          <a routerLink="/search" class="see-all">{{ 'common.viewAll' | translate }}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+
+        @if (loading()) {
+          <app-loading-spinner />
+        } @else {
+          <div class="entities-grid">
+            @for (entity of recentEntities(); track entity.id) {
+              <app-entity-card [entity]="entity" />
+            } @empty {
+              <div class="empty-message">{{ 'common.noData' | translate }}</div>
+            }
+          </div>
+        }
+      </div>
+    </div>

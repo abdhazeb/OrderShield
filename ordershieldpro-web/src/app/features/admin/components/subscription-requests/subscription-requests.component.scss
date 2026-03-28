@@ -1,0 +1,87 @@
+/* ===== Content Card ===== */
+.content-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.empty-card { padding: 48px 24px; }
+
+/* ===== Queue Cards ===== */
+.queue-list { display: flex; flex-direction: column; gap: 12px; }
+.queue-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  overflow: hidden; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.queue-card.selected {
+  border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6, 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+.queue-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px; cursor: pointer; transition: background 0.1s;
+}
+.queue-card-header:hover { background: #f8fafc; }
+.card-left { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0; }
+.severity-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-sub-pending { background: #f59e0b; }
+.dot-sub-approved { background: #10b981; }
+.dot-sub-rejected { background: #ef4444; }
+.card-title-group { flex: 1; min-width: 0; }
+.card-title {
+  font-size: 16px; font-weight: 600; color: #0f172a; margin: 0 0 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #64748b; flex-wrap: wrap; }
+.meta-sep { color: #cbd5e1; }
+.meta-severity { font-weight: 700; font-size: 12px; letter-spacing: 0.5px; }
+.sev-sub-pending { color: #f59e0b; }
+.sev-sub-approved { color: #10b981; }
+.sev-sub-rejected { color: #ef4444; }
+.expand-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: none; background: #f1f5f9; border-radius: 8px; color: #64748b;
+  cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.expand-btn:hover { background: #e2e8f0; }
+.expand-btn.rotated { transform: rotate(180deg); }
+
+/* ===== Card Body ===== */
+.queue-card-body { border-top: 1px solid #e2e8f0; padding: 20px; background: #fafbfc; }
+.detail-section { margin-bottom: 20px; }
+.detail-section:last-child { margin-bottom: 0; }
+.section-title {
+  font-size: 14px; font-weight: 700; color: #475569; text-transform: uppercase;
+  letter-spacing: 0.5px; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0;
+}
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.detail-item { display: flex; flex-direction: column; gap: 3px; }
+.detail-item.full-width { grid-column: 1 / -1; }
+.detail-key { font-size: 12px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.detail-val { font-size: 15px; color: #1e293b; font-weight: 500; }
+.file-link { color: #2563eb; }
+
+/* ===== Action Bar ===== */
+.action-bar { padding-top: 16px; border-top: 1px solid #e2e8f0; }
+.admin-notes-input { margin-bottom: 12px; }
+.setting-input {
+  width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; font-family: inherit; box-sizing: border-box;
+}
+.setting-input:focus { outline: none; border-color: #3b82f6; }
+.action-buttons { display: flex; gap: 10px; }
+.toolbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+  border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; background: white; color: #374151; font-family: inherit; transition: all 0.15s ease;
+}
+.toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.toolbar-btn.btn-approve { background: #059669; color: white; border-color: #059669; }
+.toolbar-btn.btn-approve:hover:not(:disabled) { background: #047857; border-color: #047857; }
+.toolbar-btn.btn-reject { background: white; color: #dc2626; border-color: #fca5a5; }
+.toolbar-btn.btn-reject:hover:not(:disabled) { background: #fef2f2; border-color: #f87171; }
+
+/* ===== Spinner ===== */
+.btn-spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+  border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

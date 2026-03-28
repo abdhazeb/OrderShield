@@ -1,0 +1,106 @@
+@if (loading()) {
+      <app-loading-spinner />
+    } @else if (entity()) {
+      <div class="entity-profile">
+        <!-- Profile Header -->
+        <div class="profile-header">
+          <div class="profile-name-row">
+            <div>
+              <h1 class="profile-name">{{ entity()!.legalName }}</h1>
+              @if (entity()!.tradeName && entity()!.tradeName !== entity()!.legalName) {
+                <div class="trade-name">{{ entity()!.tradeName }}</div>
+              }
+            </div>
+          </div>
+
+          <div class="profile-badges">
+            @if (isVerified()) {
+              <span class="badge badge-verified">✓ {{ 'verification.verified' | translate }}</span>
+            } @else {
+              <span class="badge badge-unverified">{{ 'verification.unverified' | translate }}</span>
+            }
+          </div>
+
+          <div class="profile-meta">
+            @if (entity()!.country) {
+              <span class="meta-item">📍 {{ entity()!.country }}{{ entity()!.region ? ', ' + entity()!.region : '' }}{{ entity()!.city ? ', ' + entity()!.city : '' }}</span>
+            }
+            @if (entity()!.productCategories) {
+              <span class="meta-item">📦 {{ entity()!.productCategories }}</span>
+            }
+            <span class="meta-item">📅 {{ 'entity.listedSince' | translate }}: {{ entity()!.listedDate | date:'mediumDate' }}</span>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn btn-primary" [routerLink]="['/submit-review', entity()!.id]">
+              ✍️ {{ 'review.submit' | translate }}
+            </button>
+            @if (authService.isAuthenticated() && entity()!.totalReviewCount > 0) {
+              <button class="btn btn-outline" [routerLink]="['/submit-review', entity()!.id]" [queryParams]="{ mode: 'comment' }">
+                💬 {{ 'review.addComment' | translate }}
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="profile-stats">
+          <app-stat-card [value]="entity()!.totalReviewCount" [label]="'entity.stats.total' | translate" />
+          <app-stat-card [value]="entity()!.infoReviewCount" [label]="'entity.stats.info' | translate" color="#1e40af" />
+          <app-stat-card [value]="entity()!.warningReviewCount" [label]="'entity.stats.warning' | translate" color="#92400e" />
+          <app-stat-card [value]="entity()!.criticalReviewCount" [label]="'entity.stats.critical' | translate" color="#991b1b" />
+        </div>
+
+        <!-- Additional Info -->
+        @if (entity()!.phoneNumbers.length > 0 || entity()!.weChatIds.length > 0 || entity()!.historicalNames.length > 0) {
+          <div class="info-section">
+            @if (entity()!.phoneNumbers.length > 0) {
+              <div class="info-group">
+                <h3>📞 {{ 'entity.phoneNumbers' | translate }}</h3>
+                @for (phone of entity()!.phoneNumbers; track phone.id) {
+                  <span class="info-tag">{{ phone.phoneNumber }}</span>
+                }
+              </div>
+            }
+            @if (entity()!.weChatIds.length > 0) {
+              <div class="info-group">
+                <h3>💬 {{ 'entity.weChatIds' | translate }}</h3>
+                @for (wechat of entity()!.weChatIds; track wechat.id) {
+                  <span class="info-tag">{{ wechat.weChatId }}</span>
+                }
+              </div>
+            }
+            @if (entity()!.historicalNames.length > 0) {
+              <div class="info-group">
+                <h3>📜 {{ 'entity.historicalNames' | translate }}</h3>
+                @for (name of entity()!.historicalNames; track name.id) {
+                  <span class="info-tag">{{ name.previousName }}</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Followers -->
+        <div class="followers-count">
+          👥 {{ entity()!.followerCount }} {{ 'entity.followers' | translate }}
+        </div>
+
+        <!-- Review Timeline -->
+        <div class="section">
+          <div class="section-title">
+            {{ 'entity.timeline' | translate }}
+          </div>
+
+          @if (reviewsLoading()) {
+            <app-loading-spinner />
+          } @else {
+            @for (review of reviews(); track review.id) {
+              <app-review-card [review]="review" />
+            } @empty {
+              <div class="empty-message">{{ 'common.noData' | translate }}</div>
+            }
+          }
+        </div>
+      </div>
+    }
