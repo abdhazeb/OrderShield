@@ -95,7 +95,8 @@
               "buildTarget": "ordershieldpro-web:build:production"
             },
             "development": {
-              "buildTarget": "ordershieldpro-web:build:development"
+              "buildTarget": "ordershieldpro-web:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

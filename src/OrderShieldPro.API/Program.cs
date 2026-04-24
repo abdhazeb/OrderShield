@@ -1,5 +1,7 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using OrderShieldPro.API.Middleware;
 using OrderShieldPro.Application;
@@ -93,11 +95,23 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Honor proxy headers from IIS/ARR in production reverse-proxy setup.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
 // Middleware pipeline
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+app.UseForwardedHeaders();
 
 // Security headers
 app.Use(async (context, next) =>
@@ -118,7 +132,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-if (!app.Environment.IsDevelopment())
+var enforceHttpsRedirection = app.Configuration.GetValue("Security:EnforceHttpsRedirection", !app.Environment.IsDevelopment());
+if (enforceHttpsRedirection)
 {
     app.UseHttpsRedirection();
 }
@@ -127,6 +142,22 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Ensure DB and migrations are applied on first production startup.
+if (!app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    if (dbContext.Database.IsRelational())
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    else
+    {
+        await dbContext.Database.EnsureCreatedAsync();
+    }
+}
 
 // Seed database on startup (development only)
 if (app.Environment.IsDevelopment())
