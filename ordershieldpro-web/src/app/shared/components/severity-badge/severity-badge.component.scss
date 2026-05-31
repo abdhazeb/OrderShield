@@ -49,6 +49,23 @@
       color: #92400e;
     }
 
+    /* Negative — extended */
+    .badge-financiallyDistressed { background: #fee2e2; color: #991b1b; }
+    .badge-bankrupt { background: #fecaca; color: #7f1d1d; }
+    .badge-poorManagement { background: #ffe4e6; color: #9f1239; }
+    .badge-inaccurateAppointments { background: #fff7ed; color: #9a3412; }
+    .badge-bribeOthers { background: #fae8ff; color: #86198f; }
+    .badge-fakeSupplier { background: #fce7f3; color: #831843; }
+    .badge-other { background: #f1f5f9; color: #334155; }
+
+    /* Positive — green / teal palette */
+    .badge-positive { background: #dcfce7; color: #15803d; }
+    .badge-recommended { background: #d1fae5; color: #047857; }
+    .badge-highQuality { background: #ccfbf1; color: #0f766e; }
+    .badge-onTimeDelivery { background: #cffafe; color: #0e7490; }
+    .badge-goodCommunication { background: #dbeafe; color: #1d4ed8; }
+    .badge-reliable { background: #ecfccb; color: #4d7c0f; }
+
     .count {
       font-weight: 800;
     }

@@ -5,6 +5,45 @@
 }
 .empty-card { padding: 48px 24px; }
 
+/* ===== Sub-tabs ===== */
+.approvals-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.approvals-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font-size: 14px; font-weight: 600;
+  color: #64748b; cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.approvals-tab:hover { color: #0f172a; }
+.approvals-tab.active {
+  color: var(--color-primary, #2563eb);
+  border-bottom-color: var(--color-primary, #2563eb);
+}
+.tab-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px;
+  border-radius: 10px;
+  background: #ef4444; color: white;
+  font-size: 11px; font-weight: 700;
+}
+
+/* ===== User detail grid ===== */
+.user-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px 16px;
+  font-size: 14px; color: #334155;
+}
+.user-detail-grid strong { color: #0f172a; font-weight: 600; }
+
 /* ===== Queue Cards ===== */
 .queue-list { display: flex; flex-direction: column; gap: 12px; }
 .queue-card {

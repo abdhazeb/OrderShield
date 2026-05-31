@@ -12,11 +12,16 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
-    public CreateReviewCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+    public CreateReviewCommandHandler(
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<Guid>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -85,6 +90,15 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
 
         await _unitOfWork.Reviews.AddAsync(review, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Notify SuperAdmins that a new review needs moderation.
+        await _notificationService.NotifySuperAdminsAsync(
+            NotificationType.NewReviewPendingApproval,
+            "New review awaiting approval",
+            $"A new review \"{review.Title}\" was submitted and needs moderation.",
+            referenceEntityId: review.TradeEntityId,
+            referenceReviewId: review.Id,
+            cancellationToken: cancellationToken);
 
         return Result<Guid>.Success(review.Id);
     }

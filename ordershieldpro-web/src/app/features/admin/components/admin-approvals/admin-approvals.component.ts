@@ -3,10 +3,22 @@ import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ToastService } from '../../../../core/services/toast.service';
+import { ConfirmService } from '../../../../core/services/confirm.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PendingAction } from '../../../../core/models';
 import { AdminActionType } from '../../../../core/enums';
+
+interface PendingUser {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string | null;
+  organization?: string | null;
+  role: string;
+  language: string;
+  createdAt: string;
+}
 
 @Component({
   selector: 'app-admin-approvals',
@@ -20,25 +32,48 @@ export class AdminApprovalsComponent implements OnInit {
   private apiService = inject(ApiService);
   private translate = inject(TranslateService);
   private toast = inject(ToastService);
+  private confirm = inject(ConfirmService);
 
   countChange = output<number>();
 
+  // Tab state
+  activeSection = signal<'actions' | 'users'>('actions');
+
+  // Action approvals
   pendingActions = signal<PendingAction[]>([]);
   pendingActionCount = signal(0);
   loadingActions = signal(false);
 
+  // User approvals
+  pendingUsers = signal<PendingUser[]>([]);
+  pendingUserCount = signal(0);
+  loadingUsers = signal(false);
+
   ngOnInit(): void {
     this.loadPendingActions();
+    this.loadPendingUsers();
+  }
+
+  setSection(section: 'actions' | 'users'): void {
+    this.activeSection.set(section);
+  }
+
+  private emitCount(): void {
+    this.countChange.emit(this.pendingActionCount() + this.pendingUserCount());
   }
 
   private loadPendingActions(): void {
     this.loadingActions.set(true);
-    this.apiService.get<PendingAction[]>('admin/actions/pending').subscribe({
+    // Backend returns a paged envelope: { items, totalCount, page, pageSize }.
+    // Older callers may have returned a bare array — handle both shapes.
+    this.apiService.get<PendingAction[] | { items: PendingAction[]; totalCount?: number }>('admin/actions/pending').subscribe({
       next: (res) => {
-        this.pendingActions.set(res || []);
-        const count = (res || []).length;
-        this.pendingActionCount.set(count);
-        this.countChange.emit(count);
+        const list: PendingAction[] = Array.isArray(res)
+          ? res
+          : (res?.items ?? []);
+        this.pendingActions.set(list);
+        this.pendingActionCount.set(list.length);
+        this.emitCount();
         this.loadingActions.set(false);
       },
       error: () => {
@@ -48,12 +83,29 @@ export class AdminApprovalsComponent implements OnInit {
     });
   }
 
+  private loadPendingUsers(): void {
+    this.loadingUsers.set(true);
+    this.apiService.get<{ items: PendingUser[]; totalCount?: number }>('admin/users/pending').subscribe({
+      next: (res) => {
+        const list = res?.items ?? [];
+        this.pendingUsers.set(list);
+        this.pendingUserCount.set(list.length);
+        this.emitCount();
+        this.loadingUsers.set(false);
+      },
+      error: () => {
+        this.loadingUsers.set(false);
+        this.pendingUsers.set([]);
+      },
+    });
+  }
+
   approveAction(id: string): void {
     this.apiService.put<void>(`admin/actions/${id}/approve`, {}).subscribe({
       next: () => {
         this.pendingActions.update(list => list.filter(a => a.id !== id));
         this.pendingActionCount.update(c => Math.max(0, c - 1));
-        this.countChange.emit(this.pendingActionCount());
+        this.emitCount();
       },
       error: () => this.toast.error(this.translate.instant('admin.failedApproveAction')),
     });
@@ -64,20 +116,56 @@ export class AdminApprovalsComponent implements OnInit {
       next: () => {
         this.pendingActions.update(list => list.filter(a => a.id !== id));
         this.pendingActionCount.update(c => Math.max(0, c - 1));
-        this.countChange.emit(this.pendingActionCount());
+        this.emitCount();
       },
       error: () => this.toast.error(this.translate.instant('admin.failedRejectAction')),
     });
   }
 
-  getActionTypeLabel(type: AdminActionType): string {
-    switch (type) {
-      case AdminActionType.PublishReview: return this.translate.instant('admin.actionType.publishReview');
-      case AdminActionType.RejectReview: return this.translate.instant('admin.actionType.rejectReview');
-      case AdminActionType.EditReview: return this.translate.instant('admin.actionType.editReview');
-      case AdminActionType.DeleteReview: return this.translate.instant('admin.actionType.deleteReview');
-      case AdminActionType.ReplyEnquiry: return this.translate.instant('admin.actionType.replyEnquiry');
-      default: return this.translate.instant('admin.actionType.unknown');
+  approveUser(user: PendingUser): void {
+    this.apiService.put<void>(`admin/users/${user.id}/approve`, {}).subscribe({
+      next: () => {
+        this.pendingUsers.update(list => list.filter(u => u.id !== user.id));
+        this.pendingUserCount.update(c => Math.max(0, c - 1));
+        this.emitCount();
+        this.toast.success(this.translate.instant('admin.userApprovals.approved', { name: user.fullName }));
+      },
+      error: () => this.toast.error(this.translate.instant('admin.userApprovals.failedApprove')),
+    });
+  }
+
+  rejectUser(user: PendingUser): void {
+    this.confirm.confirm({
+      variant: 'danger',
+      title: this.translate.instant('admin.userApprovals.confirmRejectTitle'),
+      message: this.translate.instant('admin.userApprovals.confirmRejectMessage', { name: user.fullName }),
+      confirmLabel: this.translate.instant('admin.userApprovals.reject'),
+      cancelLabel: this.translate.instant('common.cancel'),
+    }).subscribe(ok => {
+      if (!ok) return;
+      this.apiService.put<void>(`admin/users/${user.id}/reject`, {}).subscribe({
+        next: () => {
+          this.pendingUsers.update(list => list.filter(u => u.id !== user.id));
+          this.pendingUserCount.update(c => Math.max(0, c - 1));
+          this.emitCount();
+          this.toast.success(this.translate.instant('admin.userApprovals.rejected', { name: user.fullName }));
+        },
+        error: () => this.toast.error(this.translate.instant('admin.userApprovals.failedReject')),
+      });
+    });
+  }
+
+  getActionTypeLabel(type: AdminActionType | string): string {
+    // Backend serialises the enum as its string name (e.g. "PublishReview"),
+    // but legacy callers may pass the numeric enum value. Handle both.
+    const key = typeof type === 'string' ? type : AdminActionType[type];
+    switch (key) {
+      case 'PublishReview': return this.translate.instant('admin.actionType.publishReview');
+      case 'RejectReview':  return this.translate.instant('admin.actionType.rejectReview');
+      case 'EditReview':    return this.translate.instant('admin.actionType.editReview');
+      case 'DeleteReview':  return this.translate.instant('admin.actionType.deleteReview');
+      case 'ReplyEnquiry':  return this.translate.instant('admin.actionType.replyEnquiry');
+      default:              return this.translate.instant('admin.actionType.unknown');
     }
   }
 }

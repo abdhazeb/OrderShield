@@ -23,7 +23,14 @@ export enum SeverityLevel {
   InaccurateAppointments = 11,
   BribeOthers = 12,
   FakeSupplier = 13,
-  Other = 14
+  Other = 14,
+  // Positive / commendation categories
+  Positive = 15,
+  Recommended = 16,
+  HighQuality = 17,
+  OnTimeDelivery = 18,
+  GoodCommunication = 19,
+  Reliable = 20
 }
 
 export enum ReviewStatus {
@@ -73,7 +80,17 @@ export enum NotificationType {
   WatchRequestResolved = 3,
   EnquiryReply = 4,
   AdminActionApproved = 5,
-  AdminActionRejected = 6
+  AdminActionRejected = 6,
+  // SuperAdmin alerts
+  NewUserPendingApproval = 7,
+  NewReviewPendingApproval = 8,
+  NewWatchRequestPendingReview = 9,
+  // User outcomes
+  UserAccountApproved = 10,
+  ReviewApproved = 11,
+  ReviewRejected = 12,
+  WatchRequestAccepted = 13,
+  WatchRequestRejected = 14
 }
 
 export enum AdminActionType {

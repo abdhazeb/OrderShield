@@ -39,6 +39,7 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Register a new user account.
+    /// New public registrations are created in a pending state and require SuperAdmin approval before login.
     /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
@@ -52,7 +53,17 @@ public class AuthController : ControllerBase
         if (!succeeded)
             return BadRequest(new { errors });
 
-        return Ok(new { userId, token, refreshToken });
+        // The account is created but inactive; SuperAdmin approval is required before sign-in.
+        return Ok(new
+        {
+            userId,
+            token,
+            refreshToken,
+            pendingApproval = token == null,
+            message = token == null
+                ? "Your account has been created and is awaiting approval by a SuperAdmin. You will be notified by email once approved."
+                : null
+        });
     }
 
     /// <summary>

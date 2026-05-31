@@ -11,11 +11,16 @@ public class CreateWatchRequestCommandHandler : IRequestHandler<CreateWatchReque
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
-    public CreateWatchRequestCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public CreateWatchRequestCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<Result<Guid>> Handle(CreateWatchRequestCommand request, CancellationToken cancellationToken)
@@ -38,6 +43,13 @@ public class CreateWatchRequestCommandHandler : IRequestHandler<CreateWatchReque
 
         _context.WatchRequests.Add(watchRequest);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Notify SuperAdmins of the pending enquiry so they can accept or reject it.
+        await _notificationService.NotifySuperAdminsAsync(
+            NotificationType.NewWatchRequestPendingReview,
+            "New enquiry awaiting review",
+            $"A new enquiry was submitted for \"{watchRequest.EntityName}\".",
+            cancellationToken: cancellationToken);
 
         return Result<Guid>.Success(watchRequest.Id);
     }

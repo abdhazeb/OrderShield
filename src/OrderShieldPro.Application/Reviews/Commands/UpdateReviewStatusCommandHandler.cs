@@ -64,9 +64,22 @@ public class UpdateReviewStatusCommandHandler : IRequestHandler<UpdateReviewStat
             _context.Notifications.Add(new Notification
             {
                 UserId = review.ReviewerId,
-                Type = NotificationType.ReviewStatusChanged,
-                Title = "Review Published",
-                Message = $"Your review \"{review.Title}\" has been published.",
+                Type = NotificationType.ReviewApproved,
+                Title = "Review approved",
+                Message = $"Your review \"{review.Title}\" has been approved and published.",
+                ReferenceEntityId = review.TradeEntityId,
+                ReferenceReviewId = review.Id
+            });
+        }
+        else if (request.NewStatus == ReviewStatus.Rejected && oldStatus != ReviewStatus.Rejected)
+        {
+            // Notify the reviewer that their submission was rejected
+            _context.Notifications.Add(new Notification
+            {
+                UserId = review.ReviewerId,
+                Type = NotificationType.ReviewRejected,
+                Title = "Review rejected",
+                Message = $"Your review \"{review.Title}\" was not approved by the moderation team.",
                 ReferenceEntityId = review.TradeEntityId,
                 ReferenceReviewId = review.Id
             });

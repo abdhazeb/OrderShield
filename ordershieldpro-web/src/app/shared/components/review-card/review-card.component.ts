@@ -25,6 +25,19 @@ export class ReviewCardComponent {
       case SeverityLevel.Quality: return 'quality';
       case SeverityLevel.Delivery: return 'delivery';
       case SeverityLevel.Payment: return 'payment';
+      case SeverityLevel.FinanciallyDistressed: return 'financiallyDistressed';
+      case SeverityLevel.Bankrupt: return 'bankrupt';
+      case SeverityLevel.PoorManagement: return 'poorManagement';
+      case SeverityLevel.InaccurateAppointments: return 'inaccurateAppointments';
+      case SeverityLevel.BribeOthers: return 'bribeOthers';
+      case SeverityLevel.FakeSupplier: return 'fakeSupplier';
+      case SeverityLevel.Other: return 'other';
+      case SeverityLevel.Positive: return 'positive';
+      case SeverityLevel.Recommended: return 'recommended';
+      case SeverityLevel.HighQuality: return 'highQuality';
+      case SeverityLevel.OnTimeDelivery: return 'onTimeDelivery';
+      case SeverityLevel.GoodCommunication: return 'goodCommunication';
+      case SeverityLevel.Reliable: return 'reliable';
       default: return 'info';
     }
   }

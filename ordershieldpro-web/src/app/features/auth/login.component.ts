@@ -3,11 +3,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/auth/services/auth.service';
+import { PasswordInputComponent } from '../../shared/components/password-input/password-input.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, TranslateModule],
+  imports: [ReactiveFormsModule, RouterLink, TranslateModule, PasswordInputComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

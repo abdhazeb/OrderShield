@@ -1,43 +1,125 @@
-@if (loadingActions()) {
-  <div class="content-card"><app-loading-spinner [message]="'admin.loadingPendingActions' | translate" /></div>
-} @else if (pendingActions().length === 0) {
-  <div class="content-card empty-card">
-    <app-empty-state [title]="'admin.noPendingActions' | translate" [subtitle]="'admin.noPendingActionsDesc' | translate" />
-  </div>
-} @else {
-  <div class="queue-list">
-    @for (action of pendingActions(); track action.id) {
-      <div class="queue-card">
-        <div class="queue-card-header">
-          <div class="card-left">
-            <span class="action-type-badge">{{ getActionTypeLabel(action.actionType) }}</span>
-            <div class="card-title-group">
-              <h3 class="card-title">{{ action.targetType }} #{{ action.targetId.substring(0, 8) }}</h3>
-              <div class="card-meta">
-                <span>{{ 'admin.proposedBy' | translate }}: {{ action.proposedByName || 'Admin' }}</span>
-                <span class="meta-sep">&middot;</span>
-                <span>{{ action.createdAt | date:'MMM d, yyyy HH:mm' }}</span>
+<div class="approvals-tabs" role="tablist">
+  <button
+    type="button"
+    role="tab"
+    class="approvals-tab"
+    [class.active]="activeSection() === 'actions'"
+    (click)="setSection('actions')"
+  >
+    {{ 'admin.userApprovals.tabActions' | translate }}
+    @if (pendingActionCount() > 0) {
+      <span class="tab-badge">{{ pendingActionCount() }}</span>
+    }
+  </button>
+  <button
+    type="button"
+    role="tab"
+    class="approvals-tab"
+    [class.active]="activeSection() === 'users'"
+    (click)="setSection('users')"
+  >
+    {{ 'admin.userApprovals.tabUsers' | translate }}
+    @if (pendingUserCount() > 0) {
+      <span class="tab-badge">{{ pendingUserCount() }}</span>
+    }
+  </button>
+</div>
+
+@if (activeSection() === 'actions') {
+  @if (loadingActions()) {
+    <div class="content-card"><app-loading-spinner [message]="'admin.loadingPendingActions' | translate" /></div>
+  } @else if (pendingActions().length === 0) {
+    <div class="content-card empty-card">
+      <app-empty-state [title]="'admin.noPendingActions' | translate" [subtitle]="'admin.noPendingActionsDesc' | translate" />
+    </div>
+  } @else {
+    <div class="queue-list">
+      @for (action of pendingActions(); track action.id) {
+        <div class="queue-card">
+          <div class="queue-card-header">
+            <div class="card-left">
+              <span class="action-type-badge">{{ getActionTypeLabel(action.actionType) }}</span>
+              <div class="card-title-group">
+                <h3 class="card-title">{{ action.targetType }} #{{ action.targetId.substring(0, 8) }}</h3>
+                <div class="card-meta">
+                  <span>{{ 'admin.proposedBy' | translate }}: {{ action.proposedByName || 'Admin' }}</span>
+                  <span class="meta-sep">&middot;</span>
+                  <span>{{ action.createdAt | date:'MMM d, yyyy HH:mm' }}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="queue-card-body">
-          @if (action.payload) {
-            <div class="detail-section">
-              <h4 class="section-title">{{ 'admin.actionPayload' | translate }}</h4>
-              <div class="narrative-block">{{ action.payload }}</div>
+          <div class="queue-card-body">
+            @if (action.payload) {
+              <div class="detail-section">
+                <h4 class="section-title">{{ 'admin.actionPayload' | translate }}</h4>
+                <div class="narrative-block">{{ action.payload }}</div>
+              </div>
+            }
+            <div class="action-toolbar">
+              <button class="toolbar-btn btn-approve" (click)="approveAction(action.id)">
+                ✓ {{ 'admin.approveAction' | translate }}
+              </button>
+              <button class="toolbar-btn btn-reject" (click)="rejectAction(action.id)">
+                ✗ {{ 'admin.rejectAction' | translate }}
+              </button>
             </div>
-          }
-          <div class="action-toolbar">
-            <button class="toolbar-btn btn-approve" (click)="approveAction(action.id)">
-              ✓ {{ 'admin.approveAction' | translate }}
-            </button>
-            <button class="toolbar-btn btn-reject" (click)="rejectAction(action.id)">
-              ✗ {{ 'admin.rejectAction' | translate }}
-            </button>
           </div>
         </div>
-      </div>
-    }
-  </div>
+      }
+    </div>
+  }
+} @else {
+  @if (loadingUsers()) {
+    <div class="content-card"><app-loading-spinner [message]="'admin.userApprovals.loading' | translate" /></div>
+  } @else if (pendingUsers().length === 0) {
+    <div class="content-card empty-card">
+      <app-empty-state
+        [title]="'admin.userApprovals.empty' | translate"
+        [subtitle]="'admin.userApprovals.emptyDesc' | translate" />
+    </div>
+  } @else {
+    <div class="queue-list">
+      @for (user of pendingUsers(); track user.id) {
+        <div class="queue-card">
+          <div class="queue-card-header">
+            <div class="card-left">
+              <span class="action-type-badge">{{ 'admin.userApprovals.newAccount' | translate }}</span>
+              <div class="card-title-group">
+                <h3 class="card-title">{{ user.fullName }}</h3>
+                <div class="card-meta">
+                  <span>{{ user.email }}</span>
+                  @if (user.phoneNumber) {
+                    <span class="meta-sep">&middot;</span>
+                    <span>{{ user.phoneNumber }}</span>
+                  }
+                  <span class="meta-sep">&middot;</span>
+                  <span>{{ user.createdAt | date:'MMM d, yyyy HH:mm' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="queue-card-body">
+            <div class="detail-section">
+              <div class="user-detail-grid">
+                <div><strong>{{ 'admin.userApprovals.role' | translate }}:</strong> {{ user.role }}</div>
+                <div><strong>{{ 'admin.userApprovals.language' | translate }}:</strong> {{ user.language }}</div>
+                @if (user.organization) {
+                  <div><strong>{{ 'admin.userApprovals.organization' | translate }}:</strong> {{ user.organization }}</div>
+                }
+              </div>
+            </div>
+            <div class="action-toolbar">
+              <button class="toolbar-btn btn-approve" (click)="approveUser(user)">
+                ✓ {{ 'admin.userApprovals.approve' | translate }}
+              </button>
+              <button class="toolbar-btn btn-reject" (click)="rejectUser(user)">
+                ✗ {{ 'admin.userApprovals.reject' | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
 }

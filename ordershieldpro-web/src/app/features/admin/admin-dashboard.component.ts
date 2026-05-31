@@ -38,16 +38,29 @@ export class AdminDashboardComponent implements OnInit {
   unreadMsgCount = signal(0);
   pendingSubCount = signal(0);
   pendingActionCount = signal(0);
+  pendingUserCount = signal(0);
 
   ngOnInit(): void {
     if (this.authService.isSuperAdmin()) {
       this.loadPendingActionCount();
+      this.loadPendingUserCount();
     }
   }
 
   private loadPendingActionCount(): void {
     this.apiService.get<{ count: number }>('admin/actions/pending-count').subscribe({
-      next: (res) => this.pendingActionCount.set(res.count ?? 0),
+      next: (res) => this.pendingActionCount.set((res.count ?? 0) + this.pendingUserCount()),
+      error: () => {},
+    });
+  }
+
+  private loadPendingUserCount(): void {
+    this.apiService.get<{ count: number }>('admin/users/pending-count').subscribe({
+      next: (res) => {
+        this.pendingUserCount.set(res.count ?? 0);
+        // Re-aggregate the badge so it reflects users + actions.
+        this.loadPendingActionCount();
+      },
       error: () => {},
     });
   }

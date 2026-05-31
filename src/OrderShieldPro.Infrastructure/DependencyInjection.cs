@@ -82,6 +82,7 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileStorageService, FileStorageService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         services.AddHttpContextAccessor();
 

@@ -58,13 +58,24 @@ export class NotificationsComponent implements OnInit {
   onNotifClick(notif: AppNotification): void {
     // Mark as read
     if (!notif.isRead) {
-      this.apiService.put(`notifications/${notif.id}/read`, {}).subscribe({
-        next: () => {},
-        error: () => {},
-      });
+      this.notificationService.markAsRead(notif.id);
       this.notifications.update(list =>
         list.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
       );
+    }
+
+    // SuperAdmin alerts route directly to the approvals queues.
+    switch (notif.type) {
+      case NotificationType.NewUserPendingApproval:
+        this.router.navigate(['/admin/approvals'], { queryParams: { tab: 'users' } });
+        return;
+      case NotificationType.NewReviewPendingApproval:
+      case NotificationType.NewWatchRequestPendingReview:
+        this.router.navigate(['/admin/approvals'], { queryParams: { tab: 'actions' } });
+        return;
+      case NotificationType.UserAccountApproved:
+        this.router.navigate(['/profile']);
+        return;
     }
 
     // Navigate to relevant page based on notification type and references
@@ -99,10 +110,7 @@ export class NotificationsComponent implements OnInit {
   markAsRead(notif: AppNotification): void {
     if (notif.isRead) return;
 
-    this.apiService.put(`notifications/${notif.id}/read`, {}).subscribe({
-      next: () => {},
-      error: () => {},
-    });
+    this.notificationService.markAsRead(notif.id);
 
     this.notifications.update(list =>
       list.map(n => n.id === notif.id ? { ...n, isRead: true } : n)
@@ -110,10 +118,7 @@ export class NotificationsComponent implements OnInit {
   }
 
   markAllRead(): void {
-    this.apiService.put('notifications/read-all', {}).subscribe({
-      next: () => {},
-      error: () => {},
-    });
+    this.notificationService.markAllAsRead();
     this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
   }
 
@@ -123,6 +128,17 @@ export class NotificationsComponent implements OnInit {
       case NotificationType.ReviewStatusChanged: return '📝';
       case NotificationType.InvestigationComplete: return '🔍';
       case NotificationType.WatchRequestResolved: return '✅';
+      case NotificationType.NewUserPendingApproval: return '👤';
+      case NotificationType.NewReviewPendingApproval: return '🛡️';
+      case NotificationType.NewWatchRequestPendingReview: return '📨';
+      case NotificationType.UserAccountApproved: return '🎉';
+      case NotificationType.ReviewApproved: return '✅';
+      case NotificationType.ReviewRejected: return '❌';
+      case NotificationType.WatchRequestAccepted: return '✅';
+      case NotificationType.WatchRequestRejected: return '❌';
+      case NotificationType.AdminActionApproved: return '✅';
+      case NotificationType.AdminActionRejected: return '❌';
+      case NotificationType.EnquiryReply: return '💬';
       default: return '🔔';
     }
   }

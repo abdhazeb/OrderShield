@@ -19,17 +19,20 @@ public class AdminController : ControllerBase
     private readonly IIdentityService _identityService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly INotificationService _notificationService;
 
     public AdminController(
         IApplicationDbContext context,
         IIdentityService identityService,
         UserManager<ApplicationUser> userManager,
-        RoleManager<IdentityRole> roleManager)
+        RoleManager<IdentityRole> roleManager,
+        INotificationService notificationService)
     {
         _context = context;
         _identityService = identityService;
         _userManager = userManager;
         _roleManager = roleManager;
+        _notificationService = notificationService;
     }
 
     private string? CurrentUserId => User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -576,5 +579,88 @@ public class AdminController : ControllerBase
 
         await _userManager.DeleteAsync(user);
         return Ok(new { message = "Admin deleted." });
+    }
+
+    // ==================== USER REGISTRATION APPROVALS (SuperAdmin only) ====================
+
+    /// <summary>
+    /// List public user registrations awaiting SuperAdmin approval.
+    /// (Buyer-role accounts created via /auth/register are inactive until approved.)
+    /// </summary>
+    [HttpGet("users/pending")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> GetPendingUsers(CancellationToken ct)
+    {
+        var pending = await _userManager.Users
+            .Where(u => !u.IsActive && u.Role == UserRole.Buyer)
+            .OrderByDescending(u => u.CreatedAt)
+            .Select(u => new
+            {
+                u.Id,
+                u.FullName,
+                u.Email,
+                u.PhoneNumber,
+                u.Organization,
+                Role = u.Role.ToString(),
+                Language = u.LanguagePreference.ToString(),
+                u.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        return Ok(new { items = pending, totalCount = pending.Count });
+    }
+
+    /// <summary>
+    /// Count of pending user registrations (for the admin badge).
+    /// </summary>
+    [HttpGet("users/pending-count")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> GetPendingUserCount(CancellationToken ct)
+    {
+        var count = await _userManager.Users
+            .CountAsync(u => !u.IsActive && u.Role == UserRole.Buyer, ct);
+        return Ok(new { count });
+    }
+
+    /// <summary>
+    /// Approve a pending user (activates the account so they can sign in).
+    /// </summary>
+    [HttpPut("users/{userId}/approve")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> ApproveUser(string userId, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+        if (user.IsActive) return Ok(new { message = "User is already active." });
+
+        user.IsActive = true;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        // Notify the user that their account is active and they can sign in.
+        await _notificationService.NotifyUserAsync(
+            user.Id,
+            NotificationType.UserAccountApproved,
+            "Account approved",
+            "Your OrderShieldPro account has been approved. You can now sign in.",
+            cancellationToken: ct);
+
+        return Ok(new { message = "User approved." });
+    }
+
+    /// <summary>
+    /// Reject a pending user (deletes the account).
+    /// </summary>
+    [HttpPut("users/{userId}/reject")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> RejectUser(string userId, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+        if (user.IsActive)
+            return BadRequest(new { errors = new[] { "User is already active and cannot be rejected." } });
+
+        await _userManager.DeleteAsync(user);
+        return Ok(new { message = "User rejected and removed." });
     }
 }

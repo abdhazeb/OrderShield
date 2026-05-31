@@ -20,7 +20,11 @@
 
           <div class="form-group">
             <label class="form-label">{{ 'auth.password' | translate }}</label>
-            <input class="form-input" type="password" formControlName="password" placeholder="••••••••" />
+            <app-password-input
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+            />
           </div>
 
           <div class="forgot-link">

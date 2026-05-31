@@ -305,3 +305,27 @@ body {
   color: rgba(255, 255, 255, 0.85) !important;
 }
 
+/* ====================================
+   Unified Confirm/Alert Dialog
+   ==================================== */
+.osp-dialog-panel .mat-mdc-dialog-surface,
+.osp-dialog-panel .mdc-dialog__surface {
+  border-radius: 16px !important;
+  padding: 22px 22px 18px !important;
+  box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.35) !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+}
+.osp-dialog-panel .mat-mdc-dialog-container {
+  --mdc-dialog-container-color: #ffffff;
+  --mdc-dialog-supporting-text-color: var(--text-secondary, #475569);
+}
+.osp-dialog-backdrop {
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(2px);
+}
+
+/* RTL: ensure dialog content reads right-to-left */
+[dir="rtl"] .osp-dialog-panel .mat-mdc-dialog-surface,
+[dir="rtl"] .osp-dialog-panel .mdc-dialog__surface { direction: rtl; }
+

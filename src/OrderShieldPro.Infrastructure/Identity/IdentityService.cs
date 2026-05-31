@@ -16,17 +16,20 @@ public class IdentityService : IIdentityService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IApplicationDbContext _dbContext;
+    private readonly INotificationService _notificationService;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtTokenService jwtTokenService,
-        IApplicationDbContext dbContext)
+        IApplicationDbContext dbContext,
+        INotificationService notificationService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
         _dbContext = dbContext;
+        _notificationService = notificationService;
     }
 
     public async Task<(bool Succeeded, string? UserId, string? Token, string? RefreshToken, string[] Errors)> RegisterAsync(
@@ -48,7 +51,9 @@ public class IdentityService : IIdentityService
             Organization = organization,
             SubscriptionTier = SubscriptionTier.Free,
             SubscriptionExpiryDate = DateTime.UtcNow.AddDays(freeTrialDays),
-            IsActive = true,
+            // Public registrations require SuperAdmin approval before they can sign in.
+            // (Seeded admin/service-team accounts and admins created via /admin/team are activated explicitly.)
+            IsActive = false,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -58,26 +63,33 @@ public class IdentityService : IIdentityService
             return (false, null, null, null, result.Errors.Select(e => e.Description).ToArray());
         }
 
-        // Generate tokens
-        var accessToken = _jwtTokenService.GenerateAccessToken(
-            user.Id, user.Email!, user.Role.ToString(), user.SubscriptionTier.ToString());
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
+        // Notify all SuperAdmins so they can approve or reject the new account.
+        await _notificationService.NotifySuperAdminsAsync(
+            Domain.Enums.NotificationType.NewUserPendingApproval,
+            "New user awaiting approval",
+            $"{fullName} ({email}) registered and is waiting for approval.",
+            cancellationToken: cancellationToken);
 
-        // Store refresh token
-        user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiresAt = DateTime.UtcNow.AddDays(7);
-        await _userManager.UpdateAsync(user);
-
-        return (true, user.Id, accessToken, refreshToken, Array.Empty<string>());
+        // Do NOT issue tokens — the user must wait for SuperAdmin approval.
+        return (true, user.Id, null, null, Array.Empty<string>());
     }
 
     public async Task<(bool Succeeded, string? UserId, string? Token, string? RefreshToken, string? Language, string[] Errors)> LoginAsync(
         string email, string password, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null || !user.IsActive)
+        if (user == null)
         {
             return (false, null, null, null, null, new[] { "Invalid email or password." });
+        }
+        if (!user.IsActive)
+        {
+            // Distinguish "awaiting approval" (never logged in) from a frozen account.
+            // Both block sign-in, but the message guides the user.
+            var msg = user.LockoutEnabled && user.AccessFailedCount > 0
+                ? "Your account has been deactivated. Please contact support."
+                : "Your account is awaiting approval by a SuperAdmin.";
+            return (false, null, null, null, null, new[] { msg });
         }
 
         // Check if account is locked out

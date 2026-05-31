@@ -38,13 +38,17 @@ public class ResolveWatchRequestCommandHandler : IRequestHandler<ResolveWatchReq
         {
             watchRequest.ResolvedDate = DateTime.UtcNow;
 
+            var accepted = request.NewStatus == InvestigationStatus.Completed;
+
             // Notify the requester
             _context.Notifications.Add(new Notification
             {
                 UserId = watchRequest.RequestedById,
-                Type = NotificationType.InvestigationComplete,
-                Title = "Investigation Complete",
-                Message = $"Your investigation request for \"{watchRequest.EntityName}\" has been resolved.",
+                Type = accepted ? NotificationType.WatchRequestAccepted : NotificationType.WatchRequestRejected,
+                Title = accepted ? "Enquiry accepted" : "Enquiry rejected",
+                Message = accepted
+                    ? $"Your enquiry about \"{watchRequest.EntityName}\" was accepted and resolved."
+                    : $"Your enquiry about \"{watchRequest.EntityName}\" was rejected by the moderation team.",
                 ReferenceEntityId = request.ResultEntityId
             });
 

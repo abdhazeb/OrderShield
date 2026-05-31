@@ -156,21 +156,31 @@
               <label class="form-label">{{ 'review.reviewType' | translate }} *</label>
               <select class="form-select" [class.input-error]="isFieldInvalid('severity')" formControlName="severity">
                 <option [ngValue]="null" disabled>{{ 'review.selectType' | translate }}</option>
-                <option [ngValue]="0">{{ 'severity.info' | translate }}</option>
-                <option [ngValue]="1">{{ 'severity.warning' | translate }}</option>
-                <option [ngValue]="2">{{ 'severity.critical' | translate }}</option>
-                <option [ngValue]="3">{{ 'severity.behavior' | translate }}</option>
-                <option [ngValue]="4">{{ 'severity.fraud' | translate }}</option>
-                <option [ngValue]="5">{{ 'severity.quality' | translate }}</option>
-                <option [ngValue]="6">{{ 'severity.delivery' | translate }}</option>
-                <option [ngValue]="7">{{ 'severity.payment' | translate }}</option>
-                <option [ngValue]="8">{{ 'severity.financiallyDistressed' | translate }}</option>
-                <option [ngValue]="9">{{ 'severity.bankrupt' | translate }}</option>
-                <option [ngValue]="10">{{ 'severity.poorManagement' | translate }}</option>
-                <option [ngValue]="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
-                <option [ngValue]="12">{{ 'severity.bribeOthers' | translate }}</option>
-                <option [ngValue]="13">{{ 'severity.fakeSupplier' | translate }}</option>
-                <option [ngValue]="14">{{ 'severity.other' | translate }}</option>
+                <optgroup [label]="'severity.groupNegative' | translate">
+                  <option [ngValue]="0">{{ 'severity.info' | translate }}</option>
+                  <option [ngValue]="1">{{ 'severity.warning' | translate }}</option>
+                  <option [ngValue]="2">{{ 'severity.critical' | translate }}</option>
+                  <option [ngValue]="3">{{ 'severity.behavior' | translate }}</option>
+                  <option [ngValue]="4">{{ 'severity.fraud' | translate }}</option>
+                  <option [ngValue]="5">{{ 'severity.quality' | translate }}</option>
+                  <option [ngValue]="6">{{ 'severity.delivery' | translate }}</option>
+                  <option [ngValue]="7">{{ 'severity.payment' | translate }}</option>
+                  <option [ngValue]="8">{{ 'severity.financiallyDistressed' | translate }}</option>
+                  <option [ngValue]="9">{{ 'severity.bankrupt' | translate }}</option>
+                  <option [ngValue]="10">{{ 'severity.poorManagement' | translate }}</option>
+                  <option [ngValue]="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
+                  <option [ngValue]="12">{{ 'severity.bribeOthers' | translate }}</option>
+                  <option [ngValue]="13">{{ 'severity.fakeSupplier' | translate }}</option>
+                  <option [ngValue]="14">{{ 'severity.other' | translate }}</option>
+                </optgroup>
+                <optgroup [label]="'severity.groupPositive' | translate">
+                  <option [ngValue]="15">{{ 'severity.positive' | translate }}</option>
+                  <option [ngValue]="16">{{ 'severity.recommended' | translate }}</option>
+                  <option [ngValue]="17">{{ 'severity.highQuality' | translate }}</option>
+                  <option [ngValue]="18">{{ 'severity.onTimeDelivery' | translate }}</option>
+                  <option [ngValue]="19">{{ 'severity.goodCommunication' | translate }}</option>
+                  <option [ngValue]="20">{{ 'severity.reliable' | translate }}</option>
+                </optgroup>
               </select>
               @if (isFieldInvalid('severity')) {
                 <div class="field-error">{{ 'validation.selectReviewType' | translate }}</div>

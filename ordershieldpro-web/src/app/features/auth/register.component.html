@@ -1,42 +1,14 @@
 <div class="auth-page">
       <div class="auth-card">
         @if (registrationComplete()) {
-          <!-- Verification Step -->
+          <!-- Pending approval step: account created but cannot sign in until SuperAdmin approves. -->
           <div class="verification-step">
-            <div class="success-icon">✅</div>
-            <h1>{{ 'auth.verificationTitle' | translate }}</h1>
-            <p class="verification-subtitle">{{ 'auth.verificationSubtitle' | translate }}</p>
+            <div class="success-icon">⏳</div>
+            <h1>{{ 'auth.pendingApprovalTitle' | translate }}</h1>
+            <p class="verification-subtitle">{{ 'auth.pendingApprovalMessage' | translate }}</p>
 
-            <div class="verification-methods">
-              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'email'" (click)="selectedVerificationMethod.set('email')">
-                <span class="method-icon">✉️</span>
-                <div class="method-info">
-                  <span class="method-name">{{ 'auth.verifyByEmail' | translate }}</span>
-                  <span class="method-desc">{{ 'auth.verifyByEmailDesc' | translate }}</span>
-                </div>
-              </button>
-              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'sms'" (click)="selectedVerificationMethod.set('sms')">
-                <span class="method-icon">📱</span>
-                <div class="method-info">
-                  <span class="method-name">{{ 'auth.verifyBySMS' | translate }}</span>
-                  <span class="method-desc">{{ 'auth.verifyBySMSDesc' | translate }}</span>
-                </div>
-              </button>
-              <button class="method-btn" [class.selected]="selectedVerificationMethod() === 'whatsapp'" (click)="selectedVerificationMethod.set('whatsapp')">
-                <span class="method-icon">💬</span>
-                <div class="method-info">
-                  <span class="method-name">{{ 'auth.verifyByWhatsApp' | translate }}</span>
-                  <span class="method-desc">{{ 'auth.verifyByWhatsAppDesc' | translate }}</span>
-                </div>
-              </button>
-            </div>
-
-            <button class="btn btn-primary" (click)="confirmVerification()">
-              {{ 'auth.sendVerification' | translate }}
-            </button>
-
-            <button class="btn btn-skip" (click)="skipVerification()">
-              {{ 'auth.skipForNow' | translate }}
+            <button class="btn btn-primary" routerLink="/login">
+              {{ 'auth.backToLogin' | translate }}
             </button>
           </div>
         } @else {
@@ -74,12 +46,46 @@
 
           <div class="form-group">
             <label class="form-label">{{ 'auth.password' | translate }}</label>
-            <input class="form-input" type="password" formControlName="password" [placeholder]="'auth.passwordHint' | translate" />
+            <app-password-input
+              formControlName="password"
+              autocomplete="new-password"
+              [placeholder]="'auth.passwordHint' | translate"
+              (focusin)="onPasswordFocus()"
+              (focusout)="onPasswordBlur()"
+            />
+            @if (passwordTouched() || passwordFocused()) {
+              <ul class="password-rules" aria-live="polite">
+                <li [class.met]="passwordRules().length"  >
+                  <span class="rule-icon">{{ passwordRules().length  ? '✓' : '○' }}</span>
+                  {{ 'auth.passwordRules.length'  | translate }}
+                </li>
+                <li [class.met]="passwordRules().upper"   >
+                  <span class="rule-icon">{{ passwordRules().upper   ? '✓' : '○' }}</span>
+                  {{ 'auth.passwordRules.upper'   | translate }}
+                </li>
+                <li [class.met]="passwordRules().lower"   >
+                  <span class="rule-icon">{{ passwordRules().lower   ? '✓' : '○' }}</span>
+                  {{ 'auth.passwordRules.lower'   | translate }}
+                </li>
+                <li [class.met]="passwordRules().digit"   >
+                  <span class="rule-icon">{{ passwordRules().digit   ? '✓' : '○' }}</span>
+                  {{ 'auth.passwordRules.digit'   | translate }}
+                </li>
+                <li [class.met]="passwordRules().special" >
+                  <span class="rule-icon">{{ passwordRules().special ? '✓' : '○' }}</span>
+                  {{ 'auth.passwordRules.special' | translate }}
+                </li>
+              </ul>
+            }
           </div>
 
           <div class="form-group">
             <label class="form-label">{{ 'auth.confirmPassword' | translate }}</label>
-            <input class="form-input" type="password" formControlName="confirmPassword" [placeholder]="'auth.confirmPasswordHint' | translate" />
+            <app-password-input
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              [placeholder]="'auth.confirmPasswordHint' | translate"
+            />
             @if (form.hasError('passwordMismatch') && form.get('confirmPassword')?.touched) {
               <span class="field-error">{{ 'auth.passwordMismatch' | translate }}</span>
             }

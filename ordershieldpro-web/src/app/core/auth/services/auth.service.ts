@@ -42,8 +42,12 @@ export class AuthService {
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiBaseUrl}/auth/register`, request).pipe(
       tap(response => {
-        this.tokenService.setTokens(response.token, response.refreshToken, response.userId);
-        this.loadUserFromToken();
+        // New public registrations require SuperAdmin approval, so the API
+        // returns no token. Only sign the user in if a token was issued.
+        if (response.token && response.refreshToken) {
+          this.tokenService.setTokens(response.token, response.refreshToken, response.userId);
+          this.loadUserFromToken();
+        }
       })
     );
   }
@@ -51,7 +55,7 @@ export class AuthService {
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${environment.apiBaseUrl}/auth/login`, request).pipe(
       tap(response => {
-        this.tokenService.setTokens(response.token, response.refreshToken, response.userId);
+        this.tokenService.setTokens(response.token!, response.refreshToken!, response.userId);
         this.loadUserFromToken();
         // Apply the user's saved language preference (lazy inject to avoid circular DI)
         if (response.language) {
@@ -77,7 +81,7 @@ export class AuthService {
     const request: RefreshTokenRequest = { userId, refreshToken };
     return this.http.post<AuthResponse>(`${environment.apiBaseUrl}/auth/refresh-token`, request).pipe(
       tap(response => {
-        this.tokenService.setTokens(response.token, response.refreshToken, response.userId);
+        this.tokenService.setTokens(response.token!, response.refreshToken!, response.userId);
         this.loadUserFromToken();
       }),
       catchError(error => {

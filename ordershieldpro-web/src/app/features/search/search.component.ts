@@ -122,6 +122,9 @@ export class SearchComponent implements OnInit {
         if (params['q']) {
           this.searchQuery.set(params['q']);
           this.performSearch();
+        } else if (params['initial'] === 'true') {
+          // "View All" entry point — load every entity so the page is not empty.
+          this.performSearch();
         }
         if (params['openEnquiry'] === 'true') {
           this.directEnquiryMode.set(true);
