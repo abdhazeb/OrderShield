@@ -236,6 +236,11 @@
       .mobile-header { display: none; }
     }
 
+    .logo-icon{
+      width: 120px;
+     
+    } 
+
     /* ===== RTL overrides ===== */
     :host-context([dir="rtl"]) .notification-badge {
       inset-inline-end: -3px;
