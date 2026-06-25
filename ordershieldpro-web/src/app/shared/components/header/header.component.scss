@@ -136,8 +136,9 @@
     /* ===== Mobile Header ===== */
     .mobile-header {
       display: block;
-      background: var(--navy-900);
-      color: var(--text-on-dark);
+      background: var(--surface-0);
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--surface-border);
       padding: 14px 16px;
       position: sticky;
       top: 0;
@@ -176,9 +177,9 @@
       width: 36px;
       height: 36px;
       border-radius: var(--radius-md);
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: var(--text-on-dark);
+      background: transparent;
+      border: 1.5px solid var(--surface-border);
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -189,7 +190,9 @@
     }
 
     .icon-btn:hover {
-      background: rgba(255, 255, 255, 0.18);
+      background: var(--navy-50);
+      color: var(--navy-900);
+      border-color: var(--navy-200);
     }
 
     /* Desktop icon buttons */
@@ -228,7 +231,7 @@
     }
 
     .mobile-header .notification-badge {
-      border-color: var(--navy-900);
+      border-color: var(--surface-0);
     }
 
     @media (min-width: 768px) {

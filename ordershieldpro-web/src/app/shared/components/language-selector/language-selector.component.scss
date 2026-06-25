@@ -24,14 +24,16 @@
       background: rgba(255, 255, 255, 0.18);
     }
 
-    /* Desktop header context — light background */
-    :host-context(.desktop-header) .lang-btn {
+    /* Light header context (desktop + mobile) — light background */
+    :host-context(.desktop-header) .lang-btn,
+    :host-context(.mobile-header) .lang-btn {
       background: transparent;
       color: var(--text-secondary);
       border-color: var(--surface-border);
     }
 
-    :host-context(.desktop-header) .lang-btn:hover {
+    :host-context(.desktop-header) .lang-btn:hover,
+    :host-context(.mobile-header) .lang-btn:hover {
       background: var(--navy-50);
       color: var(--navy-900);
       border-color: var(--navy-200);
