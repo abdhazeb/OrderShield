@@ -1,7 +1,9 @@
+using System.Text.Json;
 using MediatR;
 using OrderShieldPro.Application.Common.Exceptions;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Common.Models;
+using OrderShieldPro.Application.Reviews.DTOs;
 using OrderShieldPro.Domain.Entities;
 using OrderShieldPro.Domain.Enums;
 using OrderShieldPro.Domain.Interfaces;
@@ -24,6 +26,8 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
         _notificationService = notificationService;
     }
 
+    private static readonly string[] ModeratorRoles = { "Admin", "SuperAdmin", "ServiceTeam" };
+
     public async Task<Result> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
@@ -33,49 +37,72 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
         if (review is null)
             throw new NotFoundException(nameof(Review), request.ReviewId);
 
-        // Only the original author may edit their review.
-        if (!string.Equals(review.ReviewerId, _currentUserService.UserId, StringComparison.Ordinal))
+        var isOwner = string.Equals(review.ReviewerId, _currentUserService.UserId, StringComparison.Ordinal);
+        var isModerator = _currentUserService.Role is not null && ModeratorRoles.Contains(_currentUserService.Role);
+
+        if (!isOwner && !isModerator)
             return Result.Failure("You can only edit your own reviews.");
 
-        // If the review was already published, withdraw it from the public counts
-        // because the edited version must be re-validated before it is shown again.
-        if (review.Status == ReviewStatus.Published)
+        if (isModerator)
         {
-            var entity = await _unitOfWork.TradeEntities.GetByIdAsync(review.TradeEntityId, cancellationToken);
-            if (entity is not null)
-            {
-                entity.TotalReviewCount = Math.Max(0, entity.TotalReviewCount - 1);
-                switch (review.Severity)
-                {
-                    case SeverityLevel.Info:
-                        entity.InfoReviewCount = Math.Max(0, entity.InfoReviewCount - 1);
-                        break;
-                    case SeverityLevel.Warning:
-                        entity.WarningReviewCount = Math.Max(0, entity.WarningReviewCount - 1);
-                        break;
-                    case SeverityLevel.Critical:
-                        entity.CriticalReviewCount = Math.Max(0, entity.CriticalReviewCount - 1);
-                        break;
-                }
-                await _unitOfWork.TradeEntities.UpdateAsync(entity, cancellationToken);
-            }
+            // Moderator edits are applied directly — no re-moderation needed.
+            ApplyEditToReview(review, request);
+            review.UpdatedBy = _currentUserService.UserId;
+            await _unitOfWork.Reviews.UpdateAsync(review, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            return Result.Success();
         }
 
-        review.Severity = request.Severity;
-        review.Title = request.Title;
-        review.Narrative = request.Narrative;
-        review.Product = request.Product;
-        review.ProductCategory = request.ProductCategory;
-        review.IncidentDate = request.IncidentDate;
-        review.ContactName = request.ContactName;
-        review.ContactPhoneUsed = request.ContactPhoneUsed;
-        review.Status = ReviewStatus.Pending; // Requires admin re-validation.
+        // ── Owner edit path ────────────────────────────────────────────────────
+        if (review.Status == ReviewStatus.Published)
+        {
+            // The review is currently live. Save the edit as a pending snapshot
+            // so the original content stays published until an admin reviews it.
+            var pendingEdit = new ReviewPendingEdit
+            {
+                Severity = request.IsComment ? SeverityLevel.Info : request.Severity,
+                Title = request.Title,
+                Narrative = request.Narrative,
+                Product = request.Product,
+                ProductCategory = request.ProductCategory,
+                IncidentDate = request.IncidentDate,
+                ContactName = request.ContactName,
+                ContactPhoneUsed = request.ContactPhoneUsed,
+                IsComment = request.IsComment,
+            };
+            review.PendingEditJson = JsonSerializer.Serialize(pendingEdit);
+            review.Status = ReviewStatus.PendingEdit;
+            review.UpdatedBy = _currentUserService.UserId;
+
+            await _unitOfWork.Reviews.UpdateAsync(review, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            await _notificationService.NotifySuperAdminsAsync(
+                NotificationType.NewReviewPendingApproval,
+                "Review edit awaiting approval",
+                $"A published review \"{review.Title}\" has a pending edit that needs approval.",
+                referenceEntityId: review.TradeEntityId,
+                referenceReviewId: review.Id,
+                cancellationToken: cancellationToken);
+
+            return Result.Success();
+        }
+
+        // Review is not yet published (Pending / Rejected / PendingEdit) — apply in-place
+        // and send back to Pending for re-moderation.
+        if (review.Status == ReviewStatus.PendingEdit)
+        {
+            // Clear any previous pending-edit snapshot; just replace with the new one.
+            review.PendingEditJson = null;
+        }
+
+        ApplyEditToReview(review, request);
+        review.Status = ReviewStatus.Pending;
         review.UpdatedBy = _currentUserService.UserId;
 
         await _unitOfWork.Reviews.UpdateAsync(review, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Notify SuperAdmins that an edited review needs re-moderation.
         await _notificationService.NotifySuperAdminsAsync(
             NotificationType.NewReviewPendingApproval,
             "Edited review awaiting approval",
@@ -85,5 +112,18 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
             cancellationToken: cancellationToken);
 
         return Result.Success();
+    }
+
+    private static void ApplyEditToReview(Review review, UpdateReviewCommand request)
+    {
+        review.Severity = request.IsComment ? SeverityLevel.Info : request.Severity;
+        review.Title = request.Title;
+        review.Narrative = request.Narrative;
+        review.Product = request.Product;
+        review.ProductCategory = request.ProductCategory;
+        review.IncidentDate = request.IncidentDate;
+        review.ContactName = request.ContactName;
+        review.ContactPhoneUsed = request.ContactPhoneUsed;
+        review.PendingEditJson = null; // clear any stale snapshot
     }
 }

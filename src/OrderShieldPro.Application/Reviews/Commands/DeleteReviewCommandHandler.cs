@@ -21,6 +21,8 @@ public class DeleteReviewCommandHandler : IRequestHandler<DeleteReviewCommand, R
         _currentUserService = currentUserService;
     }
 
+    private static readonly string[] ModeratorRoles = { "Admin", "SuperAdmin", "ServiceTeam" };
+
     public async Task<Result> Handle(DeleteReviewCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
@@ -30,8 +32,11 @@ public class DeleteReviewCommandHandler : IRequestHandler<DeleteReviewCommand, R
         if (review is null)
             throw new NotFoundException(nameof(Review), request.ReviewId);
 
-        // Only the original author may delete their review.
-        if (!string.Equals(review.ReviewerId, _currentUserService.UserId, StringComparison.Ordinal))
+        var isOwner = string.Equals(review.ReviewerId, _currentUserService.UserId, StringComparison.Ordinal);
+        var isModerator = _currentUserService.Role is not null && ModeratorRoles.Contains(_currentUserService.Role);
+
+        // Only the original author or a moderator may delete the review.
+        if (!isOwner && !isModerator)
             return Result.Failure("You can only delete your own reviews.");
 
         // If the review was published, remove it from the entity's public counts.

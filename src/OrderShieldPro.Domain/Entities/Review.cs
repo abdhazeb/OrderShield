@@ -41,6 +41,13 @@ public class Review : AuditableEntity
     // Verification email (never displayed publicly)
     public string VerificationEmail { get; set; } = string.Empty;
 
+    /// <summary>
+    /// JSON blob that stores the owner's pending edit when a published review
+    /// has been edited but not yet approved by an admin.  Null when there is
+    /// no pending edit.  Serialised as ReviewPendingEdit.
+    /// </summary>
+    public string? PendingEditJson { get; set; }
+
     // Navigation
     public TradeEntity TradeEntity { get; set; } = null!;
     public ICollection<EvidenceNote> EvidenceNotes { get; set; } = new List<EvidenceNote>();

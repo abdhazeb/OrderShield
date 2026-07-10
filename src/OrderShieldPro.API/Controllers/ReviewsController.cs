@@ -164,5 +164,29 @@ public class ReviewsController : ControllerBase
         return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
     }
 
+    /// <summary>
+    /// Admin approves a pending owner-submitted edit. The edit snapshot is applied
+    /// and the review stays Published with the updated content.
+    /// </summary>
+    [HttpPut("{id:guid}/approve-edit")]
+    [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
+    public async Task<IActionResult> ApproveEdit(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ApproveReviewEditCommand(id), ct);
+        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
+    }
+
+    /// <summary>
+    /// Admin rejects a pending owner-submitted edit. The edit snapshot is discarded
+    /// and the review is restored to Published with its original content.
+    /// </summary>
+    [HttpPut("{id:guid}/reject-edit")]
+    [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
+    public async Task<IActionResult> RejectEdit(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new RejectReviewEditCommand(id), ct);
+        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
+    }
+
     public record UpdateReviewStatusRequest(ReviewStatus NewStatus);
 }

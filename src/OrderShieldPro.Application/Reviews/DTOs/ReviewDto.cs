@@ -22,6 +22,8 @@ public record ReviewDto
     public DateTime? IncidentDate { get; init; }
     public decimal? OrderValue { get; init; }
     public string? EvidenceLinks { get; init; }
+    /// <summary>JSON-serialised ReviewPendingEdit when Status == PendingEdit.</summary>
+    public string? PendingEditJson { get; init; }
     public IReadOnlyList<EvidenceFileDto> EvidenceFiles { get; init; } = Array.Empty<EvidenceFileDto>();
     public IReadOnlyList<EvidenceNoteDto> PublicEvidenceNotes { get; init; } = Array.Empty<EvidenceNoteDto>();
     public DateTime CreatedAt { get; init; }

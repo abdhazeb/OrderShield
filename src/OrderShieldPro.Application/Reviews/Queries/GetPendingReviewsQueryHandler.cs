@@ -43,6 +43,7 @@ public class GetPendingReviewsQueryHandler : IRequestHandler<GetPendingReviewsQu
             IncidentDate = r.IncidentDate,
             OrderValue = r.OrderValue,
             EvidenceLinks = r.EvidenceLinks,
+            PendingEditJson = r.PendingEditJson,
             EvidenceFiles = r.EvidenceFiles.Select(f => new EvidenceFileDto
             {
                 Id = f.Id,

@@ -11,7 +11,55 @@
                 <div class="trade-name">{{ entity()!.tradeName }}</div>
               }
             </div>
+            @if (isAdmin() && !editingEntity()) {
+              <button type="button" class="btn btn-outline btn-sm admin-edit-entity" (click)="openEntityEdit()">
+                ✏️ {{ 'entity.editEntity' | translate }}
+              </button>
+            }
           </div>
+
+          @if (editingEntity()) {
+            <div class="entity-edit-form">
+              <div class="entity-edit-grid">
+                <label class="form-group-inline">
+                  <span>{{ 'entity.legalName' | translate }} *</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.legalName" />
+                </label>
+                <label class="form-group-inline">
+                  <span>{{ 'entity.tradeName' | translate }}</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.tradeName" />
+                </label>
+                <label class="form-group-inline">
+                  <span>{{ 'review.supplierCountry' | translate }} *</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.country" />
+                </label>
+                <label class="form-group-inline">
+                  <span>{{ 'review.supplierProvince' | translate }}</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.region" />
+                </label>
+                <label class="form-group-inline">
+                  <span>{{ 'entity.city' | translate }}</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.city" />
+                </label>
+                <label class="form-group-inline">
+                  <span>{{ 'review.productCategory' | translate }}</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.productCategories" />
+                </label>
+                <label class="form-group-inline entity-edit-full">
+                  <span>{{ 'entity.phoneNumbers' | translate }}</span>
+                  <input class="form-input-sm" type="text" [(ngModel)]="entityEdit.phoneNumbers" placeholder="+201234, +492345" />
+                </label>
+              </div>
+              <div class="entity-edit-actions">
+                <button type="button" class="btn btn-primary btn-sm" [disabled]="savingEntity()" (click)="saveEntityEdit()">
+                  💾 {{ 'entity.saveChanges' | translate }}
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" [disabled]="savingEntity()" (click)="cancelEntityEdit()">
+                  ✕ {{ 'common.cancel' | translate }}
+                </button>
+              </div>
+            </div>
+          }
 
           <div class="profile-badges">
             @if (isVerified()) {
@@ -96,7 +144,13 @@
             <app-loading-spinner />
           } @else {
             @for (review of reviews(); track review.id) {
-              <app-review-card [review]="review" />
+              <app-review-card
+                [review]="review"
+                [editable]="canEditReview(review)"
+                [showHide]="isAdmin()"
+                (edit)="onEditReview($event)"
+                (remove)="onDeleteReview($event)"
+                (hide)="onHideReview($event)" />
             } @empty {
               <div class="empty-message">{{ 'common.noData' | translate }}</div>
             }

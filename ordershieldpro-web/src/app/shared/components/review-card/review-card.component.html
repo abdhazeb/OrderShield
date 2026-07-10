@@ -37,6 +37,11 @@
           <button type="button" class="review-action-btn edit" (click)="onEdit($event)">
             ✏️ {{ 'review.edit' | translate }}
           </button>
+          @if (showHide()) {
+            <button type="button" class="review-action-btn hide" (click)="onHide($event)">
+              🙈 {{ 'review.hide' | translate }}
+            </button>
+          }
           <button type="button" class="review-action-btn delete" (click)="onDelete($event)">
             🗑️ {{ 'review.delete' | translate }}
           </button>

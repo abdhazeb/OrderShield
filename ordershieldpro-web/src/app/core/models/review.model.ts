@@ -18,6 +18,8 @@ export interface Review {
   contactPhoneUsed?: string;
   contactWeChatUsed?: string;
   evidenceLinks?: string;
+  /** JSON string (ReviewPendingEdit) when status === PendingEdit */
+  pendingEditJson?: string;
   verificationEmail: string;
   createdAt: string;
   evidenceFiles: EvidenceFile[];

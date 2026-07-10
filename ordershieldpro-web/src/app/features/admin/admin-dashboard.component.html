@@ -45,7 +45,7 @@
         <app-moderation-queue (countChange)="pendingCount.set($event)" />
       }
       @case ('analytics') {
-        <app-admin-analytics />
+        <app-admin-analytics (navigate)="onAnalyticsNavigate($event)" />
       }
       @case ('messages') {
         <app-contact-messages (countChange)="unreadMsgCount.set($event)" />

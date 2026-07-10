@@ -24,6 +24,50 @@
 
     .trade-name { font-size: 14px; color: var(--text-tertiary); margin-top: 2px; }
 
+    .admin-edit-entity {
+      align-self: flex-start;
+      white-space: nowrap;
+    }
+
+    .entity-edit-form {
+      background: var(--surface-50, #f8fafc);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .entity-edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .entity-edit-grid .form-group-inline {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .entity-edit-grid .entity-edit-full { grid-column: 1 / -1; }
+    .entity-edit-grid .form-input-sm {
+      padding: 8px 10px;
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md, 6px);
+      font-size: 14px;
+      background: var(--surface-0);
+      color: var(--text-primary);
+    }
+    .entity-edit-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: flex-end;
+    }
+    @media (max-width: 640px) {
+      .entity-edit-grid { grid-template-columns: 1fr; }
+    }
+
     .type-badge {
       background: var(--accent-100); color: var(--navy-800); padding: 4px 10px; border-radius: var(--radius-full);
       font-size: 11px; font-weight: 700; text-transform: uppercase; white-space: nowrap; letter-spacing: 0.02em;

@@ -73,6 +73,11 @@
       color: var(--primary, #2563eb);
       background: var(--primary-50, #eff6ff);
     }
+    .review-action-btn.hide:hover {
+      border-color: #d97706;
+      color: #d97706;
+      background: #fffbeb;
+    }
     .review-action-btn.delete:hover {
       border-color: #dc2626;
       color: #dc2626;

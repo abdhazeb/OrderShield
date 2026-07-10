@@ -16,6 +16,8 @@ export interface PendingReview {
   incidentDate: string;
   orderValue?: number;
   evidenceLinks?: string;
+  /** JSON string (ReviewPendingEdit) when status === PendingEdit */
+  pendingEditJson?: string;
   evidenceFiles: { id: string; fileName: string; contentType: string; fileSizeBytes: number }[];
   publicEvidenceNotes: { id: string; summary: string; verificationOutcome: number; createdAt: string }[];
   createdAt: string;

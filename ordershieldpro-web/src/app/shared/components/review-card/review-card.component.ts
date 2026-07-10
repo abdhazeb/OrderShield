@@ -17,8 +17,11 @@ export class ReviewCardComponent {
   review = input.required<Review>();
   /** When true, shows edit/delete controls (used in the user's own reviews list). */
   editable = input(false);
+  /** When true, shows an additional "Hide" (reject) control for admins. */
+  showHide = input(false);
   edit = output<Review>();
   remove = output<Review>();
+  hide = output<Review>();
 
   readonly ReviewStatus = ReviewStatus;
 
@@ -27,6 +30,7 @@ export class ReviewCardComponent {
       case ReviewStatus.Published: return 'review.published';
       case ReviewStatus.Rejected: return 'review.rejected';
       case ReviewStatus.Amended: return 'review.amended';
+      case ReviewStatus.PendingEdit: return 'review.pendingEdit';
       default: return 'review.pending';
     }
   }
@@ -39,6 +43,11 @@ export class ReviewCardComponent {
   onDelete(event: Event): void {
     event.stopPropagation();
     this.remove.emit(this.review());
+  }
+
+  onHide(event: Event): void {
+    event.stopPropagation();
+    this.hide.emit(this.review());
   }
 
   getSeverityLabel(): string {

@@ -1,4 +1,5 @@
 import { Component, inject, signal, OnInit, output, ChangeDetectionStrategy } from '@angular/core';
+import { Router } from '@angular/router';
 import { DatePipe, CurrencyPipe, UpperCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,6 +25,7 @@ export class ModerationQueueComponent implements OnInit {
   private translate = inject(TranslateService);
   private toast = inject(ToastService);
   private confirmService = inject(ConfirmService);
+  private router = inject(Router);
 
   countChange = output<number>();
 
@@ -108,6 +110,70 @@ export class ModerationQueueComponent implements OnInit {
     this.showMessageForm.set(true);
     this.messageSent.set(false);
     this.messageText = '';
+  }
+
+  editReview(review: PendingReview): void {
+    // Reuse the submit-review page in edit mode. The backend allows admins
+    // to edit any review; the edit is applied without needing re-moderation.
+    const isComment = review.severity === SeverityLevel.Info;
+    this.router.navigate(['/submit-review'], {
+      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },
+      state: { review },
+    });
+  }
+
+  deleteReview(review: PendingReview): void {
+    const message = this.translate.instant('review.deleteConfirm');
+    this.confirmService.confirm({ message, color: 'warn' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.apiService.delete(`reviews/${review.id}`).subscribe({
+        next: () => {
+          this.pendingReviews.update(list => list.filter(r => r.id !== review.id));
+          this.pendingCount.update(c => Math.max(0, c - 1));
+          this.countChange.emit(this.pendingCount());
+          this.selectedReview.set(null);
+          this.toast.success(this.translate.instant('review.deleteSuccess'));
+        },
+        error: () => this.toast.error(this.translate.instant('review.deleteFailed')),
+      });
+    });
+  }
+
+  approveEdit(id: string): void {
+    this.confirmService.confirm({ message: this.translate.instant('admin.approveEditConfirm'), color: 'primary' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.apiService.put(`reviews/${id}/approve-edit`, {}).subscribe({
+        next: () => {
+          this.pendingReviews.update(list => list.filter(r => r.id !== id));
+          this.pendingCount.update(c => Math.max(0, c - 1));
+          this.countChange.emit(this.pendingCount());
+          this.selectedReview.set(null);
+          this.toast.success(this.translate.instant('admin.approveEditSuccess'));
+        },
+        error: () => this.toast.error(this.translate.instant('admin.failedApproveEdit')),
+      });
+    });
+  }
+
+  rejectEdit(id: string): void {
+    this.confirmService.confirm({ message: this.translate.instant('admin.rejectEditConfirm'), color: 'warn' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.apiService.put(`reviews/${id}/reject-edit`, {}).subscribe({
+        next: () => {
+          this.pendingReviews.update(list => list.filter(r => r.id !== id));
+          this.pendingCount.update(c => Math.max(0, c - 1));
+          this.countChange.emit(this.pendingCount());
+          this.selectedReview.set(null);
+          this.toast.success(this.translate.instant('admin.rejectEditSuccess'));
+        },
+        error: () => this.toast.error(this.translate.instant('admin.failedRejectEdit')),
+      });
+    });
+  }
+
+  parsePendingEdit(json: string | undefined): { severity: number; title: string; narrative: string; product?: string; productCategory?: string; incidentDate?: string; contactName?: string; contactPhoneUsed?: string } | null {
+    if (!json) return null;
+    try { return JSON.parse(json); } catch { return null; }
   }
 
   sendMessage(reviewId: string): void {

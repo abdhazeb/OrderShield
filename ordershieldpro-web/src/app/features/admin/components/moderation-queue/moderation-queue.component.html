@@ -21,6 +21,10 @@
                 <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
                   {{ getSeverityString(review.severity) | uppercase }}
                 </span>
+                @if (review.status === 4) {
+                  <span class="meta-sep">&middot;</span>
+                  <span class="meta-pending-edit">⏳ {{ 'admin.pendingEditBadge' | translate }}</span>
+                }
               </div>
             </div>
           </div>
@@ -88,6 +92,32 @@
               <div class="narrative-block">{{ review.narrative }}</div>
             </div>
 
+            <!-- PendingEdit diff: show original vs proposed changes side-by-side -->
+            @if (review.status === 4 && parsePendingEdit(review.pendingEditJson); as edit) {
+              <div class="detail-section pending-edit-section">
+                <h4 class="section-title pending-edit-badge">⏳ {{ 'admin.pendingEditTitle' | translate }}</h4>
+                <p class="pending-edit-desc">{{ 'admin.pendingEditDesc' | translate }}</p>
+                <div class="diff-grid">
+                  <div class="diff-col original">
+                    <div class="diff-label">{{ 'admin.originalContent' | translate }}</div>
+                    <div class="diff-field"><strong>{{ 'review.title' | translate }}:</strong> {{ review.title }}</div>
+                    <div class="diff-field"><strong>{{ 'admin.narrative' | translate }}:</strong><br>{{ review.narrative }}</div>
+                    @if (review.productCategory) {
+                      <div class="diff-field"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ review.productCategory }}</div>
+                    }
+                  </div>
+                  <div class="diff-col proposed">
+                    <div class="diff-label">{{ 'admin.proposedEdit' | translate }}</div>
+                    <div class="diff-field" [class.changed]="edit.title !== review.title"><strong>{{ 'review.title' | translate }}:</strong> {{ edit.title }}</div>
+                    <div class="diff-field" [class.changed]="edit.narrative !== review.narrative"><strong>{{ 'admin.narrative' | translate }}:</strong><br>{{ edit.narrative }}</div>
+                    @if (edit.productCategory) {
+                      <div class="diff-field" [class.changed]="edit.productCategory !== review.productCategory"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ edit.productCategory }}</div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
             @if (review.evidenceFiles.length > 0) {
               <div class="detail-section">
                 <h4 class="section-title">{{ 'admin.evidenceFiles' | translate }} ({{ review.evidenceFiles.length }})</h4>
@@ -115,17 +145,36 @@
             }
 
             <div class="action-toolbar">
-              <button class="toolbar-btn btn-approve" (click)="publishReview(review.id); $event.stopPropagation()">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.3 4L6 11.3L2.7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                {{ 'admin.publish' | translate }}
-              </button>
-              <button class="toolbar-btn btn-reject" (click)="rejectReview(review.id); $event.stopPropagation()">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-                {{ 'admin.reject' | translate }}
-              </button>
+              @if (review.status === 4) {
+                <!-- PendingEdit: approve or reject the owner's edit only, not the whole review -->
+                <button class="toolbar-btn btn-approve" (click)="approveEdit(review.id); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.3 4L6 11.3L2.7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {{ 'admin.approveEdit' | translate }}
+                </button>
+                <button class="toolbar-btn btn-reject" (click)="rejectEdit(review.id); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  {{ 'admin.rejectEdit' | translate }}
+                </button>
+              } @else {
+                <!-- New pending review: publish or reject the whole review -->
+                <button class="toolbar-btn btn-approve" (click)="publishReview(review.id); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.3 4L6 11.3L2.7 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  {{ 'admin.publish' | translate }}
+                </button>
+                <button class="toolbar-btn btn-reject" (click)="rejectReview(review.id); $event.stopPropagation()">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  {{ 'admin.reject' | translate }}
+                </button>
+              }
               <button class="toolbar-btn btn-message" (click)="openMessageForm(review); $event.stopPropagation()">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M14 10.67A1.33 1.33 0 0 1 12.67 12H4.67L2 14.67V3.33A1.33 1.33 0 0 1 3.33 2h9.34A1.33 1.33 0 0 1 14 3.33v7.34z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 {{ 'admin.messageReviewer' | translate }}
+              </button>
+              <button class="toolbar-btn btn-edit" (click)="editReview(review); $event.stopPropagation()">
+                ✏️ {{ 'review.edit' | translate }}
+              </button>
+              <button class="toolbar-btn btn-delete" (click)="deleteReview(review); $event.stopPropagation()">
+                🗑️ {{ 'review.delete' | translate }}
               </button>
             </div>
 

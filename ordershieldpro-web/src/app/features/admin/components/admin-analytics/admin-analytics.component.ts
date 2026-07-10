@@ -1,10 +1,12 @@
-import { Component, inject, signal, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, output, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { AnalyticsSummary } from '../../../../core/models';
+
+export type AnalyticsNavigation = 'queue' | 'entities';
 
 @Component({
   selector: 'app-admin-analytics',
@@ -20,8 +22,15 @@ export class AdminAnalyticsComponent implements OnInit {
   analytics = signal<AnalyticsSummary | null>(null);
   loadingAnalytics = signal(false);
 
+  /** Emitted when the user clicks a KPI card. */
+  navigate = output<AnalyticsNavigation>();
+
   ngOnInit(): void {
     this.loadAnalytics();
+  }
+
+  onCardClick(target: AnalyticsNavigation): void {
+    this.navigate.emit(target);
   }
 
   private loadAnalytics(): void {
