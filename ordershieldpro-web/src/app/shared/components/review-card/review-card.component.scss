@@ -21,6 +21,64 @@
       color: var(--text-tertiary);
     }
 
+    .review-status {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--surface-100, #f1f5f9);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .review-status.status-published {
+      background: #dcfce7;
+      color: #166534;
+    }
+    .review-status.status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .review-status.status-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .review-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--surface-border);
+    }
+    .review-action-btn {
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border-radius: var(--radius-md, 8px);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--surface-border);
+      background: var(--surface-0);
+      color: var(--text-secondary);
+      transition: all var(--transition-base);
+    }
+    .review-action-btn.edit:hover {
+      border-color: var(--primary, #2563eb);
+      color: var(--primary, #2563eb);
+      background: var(--primary-50, #eff6ff);
+    }
+    .review-action-btn.delete:hover {
+      border-color: #dc2626;
+      color: #dc2626;
+      background: #fef2f2;
+    }
+
     .review-title {
       font-weight: 700;
       color: var(--text-primary);

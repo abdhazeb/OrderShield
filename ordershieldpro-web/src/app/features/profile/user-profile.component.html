@@ -84,7 +84,7 @@
               } @else {
                 <div class="reviews-list">
                   @for (review of myReviews(); track review.id) {
-                    <app-review-card [review]="review" />
+                    <app-review-card [review]="review" [editable]="true" (edit)="onEditReview($event)" (remove)="onDeleteReview($event)" />
                   }
                 </div>
               }

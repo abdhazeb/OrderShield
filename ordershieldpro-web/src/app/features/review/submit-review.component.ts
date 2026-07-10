@@ -9,7 +9,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { FileUploadComponent } from '../../shared/components/file-upload/file-upload.component';
 import { SeverityLevel } from '../../core/enums';
-import { EntitySearchResult, EntityDetail, PaginatedResult } from '../../core/models';
+import { EntitySearchResult, EntityDetail, PaginatedResult, Review } from '../../core/models';
 
 @Component({
   selector: 'app-submit-review',
@@ -32,6 +32,8 @@ export class SubmitReviewComponent implements OnInit {
   submitting = signal(false);
   submitted = signal(false);
   submissionMode = signal<'review' | 'comment'>('review');
+  editMode = signal(false);
+  private editReviewId: string | null = null;
   prefilledEntityId: string | null = null;
   evidenceFiles: File[] = [];
 
@@ -79,6 +81,14 @@ export class SubmitReviewComponent implements OnInit {
     const modeParam = this.route.snapshot.queryParamMap.get('mode');
     if (modeParam === 'comment') {
       this.submissionMode.set('comment');
+    }
+
+    // Edit mode: a reviewId query param + the review passed via navigation state.
+    const editReviewId = this.route.snapshot.queryParamMap.get('reviewId');
+    const stateReview = (history.state?.review as Review | undefined);
+    if (editReviewId && stateReview && stateReview.id === editReviewId) {
+      this.editMode.set(true);
+      this.editReviewId = editReviewId;
     }
 
     this.form = this.fb.group({
@@ -146,6 +156,29 @@ export class SubmitReviewComponent implements OnInit {
           this.fillEntityContactInfo(entity);
         },
       });
+    }
+
+    // Edit mode: prefill the form from the review passed via navigation state.
+    if (this.editMode()) {
+      const review = history.state?.review as Review | undefined;
+      if (review) {
+        this.prefilledEntityId = review.tradeEntityId || null;
+        this.submissionMode.set(review.severity === SeverityLevel.Info ? 'comment' : 'review');
+        this.form.patchValue({
+          entityName: review.tradeEntityName || '',
+          contactPhoneUsed: review.contactPhoneUsed || '',
+          productCategory: review.productCategory || '',
+          product: review.product || '',
+          severity: review.severity,
+          title: review.title || '',
+          narrative: review.narrative || '',
+          incidentDate: review.incidentDate ? review.incidentDate.substring(0, 10) : '',
+          confirmed: true,
+        });
+      } else {
+        // No review payload (e.g. page refresh) — return to profile.
+        this.router.navigate(['/profile']);
+      }
     }
 
     this.updateValidators();
@@ -265,7 +298,8 @@ export class SubmitReviewComponent implements OnInit {
 
   isFormReady(): boolean {
     if (!this.form.valid) return false;
-    if (this.submissionMode() === 'review' && this.evidenceFiles.length === 0) return false;
+    // Evidence is required only when creating a new review, not when editing.
+    if (!this.editMode() && this.submissionMode() === 'review' && this.evidenceFiles.length === 0) return false;
     return true;
   }
 
@@ -276,6 +310,11 @@ export class SubmitReviewComponent implements OnInit {
 
     this.submitting.set(true);
     const formValue = this.form.value;
+
+    if (this.editMode() && this.editReviewId) {
+      this.submitEdit(formValue);
+      return;
+    }
 
     // Use logged-in user's email as verification email
     const currentUser = this.authService.currentUser();
@@ -337,6 +376,50 @@ export class SubmitReviewComponent implements OnInit {
           msg = err.message;
         }
         this.toast.error(this.translate.instant('review.failedSubmit') + ' ' + msg);
+      },
+    });
+  }
+
+  private submitEdit(formValue: any): void {
+    const isComment = this.submissionMode() === 'comment';
+    const payload: Record<string, unknown> = {
+      severity: isComment ? 0 : formValue.severity,
+      title: formValue.title,
+      narrative: formValue.narrative,
+      product: formValue.product,
+      productCategory: formValue.productCategory,
+      incidentDate: formValue.incidentDate || null,
+      contactName: formValue.contactName || null,
+      contactPhoneUsed: (this.countryDialCode() !== '+' && formValue.contactPhoneUsed)
+        ? this.countryDialCode() + formValue.contactPhoneUsed
+        : formValue.contactPhoneUsed,
+      isComment,
+    };
+
+    this.apiService.put(`reviews/${this.editReviewId}`, payload).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.toast.success(this.translate.instant('review.editSuccess'));
+        this.router.navigate(['/profile']);
+      },
+      error: (err) => {
+        this.submitting.set(false);
+        let msg = 'Unknown error';
+        if (err?.error?.errors) {
+          const errors = err.error.errors;
+          if (typeof errors === 'object' && !Array.isArray(errors)) {
+            msg = Object.values(errors).flat().join('\n');
+          } else if (Array.isArray(errors)) {
+            msg = errors.join('\n');
+          }
+        } else if (err?.error?.detail) {
+          msg = err.error.detail;
+        } else if (err?.error?.message) {
+          msg = err.error.message;
+        } else if (err?.message) {
+          msg = err.message;
+        }
+        this.toast.error(this.translate.instant('review.editFailed') + ' ' + msg);
       },
     });
   }

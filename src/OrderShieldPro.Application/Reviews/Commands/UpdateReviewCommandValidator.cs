@@ -2,16 +2,12 @@ using FluentValidation;
 
 namespace OrderShieldPro.Application.Reviews.Commands;
 
-public class CreateReviewCommandValidator : AbstractValidator<CreateReviewCommand>
+public class UpdateReviewCommandValidator : AbstractValidator<UpdateReviewCommand>
 {
-    public CreateReviewCommandValidator()
+    public UpdateReviewCommandValidator()
     {
-        RuleFor(x => x)
-            .Must(x => (x.TradeEntityId.HasValue && x.TradeEntityId != Guid.Empty) || !string.IsNullOrWhiteSpace(x.EntityName))
-            .WithMessage("Either a trade entity ID or entity name is required.");
-
-        RuleFor(x => x.ReviewerType)
-            .IsInEnum().WithMessage("Reviewer type is required.");
+        RuleFor(x => x.ReviewId)
+            .NotEmpty().WithMessage("Review id is required.");
 
         RuleFor(x => x.Severity)
             .IsInEnum().WithMessage("Severity level is required.");
@@ -39,7 +35,6 @@ public class CreateReviewCommandValidator : AbstractValidator<CreateReviewComman
             .LessThanOrEqualTo(DateTime.UtcNow).When(x => x.IncidentDate != default)
             .WithMessage("Incident date cannot be in the future.");
 
-        // Business category is required for full reviews only.
         RuleFor(x => x.ProductCategory)
             .NotEmpty().WithMessage("Business category is required.")
             .When(x => !x.IsComment);

@@ -140,5 +140,29 @@ public class ReviewsController : ControllerBase
         return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
     }
 
+    /// <summary>
+    /// Edit a review owned by the current user. Edited reviews return to the
+    /// moderation queue and must be re-validated by an admin before publishing.
+    /// </summary>
+    [HttpPut("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateReviewCommand command, CancellationToken ct)
+    {
+        var result = await _mediator.Send(command with { ReviewId = id }, ct);
+        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
+    }
+
+    /// <summary>
+    /// Delete a review owned by the current user. Deletion is immediate and
+    /// does not require admin validation.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new DeleteReviewCommand(id), ct);
+        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
+    }
+
     public record UpdateReviewStatusRequest(ReviewStatus NewStatus);
 }

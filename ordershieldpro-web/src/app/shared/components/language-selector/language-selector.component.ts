@@ -1,5 +1,8 @@
 import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { LanguageService, SupportedLanguage } from '../../../core/services/language.service';
+import { ApiService } from '../../../core/services/api.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
+import { Language } from '../../../core/enums';
 
 @Component({
   selector: 'app-language-selector',
@@ -13,7 +16,15 @@ import { LanguageService, SupportedLanguage } from '../../../core/services/langu
 })
 export class LanguageSelectorComponent {
   languageService = inject(LanguageService);
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
   isOpen = signal(false);
+
+  private readonly languageEnumMap: Record<SupportedLanguage, Language> = {
+    en: Language.En,
+    ar: Language.Ar,
+    zh: Language.Zh,
+  };
 
   getCurrentLabel(): string {
     const current = this.languageService.languageOptions.find(
@@ -35,5 +46,12 @@ export class LanguageSelectorComponent {
     event.stopPropagation();
     this.languageService.setLanguage(code);
     this.isOpen.set(false);
+
+    // Persist the choice to the user's profile so it survives logout/login.
+    if (this.authService.isAuthenticated()) {
+      this.apiService.put('userprofile/language', { language: this.languageEnumMap[code] }).subscribe({
+        error: () => {},
+      });
+    }
   }
 }

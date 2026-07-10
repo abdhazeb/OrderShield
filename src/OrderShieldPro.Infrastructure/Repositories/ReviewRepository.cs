@@ -97,6 +97,12 @@ public class ReviewRepository : IReviewRepository
         return Task.CompletedTask;
     }
 
+    public Task RemoveAsync(Review review, CancellationToken cancellationToken = default)
+    {
+        _context.Reviews.Remove(review);
+        return Task.CompletedTask;
+    }
+
     public async Task<int> GetCountByEntityAndSeverityAsync(
         Guid entityId, SeverityLevel severity, CancellationToken cancellationToken = default)
     {

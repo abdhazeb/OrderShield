@@ -1,6 +1,11 @@
 <div class="review-item">
       <div class="review-header">
         <app-severity-badge [severity]="getSeverityLabel()" />
+        @if (editable()) {
+          <span class="review-status" [class.status-published]="review().status === ReviewStatus.Published" [class.status-pending]="review().status === ReviewStatus.Pending" [class.status-rejected]="review().status === ReviewStatus.Rejected">
+            {{ getStatusLabel() | translate }}
+          </span>
+        }
         <span class="review-date">{{ review().createdAt | date:'mediumDate' }}</span>
       </div>
       <div class="review-title">{{ review().title }}</div>
@@ -25,5 +30,16 @@
             <div>{{ note.summary }}</div>
           </div>
         }
+      }
+
+      @if (editable()) {
+        <div class="review-actions">
+          <button type="button" class="review-action-btn edit" (click)="onEdit($event)">
+            ✏️ {{ 'review.edit' | translate }}
+          </button>
+          <button type="button" class="review-action-btn delete" (click)="onDelete($event)">
+            🗑️ {{ 'review.delete' | translate }}
+          </button>
+        </div>
       }
     </div>

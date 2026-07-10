@@ -15,7 +15,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // LanguageService constructor already initializes language from localStorage
     // This is just a fallback if needed
-    const savedLang = (localStorage.getItem('osp_language') || 'en') as SupportedLanguage;
+    const savedLang = (localStorage.getItem('osp_language') || 'ar') as SupportedLanguage;
     this.languageService.setLanguage(savedLang);
   }
 }

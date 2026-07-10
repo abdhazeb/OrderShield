@@ -111,6 +111,20 @@
       }
     },
     {
+      "label": "Git: Quick Commit (One Click)",
+      "type": "shell",
+      "command": "git rm -r --cached src/OrderShieldPro.API/bin src/OrderShieldPro.API/obj src/OrderShieldPro.Application/bin src/OrderShieldPro.Application/obj src/OrderShieldPro.Domain/bin src/OrderShieldPro.Domain/obj src/OrderShieldPro.Infrastructure/bin src/OrderShieldPro.Infrastructure/obj src/OrderShieldPro.Tests/bin src/OrderShieldPro.Tests/obj ordershieldpro-web/dist ordershieldpro-web/.angular src/OrderShieldPro.API/uploads 2>$null; git add -A; if (git diff --cached --quiet) { Write-Host 'No changes to commit.' } else { git commit -m \"chore: quick commit $(Get-Date -Format 'yyyy-MM-dd HH:mm')\"; Write-Host '--- Quick commit complete ---' }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
       "label": "📱 Phone: Start API (Network)",
       "type": "shell",
       "command": "dotnet run --launch-profile network",

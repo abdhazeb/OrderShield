@@ -4,24 +4,26 @@ import { TranslateService } from '@ngx-translate/core';
 export type SupportedLanguage = 'en' | 'ar' | 'zh';
 
 const LANGUAGE_KEY = 'osp_language';
+const DEFAULT_LANGUAGE: SupportedLanguage = 'ar';
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
-  private _currentLanguage = signal<SupportedLanguage>('en');
+  private _currentLanguage = signal<SupportedLanguage>(DEFAULT_LANGUAGE);
   readonly currentLanguage = this._currentLanguage.asReadonly();
 
+  // Chinese ('zh') is intentionally hidden from the selector for now but kept
+  // registered so previously-saved preferences and translation files still work.
   readonly languageOptions: { code: SupportedLanguage; label: string; shortLabel: string; dir: 'ltr' | 'rtl' }[] = [
-    { code: 'en', label: 'English', shortLabel: 'EN', dir: 'ltr' },
     { code: 'ar', label: 'العربية', shortLabel: 'ع', dir: 'rtl' },
-    { code: 'zh', label: '中文', shortLabel: '中', dir: 'ltr' }
+    { code: 'en', label: 'English', shortLabel: 'EN', dir: 'ltr' }
   ];
 
   constructor(private translate: TranslateService) {
     this.translate.addLangs(['en', 'ar', 'zh']);
-    this.translate.setDefaultLang('en');
+    this.translate.setDefaultLang(DEFAULT_LANGUAGE);
 
     const savedLang = localStorage.getItem(LANGUAGE_KEY) as SupportedLanguage;
-    const lang = savedLang || 'en';
+    const lang = savedLang || DEFAULT_LANGUAGE;
     this.setLanguage(lang);
   }
 

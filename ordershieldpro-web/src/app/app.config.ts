@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([jwtInterceptor, errorInterceptor])),
     provideAnimationsAsync(),
     provideTranslateService({
-      defaultLanguage: 'en',
+      defaultLanguage: 'ar',
     }),
     provideTranslateHttpLoader({
       prefix: './assets/i18n/',

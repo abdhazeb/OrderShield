@@ -4,6 +4,8 @@ import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, Validati
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import { LanguageService } from '../../core/services/language.service';
+import { Language } from '../../core/enums';
 import { PasswordInputComponent } from '../../shared/components/password-input/password-input.component';
 
 /**
@@ -27,6 +29,7 @@ export class RegisterComponent {
   private router = inject(Router);
   private translate = inject(TranslateService);
   private toast = inject(ToastService);
+  private languageService = inject(LanguageService);
 
   submitting = signal(false);
   error = signal('');
@@ -86,6 +89,14 @@ export class RegisterComponent {
     this.router.navigate(['/profile']);
   }
 
+  private currentLanguageEnum(): Language {
+    switch (this.languageService.currentLanguage()) {
+      case 'ar': return Language.Ar;
+      case 'zh': return Language.Zh;
+      default: return Language.En;
+    }
+  }
+
   onSubmit(): void {
     if (!this.form.valid) {
       this.form.markAllAsTouched();
@@ -102,7 +113,7 @@ export class RegisterComponent {
       email: v.email!,
       password: v.password!,
       role: 1,
-      language: 0,
+      language: this.currentLanguageEnum(),
       organization: v.organization || undefined,
       phoneNumber: v.phoneNumber || undefined,
     }).subscribe({

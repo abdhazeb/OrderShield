@@ -1,21 +1,23 @@
 <div class="submit-page">
-      <h1 class="page-title">✍️ {{ 'review.submit' | translate }}</h1>
+      <h1 class="page-title">✍️ {{ (editMode() ? 'review.editReview' : 'review.submit') | translate }}</h1>
 
       <!-- Info Alert -->
       <div class="info-alert">
         <span class="info-icon">ℹ️</span>
-        <p>{{ 'review.infoAlert' | translate }}</p>
+        <p>{{ (editMode() ? 'review.editInfoAlert' : 'review.infoAlert') | translate }}</p>
       </div>
 
       <!-- Mode Selector: Review vs Comment -->
-      <div class="mode-selector">
-        <button type="button" class="mode-btn" [class.active]="submissionMode() === 'review'" (click)="setMode('review')">
-          ✍️ {{ 'review.submitReview' | translate }}
-        </button>
-        <button type="button" class="mode-btn" [class.active]="submissionMode() === 'comment'" (click)="setMode('comment')">
-          💬 {{ 'review.addComment' | translate }}
-        </button>
-      </div>
+      @if (!editMode()) {
+        <div class="mode-selector">
+          <button type="button" class="mode-btn" [class.active]="submissionMode() === 'review'" (click)="setMode('review')">
+            ✍️ {{ 'review.submitReview' | translate }}
+          </button>
+          <button type="button" class="mode-btn" [class.active]="submissionMode() === 'comment'" (click)="setMode('comment')">
+            💬 {{ 'review.addComment' | translate }}
+          </button>
+        </div>
+      }
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="review-form">
 
@@ -217,7 +219,7 @@
           }
         </div>
 
-        @if (submissionMode() === 'review') {
+        @if (submissionMode() === 'review' && !editMode()) {
           <!-- File Upload -->
           <div class="form-group">
             <label class="form-label">
@@ -250,7 +252,7 @@
           @if (submitting()) {
             <span class="spinner-sm"></span>
           }
-          {{ submissionMode() === 'comment' ? ('review.addComment' | translate) : ('review.submitReview' | translate) }}
+          {{ editMode() ? ('review.saveChanges' | translate) : (submissionMode() === 'comment' ? ('review.addComment' | translate) : ('review.submitReview' | translate)) }}
         </button>
       </form>
     </div>

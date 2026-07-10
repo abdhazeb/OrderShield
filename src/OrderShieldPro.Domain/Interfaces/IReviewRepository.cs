@@ -30,6 +30,8 @@ public interface IReviewRepository
 
     Task UpdateAsync(Review review, CancellationToken cancellationToken = default);
 
+    Task RemoveAsync(Review review, CancellationToken cancellationToken = default);
+
     Task<int> GetCountByEntityAndSeverityAsync(
         Guid entityId,
         SeverityLevel severity,

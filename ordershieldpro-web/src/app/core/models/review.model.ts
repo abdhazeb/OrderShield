@@ -3,6 +3,7 @@ import { ReviewerType, ReviewStatus, SeverityLevel, VerificationStatus } from '.
 export interface Review {
   id: string;
   tradeEntityId: string;
+  tradeEntityName?: string;
   reviewerId: string;
   reviewerType: ReviewerType;
   transactionRole: string;

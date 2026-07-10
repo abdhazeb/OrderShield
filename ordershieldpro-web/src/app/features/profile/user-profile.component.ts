@@ -11,6 +11,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { Review, PaginatedResult, UserProfile } from '../../core/models';
+import { SeverityLevel } from '../../core/enums';
 
 @Component({
   selector: 'app-user-profile',
@@ -116,6 +117,33 @@ export class UserProfileComponent implements OnInit {
         this.myReviews.set([]);
         this.myReviewsLoading.set(false);
       },
+    });
+  }
+
+  onEditReview(review: Review): void {
+    // Editing routes through the submit-review form in edit mode. The edited
+    // review returns to the moderation queue for admin re-validation.
+    const isComment = review.severity === SeverityLevel.Info;
+    this.router.navigate(['/submit-review'], {
+      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },
+      state: { review },
+    });
+  }
+
+  onDeleteReview(review: Review): void {
+    const message = this.translate.instant('review.deleteConfirm');
+    this.confirmService.confirm({ message, color: 'warn' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.apiService.delete(`reviews/${review.id}`).subscribe({
+        next: () => {
+          this.myReviews.update(list => list.filter(r => r.id !== review.id));
+          this.toast.success(this.translate.instant('review.deleteSuccess'));
+          this.loadProfile();
+        },
+        error: () => {
+          this.toast.error(this.translate.instant('review.deleteFailed'));
+        },
+      });
     });
   }
 
