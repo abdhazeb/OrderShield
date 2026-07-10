@@ -99,7 +99,7 @@
     {
       "label": "Git: Commit All Changes",
       "type": "shell",
-      "command": "git rm -r --cached src/OrderShieldPro.API/bin src/OrderShieldPro.API/obj src/OrderShieldPro.Application/bin src/OrderShieldPro.Application/obj src/OrderShieldPro.Domain/bin src/OrderShieldPro.Domain/obj src/OrderShieldPro.Infrastructure/bin src/OrderShieldPro.Infrastructure/obj src/OrderShieldPro.Tests/bin src/OrderShieldPro.Tests/obj ordershieldpro-web/dist ordershieldpro-web/.angular src/OrderShieldPro.API/uploads 2>$null; git add -A; if (git diff --cached --quiet) { Write-Host 'No changes to commit.' } else { $msg='${input:commitMessage}'; if ([string]::IsNullOrWhiteSpace($msg)) { $msg = \"chore: update $(Get-Date -Format 'yyyy-MM-dd HH:mm')\" }; git commit -m $msg; Write-Host '--- Commit complete ---' }",
+      "command": "git rm -r --cached src/OrderShieldPro.API/bin src/OrderShieldPro.API/obj src/OrderShieldPro.Application/bin src/OrderShieldPro.Application/obj src/OrderShieldPro.Domain/bin src/OrderShieldPro.Domain/obj src/OrderShieldPro.Infrastructure/bin src/OrderShieldPro.Infrastructure/obj src/OrderShieldPro.Tests/bin src/OrderShieldPro.Tests/obj ordershieldpro-web/dist ordershieldpro-web/.angular src/OrderShieldPro.API/uploads 2>$null; git add -A; git diff --cached --quiet; if ($LASTEXITCODE -eq 0) { Write-Host 'No changes to commit.' } else { $msg='${input:commitMessage}'; if ([string]::IsNullOrWhiteSpace($msg)) { $msg = \"chore: update $(Get-Date -Format 'yyyy-MM-dd HH:mm')\" }; git commit -m $msg; Write-Host '--- Commit complete ---' }",
       "options": {
         "cwd": "${workspaceFolder}"
       },
@@ -113,7 +113,7 @@
     {
       "label": "Git: Quick Commit (One Click)",
       "type": "shell",
-      "command": "git rm -r --cached src/OrderShieldPro.API/bin src/OrderShieldPro.API/obj src/OrderShieldPro.Application/bin src/OrderShieldPro.Application/obj src/OrderShieldPro.Domain/bin src/OrderShieldPro.Domain/obj src/OrderShieldPro.Infrastructure/bin src/OrderShieldPro.Infrastructure/obj src/OrderShieldPro.Tests/bin src/OrderShieldPro.Tests/obj ordershieldpro-web/dist ordershieldpro-web/.angular src/OrderShieldPro.API/uploads 2>$null; git add -A; if (git diff --cached --quiet) { Write-Host 'No changes to commit.' } else { git commit -m \"chore: quick commit $(Get-Date -Format 'yyyy-MM-dd HH:mm')\"; Write-Host '--- Quick commit complete ---' }",
+      "command": "git rm -r --cached src/OrderShieldPro.API/bin src/OrderShieldPro.API/obj src/OrderShieldPro.Application/bin src/OrderShieldPro.Application/obj src/OrderShieldPro.Domain/bin src/OrderShieldPro.Domain/obj src/OrderShieldPro.Infrastructure/bin src/OrderShieldPro.Infrastructure/obj src/OrderShieldPro.Tests/bin src/OrderShieldPro.Tests/obj ordershieldpro-web/dist ordershieldpro-web/.angular src/OrderShieldPro.API/uploads 2>$null; git add -A; git diff --cached --quiet; if ($LASTEXITCODE -eq 0) { Write-Host 'No changes to commit.' } else { git commit -m \"chore: quick commit $(Get-Date -Format 'yyyy-MM-dd HH:mm')\"; Write-Host '--- Quick commit complete ---' }",
       "options": {
         "cwd": "${workspaceFolder}"
       },
