@@ -1,5 +1,6 @@
 using OrderShieldPro.Domain.Common;
 using OrderShieldPro.Domain.Enums;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace OrderShieldPro.Domain.Entities;
 
@@ -45,7 +46,12 @@ public class Review : AuditableEntity
     /// JSON blob that stores the owner's pending edit when a published review
     /// has been edited but not yet approved by an admin.  Null when there is
     /// no pending edit.  Serialised as ReviewPendingEdit.
+    ///
+    /// Marked [NotMapped] while running without the matching DB migration
+    /// to avoid SQL errors in local development. Add the corresponding
+    /// migration to persist this field in production.
     /// </summary>
+    [NotMapped]
     public string? PendingEditJson { get; set; }
 
     // Navigation

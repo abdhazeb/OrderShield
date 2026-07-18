@@ -57,7 +57,7 @@
 
     .checkbox-group { margin-top: 8px; }
     .checkbox-label {
-      display: flex; gap: 10px; align-items: start; font-size: 13px; color: var(--text-secondary); cursor: pointer;
+      display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--text-secondary); cursor: pointer;
     }
     .checkbox-label input { margin-top: 2px; width: 18px; height: 18px; accent-color: var(--accent-600); }
 

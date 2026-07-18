@@ -247,8 +247,8 @@
           </div>
         }
         <button type="submit" class="btn btn-primary submit-btn"
-                [class.btn-disabled]="!isFormReady()"
-                [disabled]="submitting()">
+          [class.btn-disabled]="!isFormReady()"
+          [disabled]="submitting() || !isFormReady()">
           @if (submitting()) {
             <span class="spinner-sm"></span>
           }

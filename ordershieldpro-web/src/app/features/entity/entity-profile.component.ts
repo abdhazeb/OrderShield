@@ -55,7 +55,8 @@ export class EntityProfileComponent implements OnInit {
   reviewsLoading = signal(true);
 
   readonly isAdmin = computed(() => {
-    const role = this.authService.currentUser()?.role;
+    const user = this.authService.currentUser();
+    const role = user?.role;
     return role === 'Admin' || role === 'SuperAdmin' || role === 'ServiceTeam';
   });
 
@@ -73,7 +74,8 @@ export class EntityProfileComponent implements OnInit {
 
   /** True when the current user is either the review author or a moderator. */
   canEditReview(review: Review): boolean {
-    const userId = this.authService.currentUser()?.userId;
+    const user = this.authService.currentUser();
+    const userId = user?.userId;
     return this.isAdmin() || (!!userId && review.reviewerId === userId);
   }
 

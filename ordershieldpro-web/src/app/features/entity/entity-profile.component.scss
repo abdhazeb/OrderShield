@@ -10,7 +10,7 @@
     .profile-name-row {
       display: flex;
       justify-content: space-between;
-      align-items: start;
+      align-items: flex-start;
       margin-bottom: 12px;
     }
 
@@ -27,6 +27,15 @@
     .admin-edit-entity {
       align-self: flex-start;
       white-space: nowrap;
+      margin-left: 16px;
+      flex: 0 0 auto;
+    }
+
+    /* Override global .btn flex:1 used elsewhere so admin edit doesn't grow */
+    .admin-edit-entity.btn,
+    .profile-name-row > .admin-edit-entity {
+      flex: 0 0 auto !important;
+      width: auto !important;
     }
 
     .entity-edit-form {
