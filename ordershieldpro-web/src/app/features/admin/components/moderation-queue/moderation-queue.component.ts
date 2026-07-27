@@ -6,6 +6,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
+import { FileDownloadService } from '../../../../core/services/file-download.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PendingReview, PaginatedResult } from '../../../../core/models';
@@ -26,6 +27,7 @@ export class ModerationQueueComponent implements OnInit {
   private toast = inject(ToastService);
   private confirmService = inject(ConfirmService);
   private router = inject(Router);
+  private fileDownload = inject(FileDownloadService);
 
   countChange = output<number>();
 
@@ -216,5 +218,9 @@ export class ModerationQueueComponent implements OnInit {
       case ReviewerType.Buyer: return this.translate.instant('admin.buyer');
       default: return this.translate.instant('admin.unknown');
     }
+  }
+
+  downloadEvidence(reviewId: string, file: { id: string; fileName: string }): void {
+    this.fileDownload.download(`reviews/${reviewId}/evidence/${file.id}`, file.fileName);
   }
 }

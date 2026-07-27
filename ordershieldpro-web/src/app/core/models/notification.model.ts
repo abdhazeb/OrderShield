@@ -6,6 +6,10 @@ export interface Notification {
   type: NotificationType;
   title: string;
   message: string;
+  /** Key of a localized template under notification.templates; null for free-text notifications. */
+  templateKey?: string;
+  /** Free text the template interpolates (a review title, an entity name, etc.). */
+  subject?: string;
   referenceEntityId?: string;
   referenceReviewId?: string;
   isRead: boolean;
@@ -18,6 +22,10 @@ export interface AppNotification {
   type: NotificationType;
   title: string;
   message: string;
+  /** Key of a localized template under notification.templates; null for free-text notifications. */
+  templateKey?: string;
+  /** Free text the template interpolates (a review title, an entity name, etc.). */
+  subject?: string;
   isRead: boolean;
   createdAt: string;
   referenceEntityId?: string;

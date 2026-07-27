@@ -12,11 +12,37 @@
               }
             </div>
             @if (isAdmin() && !editingEntity()) {
-              <button type="button" class="btn btn-outline btn-sm admin-edit-entity" (click)="openEntityEdit()">
-                ✏️ {{ 'entity.editEntity' | translate }}
-              </button>
+              <div class="admin-entity-actions">
+                <button type="button" class="btn btn-outline btn-sm admin-edit-entity" (click)="openEntityEdit()">
+                  ✏️ {{ 'entity.editEntity' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline btn-sm admin-hide-entity"
+                  [disabled]="updatingEntity()"
+                  (click)="toggleEntityVisibility()">
+                  @if (entity()!.isHidden) {
+                    👁️ {{ 'entity.unhideEntity' | translate }}
+                  } @else {
+                    🙈 {{ 'entity.hideEntity' | translate }}
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline btn-sm admin-delete-entity"
+                  [disabled]="updatingEntity()"
+                  (click)="deleteEntity()">
+                  🗑️ {{ 'entity.deleteEntity' | translate }}
+                </button>
+              </div>
             }
           </div>
+
+          @if (isAdmin() && entity()!.isHidden) {
+            <div class="entity-hidden-banner">
+              🙈 {{ 'entity.hiddenBanner' | translate }}
+            </div>
+          }
 
           @if (editingEntity()) {
             <div class="entity-edit-form">

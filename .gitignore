@@ -41,6 +41,9 @@ Thumbs.db
 # Uploads / User Data
 **/uploads/
 
+# Application logs (Serilog rolling files)
+**/logs/
+
 # Test Results
 TestResults/
 coverage/

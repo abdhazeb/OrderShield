@@ -98,6 +98,8 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
             $"A new review \"{review.Title}\" was submitted and needs moderation.",
             referenceEntityId: review.TradeEntityId,
             referenceReviewId: review.Id,
+            templateKey: "newReviewPendingApproval",
+            subject: review.Title,
             cancellationToken: cancellationToken);
 
         return Result<Guid>.Success(review.Id);

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, OnInit, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
@@ -34,6 +34,15 @@ export class AdminApprovalsComponent implements OnInit {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
 
+  /**
+   * Which queue to render. These two were originally one tab, but they are different jobs:
+   * 'actions' is internal dual-control over what another admin proposed, 'users' is inbound
+   * registrations. The shell mounts them separately — System → Approvals and
+   * Users → Pending Registrations — so their badges no longer add up into one number that
+   * tells you nothing about which queue needs you.
+   */
+  mode = input<'both' | 'actions' | 'users'>('both');
+
   countChange = output<number>();
 
   // Tab state
@@ -50,16 +59,29 @@ export class AdminApprovalsComponent implements OnInit {
   loadingUsers = signal(false);
 
   ngOnInit(): void {
-    this.loadPendingActions();
-    this.loadPendingUsers();
+    const mode = this.mode();
+    if (mode !== 'both') this.activeSection.set(mode);
+
+    if (mode !== 'users') this.loadPendingActions();
+    if (mode !== 'actions') this.loadPendingUsers();
   }
 
   setSection(section: 'actions' | 'users'): void {
     this.activeSection.set(section);
   }
 
+  /** Emits only the queue this instance is showing, so the tab badge matches the list. */
   private emitCount(): void {
-    this.countChange.emit(this.pendingActionCount() + this.pendingUserCount());
+    switch (this.mode()) {
+      case 'actions':
+        this.countChange.emit(this.pendingActionCount());
+        break;
+      case 'users':
+        this.countChange.emit(this.pendingUserCount());
+        break;
+      default:
+        this.countChange.emit(this.pendingActionCount() + this.pendingUserCount());
+    }
   }
 
   private loadPendingActions(): void {

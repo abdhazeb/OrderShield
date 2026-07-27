@@ -63,10 +63,16 @@ export class EntityProfileComponent implements OnInit {
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
+      // ?edit=true lets the admin entity table jump straight into the edit form rather
+      // than dropping the moderator on the profile to hunt for the button. The form only
+      // opens once the entity has loaded, and saving is authorized server-side either way.
+      this.openEditOnLoad = this.route.snapshot.queryParamMap.get('edit') === 'true';
       this.loadEntity(id);
       this.loadReviews(id);
     }
   }
+
+  private openEditOnLoad = false;
 
   get isVerified(): () => boolean {
     return () => this.entity()?.verificationStatus === VerificationStatus.Verified;
@@ -102,11 +108,13 @@ export class EntityProfileComponent implements OnInit {
   }
 
   onHideReview(review: Review): void {
-    // Hiding = setting status to Rejected so it disappears from the public timeline.
+    // Hiding sets a distinct Hidden status (not Rejected, which means "never approved
+    // during moderation") so the review disappears from the public timeline but can be
+    // found and restored from Admin → Hidden Content.
     const message = this.translate.instant('review.hideConfirm');
     this.confirmService.confirm({ message, color: 'warn' }).subscribe(confirmed => {
       if (!confirmed) return;
-      this.apiService.put(`reviews/${review.id}/status`, { newStatus: ReviewStatus.Rejected }).subscribe({
+      this.apiService.put(`reviews/${review.id}/status`, { newStatus: ReviewStatus.Hidden }).subscribe({
         next: () => {
           this.reviews.update(list => list.filter(r => r.id !== review.id));
           this.toast.success(this.translate.instant('review.hideSuccess'));
@@ -183,11 +191,81 @@ export class EntityProfileComponent implements OnInit {
     });
   }
 
+  // ===== Admin entity visibility / deletion =====
+  updatingEntity = signal(false);
+
+  /** Hides the entity from public search and profile pages, or restores it. */
+  toggleEntityVisibility(): void {
+    const e = this.entity();
+    if (!e || this.updatingEntity()) return;
+
+    const hiding = !e.isHidden;
+    const message = this.translate.instant(
+      hiding ? 'entity.hideConfirm' : 'entity.unhideConfirm'
+    );
+
+    this.confirmService.confirm({ message, color: hiding ? 'warn' : 'primary' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.updatingEntity.set(true);
+      this.apiService.put(`entities/${e.id}/visibility`, { isHidden: hiding }).subscribe({
+        next: () => {
+          this.updatingEntity.set(false);
+          this.entity.update(current => (current ? { ...current, isHidden: hiding } : current));
+          this.toast.success(
+            this.translate.instant(hiding ? 'entity.hideSuccess' : 'entity.unhideSuccess')
+          );
+        },
+        error: () => {
+          this.updatingEntity.set(false);
+          this.toast.error(
+            this.translate.instant(hiding ? 'entity.hideFailed' : 'entity.unhideFailed')
+          );
+        },
+      });
+    });
+  }
+
+  /**
+   * Permanently deletes the entity. The API refuses this while reviews still exist and
+   * returns an explanatory message, which is surfaced verbatim.
+   */
+  deleteEntity(): void {
+    const e = this.entity();
+    if (!e || this.updatingEntity()) return;
+
+    const message = this.translate.instant('entity.deleteConfirm', { name: e.legalName });
+
+    this.confirmService.confirm({ message, color: 'warn' }).subscribe(confirmed => {
+      if (!confirmed) return;
+      this.updatingEntity.set(true);
+      this.apiService.delete(`entities/${e.id}`).subscribe({
+        next: () => {
+          this.updatingEntity.set(false);
+          this.toast.success(this.translate.instant('entity.deleteSuccess'));
+          this.router.navigate(['/search']);
+        },
+        error: (err) => {
+          this.updatingEntity.set(false);
+          const errors = err?.error?.errors;
+          this.toast.error(
+            Array.isArray(errors) && errors.length
+              ? errors.join(' ')
+              : this.translate.instant('entity.deleteFailed')
+          );
+        },
+      });
+    });
+  }
+
   private loadEntity(id: string): void {
     this.apiService.get<EntityDetail>(`entities/${id}`).subscribe({
       next: (entity) => {
         this.entity.set(entity);
         this.loading.set(false);
+        if (this.openEditOnLoad) {
+          this.openEditOnLoad = false;
+          this.openEntityEdit();
+        }
       },
       error: () => this.loading.set(false),
     });

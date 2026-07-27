@@ -39,12 +39,19 @@ public class TradeEntityRepository : ITradeEntityRepository
         int page,
         int pageSize,
         string? sortBy = null,
+        bool includeHidden = false,
         CancellationToken cancellationToken = default)
     {
         var query = _context.TradeEntities
             .Include(e => e.PhoneNumbers)
             .Include(e => e.WeChatIds)
             .AsQueryable();
+
+        // Hidden entities are withheld from search for everyone. The admin entity-management
+        // screen is the one caller that opts back in, so moderators can manage what they hid
+        // without leaving the directory.
+        if (!includeHidden)
+            query = query.Where(e => !e.IsHidden);
 
         // Search by name, phone, or WeChat ID (BRD: scam prevention search)
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -111,9 +118,32 @@ public class TradeEntityRepository : ITradeEntityRepository
         return Task.CompletedTask;
     }
 
+    public Task RemoveAsync(TradeEntity entity, CancellationToken cancellationToken = default)
+    {
+        _context.TradeEntities.Remove(entity);
+        return Task.CompletedTask;
+    }
+
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.TradeEntities.AnyAsync(e => e.Id == id, cancellationToken);
+    }
+
+    public async Task<(IReadOnlyList<TradeEntity> Items, int TotalCount)> GetHiddenAsync(
+        int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = _context.TradeEntities
+            .Where(e => e.IsHidden)
+            .OrderByDescending(e => e.UpdatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 
     public async Task<IReadOnlyList<TradeEntity>> FindByContactInfoAsync(

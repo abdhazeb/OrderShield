@@ -1,0 +1,51 @@
+<div class="import-entities">
+  <div class="import-card">
+    <h3 class="import-title">{{ 'admin.importEntitiesTitle' | translate }}</h3>
+    <p class="import-desc">{{ 'admin.importEntitiesDesc' | translate }}</p>
+
+    <input
+      #fileInput
+      type="file"
+      class="import-file-input"
+      accept=".xls,.xlsx"
+      (change)="onFileSelected($event)"
+    />
+
+    <button type="button" class="import-btn" [disabled]="uploading()" (click)="triggerFilePicker()">
+      @if (uploading()) {
+        <span class="import-spinner"></span>
+        {{ 'admin.importUploading' | translate }}
+      } @else {
+        📎 {{ 'admin.importChooseFile' | translate }}
+      }
+    </button>
+
+    @if (result(); as res) {
+      <div class="import-result">
+        @if (lastFileName()) {
+          <div class="import-result__file">{{ lastFileName() }}</div>
+        }
+        <div class="import-result__stats">
+          <div class="stat stat--created">
+            <span class="stat__value">{{ res.created }}</span>
+            <span class="stat__label">{{ 'admin.importCreated' | translate }}</span>
+          </div>
+          <div class="stat stat--skipped">
+            <span class="stat__value">{{ res.skippedDuplicates }}</span>
+            <span class="stat__label">{{ 'admin.importSkippedDuplicates' | translate }}</span>
+          </div>
+          @if (res.skippedInvalid > 0) {
+            <div class="stat stat--invalid">
+              <span class="stat__value">{{ res.skippedInvalid }}</span>
+              <span class="stat__label">{{ 'admin.importSkippedInvalid' | translate }}</span>
+            </div>
+          }
+          <div class="stat stat--total">
+            <span class="stat__value">{{ res.totalRows }}</span>
+            <span class="stat__label">{{ 'admin.importTotalRows' | translate }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

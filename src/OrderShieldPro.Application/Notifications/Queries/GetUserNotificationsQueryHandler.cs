@@ -41,6 +41,8 @@ public class GetUserNotificationsQueryHandler : IRequestHandler<GetUserNotificat
                 Type = n.Type,
                 Title = n.Title,
                 Message = n.Message,
+                TemplateKey = n.TemplateKey,
+                Subject = n.Subject,
                 ReferenceEntityId = n.ReferenceEntityId,
                 ReferenceReviewId = n.ReferenceReviewId,
                 IsRead = n.IsRead,

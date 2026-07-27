@@ -85,10 +85,15 @@
   font-size: 15px; line-height: 1.75; color: #334155; white-space: pre-wrap;
 }
 .file-list { display: flex; flex-direction: column; gap: 6px; }
+/* A <button> so the authenticated blob download can run; styled as a row. */
 .file-row {
   display: flex; align-items: center; gap: 10px; padding: 10px 14px;
   background: white; border-radius: 8px; border: 1px solid #e2e8f0;
+  width: 100%; font: inherit; text-align: inherit; cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
+.file-row:hover { border-color: var(--accent-400); background: var(--accent-50); }
+.file-row:focus-visible { outline: 2px solid var(--accent-500); outline-offset: 2px; }
 .file-name { flex: 1; font-size: 14px; font-weight: 500; color: #1e293b; }
 .file-size { font-size: 13px; color: #94a3b8; }
 .note-card {

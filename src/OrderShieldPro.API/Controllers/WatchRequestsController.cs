@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.WatchRequests.Commands;
@@ -12,6 +13,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 public class WatchRequestsController : ControllerBase
 {
     private readonly IMediator _mediator;

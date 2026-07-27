@@ -38,7 +38,9 @@ export enum ReviewStatus {
   Published = 1,
   Amended = 2,
   Rejected = 3,
-  PendingEdit = 4
+  PendingEdit = 4,
+  /** A previously published review withdrawn from public view; distinct from Rejected. */
+  Hidden = 5
 }
 
 export enum VerificationStatus {

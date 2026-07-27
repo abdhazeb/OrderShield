@@ -1,0 +1,107 @@
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using OrderShieldPro.Application.Entities.Commands;
+using OrderShieldPro.Domain.Entities;
+using OrderShieldPro.Domain.Interfaces;
+using OrderShieldPro.Infrastructure.Persistence;
+
+namespace OrderShieldPro.Tests.Unit;
+
+/// <summary>
+/// Reviews are verified business records, so an entity that still has any must not be
+/// deletable — the admin is directed to hide it instead.
+/// </summary>
+public class DeleteEntityCommandHandlerTests
+{
+    private static ApplicationDbContext CreateContext() =>
+        new(new DbContextOptionsBuilder<ApplicationDbContext>()
+            .UseInMemoryDatabase($"DeleteEntityTests_{Guid.NewGuid()}")
+            .Options);
+
+    private static TradeEntity CreateEntity() => new()
+    {
+        Id = Guid.NewGuid(),
+        LegalName = "Shenzhen Test Co.",
+        Country = "China"
+    };
+
+    private static Review CreateReview(Guid entityId) => new()
+    {
+        Id = Guid.NewGuid(),
+        TradeEntityId = entityId,
+        ReviewerId = "user-1",
+        Title = "Late shipment",
+        Narrative = new string('x', 120),
+        VerificationEmail = "reviewer@example.com"
+    };
+
+    [Fact]
+    public async Task Handle_WhenEntityHasReviews_IsRefusedAndNothingIsRemoved()
+    {
+        using var context = CreateContext();
+        var entity = CreateEntity();
+        context.TradeEntities.Add(entity);
+        context.Reviews.Add(CreateReview(entity.Id));
+        context.Reviews.Add(CreateReview(entity.Id));
+        await context.SaveChangesAsync();
+
+        var repo = new Mock<ITradeEntityRepository>();
+        repo.Setup(r => r.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(u => u.TradeEntities).Returns(repo.Object);
+
+        var handler = new DeleteEntityCommandHandler(unitOfWork.Object, context);
+
+        var result = await handler.Handle(new DeleteEntityCommand(entity.Id), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Errors.Should().ContainSingle().Which.Should().Contain("2 review");
+        repo.Verify(r => r.RemoveAsync(It.IsAny<TradeEntity>(), It.IsAny<CancellationToken>()), Times.Never);
+        unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenEntityHasNoReviews_DeletesIt()
+    {
+        using var context = CreateContext();
+        var entity = CreateEntity();
+        context.TradeEntities.Add(entity);
+        await context.SaveChangesAsync();
+
+        var repo = new Mock<ITradeEntityRepository>();
+        repo.Setup(r => r.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(u => u.TradeEntities).Returns(repo.Object);
+
+        var handler = new DeleteEntityCommandHandler(unitOfWork.Object, context);
+
+        var result = await handler.Handle(new DeleteEntityCommand(entity.Id), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        repo.Verify(r => r.RemoveAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
+        unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenReviewsBelongToAnotherEntity_StillDeletes()
+    {
+        using var context = CreateContext();
+        var entity = CreateEntity();
+        context.TradeEntities.Add(entity);
+        // A review against a different entity must not block this deletion.
+        context.Reviews.Add(CreateReview(Guid.NewGuid()));
+        await context.SaveChangesAsync();
+
+        var repo = new Mock<ITradeEntityRepository>();
+        repo.Setup(r => r.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(u => u.TradeEntities).Returns(repo.Object);
+
+        var handler = new DeleteEntityCommandHandler(unitOfWork.Object, context);
+
+        var result = await handler.Handle(new DeleteEntityCommand(entity.Id), CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+    }
+}

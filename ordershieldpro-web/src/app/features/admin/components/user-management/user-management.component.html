@@ -1,0 +1,203 @@
+<div class="user-management">
+  <div class="toolbar">
+    <div class="toolbar-search">
+      <input
+        type="search"
+        class="search-input"
+        [value]="searchTerm"
+        (input)="onSearchInput($any($event.target).value)"
+        [placeholder]="'admin.userManagement.searchPlaceholder' | translate" />
+    </div>
+
+    <select class="filter-select" [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event); onFilterChange()">
+      <option value="">{{ 'admin.userManagement.allRoles' | translate }}</option>
+      @for (role of roles; track role) {
+        <option [value]="role">{{ 'admin.userManagement.roles.' + role | translate }}</option>
+      }
+    </select>
+
+    <div class="filter-group" role="group">
+      @for (status of statuses; track status) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="statusFilter() === status"
+          (click)="statusFilter.set(status); onFilterChange()">
+          {{ 'admin.userManagement.status.' + status | translate }}
+        </button>
+      }
+    </div>
+
+    <span class="toolbar-total">
+      {{ 'admin.userManagement.totalCount' | translate: { count: totalCount() } }}
+    </span>
+  </div>
+
+  @if (loading()) {
+    <div class="content-card"><app-loading-spinner [message]="'admin.userManagement.loading' | translate" /></div>
+  } @else if (users().length === 0) {
+    <div class="content-card empty-card">
+      <app-empty-state
+        [title]="'admin.userManagement.empty' | translate"
+        [subtitle]="'admin.userManagement.emptyDesc' | translate" />
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="user-table">
+        <thead>
+          <tr>
+            <th scope="col">{{ 'admin.userManagement.columnUser' | translate }}</th>
+            <th scope="col">{{ 'admin.userManagement.columnRole' | translate }}</th>
+            <th scope="col">{{ 'admin.userManagement.columnStatus' | translate }}</th>
+            <th scope="col" class="numeric">{{ 'admin.userManagement.columnReviews' | translate }}</th>
+            <th scope="col">{{ 'admin.userManagement.columnJoined' | translate }}</th>
+            <th scope="col" class="actions-col">{{ 'admin.entityManagement.columnActions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr class="user-row" [class.is-processing]="processingId() === user.id">
+              <td>
+                <div class="cell-name">
+                  {{ user.fullName }}
+                  @if (isSelf(user)) {
+                    <span class="self-tag">{{ 'admin.userManagement.you' | translate }}</span>
+                  }
+                </div>
+                <div class="cell-subtle">{{ user.email }}</div>
+                @if (user.organization) {
+                  <div class="cell-subtle">{{ user.organization }}</div>
+                }
+              </td>
+              <td>
+                <div class="status-stack">
+                  <span class="status-pill pill-role">{{ 'admin.userManagement.roles.' + user.role | translate }}</span>
+                  <span class="cell-subtle">{{ 'admin.userManagement.tiers.' + user.tier | translate }}</span>
+                  @if (user.isBusinessVerified) {
+                    <span class="status-pill pill-verified">{{ 'admin.userManagement.businessVerified' | translate }}</span>
+                  }
+                </div>
+              </td>
+              <td>
+                <span class="status-pill" [class]="'pill-' + statusOf(user)">
+                  {{ 'admin.userManagement.status.' + statusOf(user) | translate }}
+                </span>
+              </td>
+              <td class="numeric">{{ user.reviewCount }}</td>
+              <td class="cell-subtle">{{ user.createdAt | date:'MMM d, yyyy' }}</td>
+              <td class="actions-col">
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-btn"
+                    [disabled]="processingId() === user.id"
+                    (click)="openEdit(user)">
+                    {{ 'common.edit' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="row-btn"
+                    [disabled]="processingId() === user.id || isSelf(user)"
+                    [title]="isSelf(user) ? ('admin.userManagement.notYourself' | translate) : ''"
+                    (click)="toggleActive(user)">
+                    {{ (user.isActive ? 'admin.freeze' : 'admin.unfreeze') | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="row-btn row-btn-danger"
+                    [disabled]="processingId() === user.id || isSelf(user)"
+                    [title]="user.reviewCount > 0 ? ('admin.userManagement.deleteBlockedHint' | translate) : ''"
+                    (click)="deleteUser(user)">
+                    {{ 'common.delete' | translate }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pager">
+        <button type="button" class="pager-btn" [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+          {{ 'common.previous' | translate }}
+        </button>
+        <span class="pager-status">
+          {{ 'admin.entityManagement.pageOf' | translate: { page: page(), total: totalPages() } }}
+        </span>
+        <button type="button" class="pager-btn" [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+          {{ 'common.next' | translate }}
+        </button>
+      </div>
+    }
+  }
+
+  <!-- Edit panel -->
+  @if (editingUser(); as target) {
+    <div class="edit-backdrop" (click)="cancelEdit()"></div>
+    <div class="edit-panel" role="dialog" aria-modal="true">
+      <div class="edit-header">
+        <h3>{{ 'admin.userManagement.editTitle' | translate: { name: target.fullName } }}</h3>
+        <button type="button" class="edit-close" (click)="cancelEdit()" aria-label="Close">&times;</button>
+      </div>
+
+      <div class="edit-body">
+        <div class="form-field">
+          <label for="um-name">{{ 'auth.fullName' | translate }}</label>
+          <input id="um-name" type="text" [(ngModel)]="edit.fullName" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="um-role">{{ 'admin.userManagement.columnRole' | translate }}</label>
+            <select id="um-role" [(ngModel)]="edit.role" [disabled]="isSelf(target)">
+              @for (role of roles; track role) {
+                <option [value]="role">{{ 'admin.userManagement.roles.' + role | translate }}</option>
+              }
+            </select>
+            @if (isSelf(target)) {
+              <span class="field-hint">{{ 'admin.userManagement.notYourRole' | translate }}</span>
+            }
+          </div>
+          <div class="form-field">
+            <label for="um-tier">{{ 'admin.userManagement.columnTier' | translate }}</label>
+            <select id="um-tier" [(ngModel)]="edit.tier">
+              @for (tier of tiers; track tier) {
+                <option [value]="tier">{{ 'admin.userManagement.tiers.' + tier | translate }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-field">
+            <label for="um-org">{{ 'admin.userApprovals.organization' | translate }}</label>
+            <input id="um-org" type="text" [(ngModel)]="edit.organization" />
+          </div>
+          <div class="form-field">
+            <label for="um-region">{{ 'profile.region' | translate }}</label>
+            <input id="um-region" type="text" [(ngModel)]="edit.region" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="um-phone">{{ 'admin.userManagement.phone' | translate }}</label>
+          <input id="um-phone" type="tel" [(ngModel)]="edit.phoneNumber" />
+        </div>
+
+        <label class="checkbox-field">
+          <input type="checkbox" [(ngModel)]="edit.isBusinessVerified" />
+          <span>{{ 'admin.userManagement.businessVerified' | translate }}</span>
+        </label>
+      </div>
+
+      <div class="edit-footer">
+        <button type="button" class="row-btn" (click)="cancelEdit()">{{ 'common.cancel' | translate }}</button>
+        <button type="button" class="btn-save" [disabled]="saving()" (click)="saveEdit()">
+          {{ (saving() ? 'common.loading' : 'common.save') | translate }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

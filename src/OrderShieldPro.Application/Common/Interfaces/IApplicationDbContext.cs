@@ -23,6 +23,7 @@ public interface IApplicationDbContext
     DbSet<UserFollowedEntity> UserFollowedEntities { get; }
     DbSet<SystemSetting> SystemSettings { get; }
     DbSet<PendingAdminAction> PendingAdminActions { get; }
+    DbSet<ContactMessage> ContactMessages { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

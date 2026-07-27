@@ -1,0 +1,76 @@
+.hidden-content { display: flex; flex-direction: column; gap: 16px; }
+
+/* ===== Section tabs (Entities / Reviews) ===== */
+.section-tabs { display: flex; gap: 8px; }
+.section-tab {
+  display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px;
+  border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; background: white; color: #64748b; font-family: inherit; transition: all 0.15s ease;
+}
+.section-tab:hover { border-color: #9ca3af; color: #374151; }
+.section-tab.active { background: #0f172a; color: white; border-color: #0f172a; }
+.section-badge {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px;
+  padding: 0 6px; border-radius: 10px; background: #ef4444; color: white; font-size: 12px; font-weight: 700;
+}
+.section-tab.active .section-badge { background: rgba(255, 255, 255, 0.25); }
+
+/* ===== Content Card (loading / empty states) ===== */
+.content-card {
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.empty-card { padding: 48px 24px; }
+
+/* ===== Hidden item cards ===== */
+.hidden-list { display: flex; flex-direction: column; gap: 12px; }
+.hidden-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: white; border-radius: 12px; border: 1px solid #e2e8f0;
+  padding: 16px 20px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); flex-wrap: wrap;
+}
+.hidden-card-main {
+  display: flex; align-items: center; gap: 14px; flex: 1; min-width: 240px; cursor: pointer;
+}
+.severity-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-info { background: #3b82f6; }
+.dot-warning { background: #f59e0b; }
+.dot-critical { background: #ef4444; }
+.dot-behavior { background: #8b5cf6; }
+.dot-fraud { background: #ec4899; }
+.dot-quality { background: #14b8a6; }
+.dot-delivery { background: #6366f1; }
+.dot-payment { background: #f59e0b; }
+.hidden-card-title-group { flex: 1; min-width: 0; }
+.hidden-card-title {
+  font-size: 16px; font-weight: 600; color: #0f172a; margin: 0 0 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hidden-card-meta { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #64748b; flex-wrap: wrap; }
+.meta-sep { color: #cbd5e1; }
+.meta-severity { font-weight: 700; font-size: 12px; letter-spacing: 0.5px; }
+.meta-severity.sev-info { color: #3b82f6; }
+.meta-severity.sev-warning { color: #d97706; }
+.meta-severity.sev-critical { color: #ef4444; }
+.meta-severity.sev-behavior { color: #8b5cf6; }
+.meta-severity.sev-fraud { color: #ec4899; }
+.meta-severity.sev-quality { color: #14b8a6; }
+.meta-severity.sev-delivery { color: #6366f1; }
+.meta-severity.sev-payment { color: #d97706; }
+
+.hidden-card-actions { display: flex; gap: 10px; flex-shrink: 0; }
+.toolbar-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px;
+  border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; font-weight: 600;
+  cursor: pointer; background: white; color: #374151; font-family: inherit; transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.toolbar-btn:hover:not(:disabled) { border-color: #9ca3af; }
+.toolbar-btn.btn-approve { background: #059669; color: white; border-color: #059669; }
+.toolbar-btn.btn-approve:hover:not(:disabled) { background: #047857; border-color: #047857; }
+.toolbar-btn.btn-delete { background: white; color: #b91c1c; border-color: #fca5a5; }
+.toolbar-btn.btn-delete:hover:not(:disabled) { background: #fef2f2; border-color: #f87171; }
+
+/* ===== RTL ===== */
+:host-context([dir="rtl"]) .hidden-card { direction: rtl; }

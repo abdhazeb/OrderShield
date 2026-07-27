@@ -8,14 +8,68 @@
             <span>{{ 'home.welcome' | translate }}</span>
           </div>
           <h1 class="hero-heading">{{ 'home.subtitle' | translate }}</h1>
-          <div class="hero-search">
-            <app-search-bar
-              [showFilter]="false"
-              [searchTerm]="searchQuery"
-              (searchTermChange)="searchQuery = $event"
-              (search)="navigateToSearch()"
-            />
+        </div>
+      </div>
+
+      <!-- Search Bar + Filters (separated from the hero banner) -->
+      <div class="home-search">
+        <div class="home-search__row">
+          <app-search-bar
+            [showFilter]="false"
+            [searchTerm]="searchQuery"
+            (searchTermChange)="searchQuery = $event"
+            (search)="navigateToSearch()"
+          />
+          <button class="home-search__filters-toggle" [class.active]="showFilters()" (click)="showFilters.set(!showFilters())">
+            🔍 {{ 'search.filters' | translate }}
+          </button>
+        </div>
+
+        <!-- Set filters here, before ever leaving the home page; navigateToSearch()
+             carries them to /search as query params. No visible <label>s — the
+             placeholder text (and the select's own "All" option) already say what each
+             field is for, and that keeps every control in this row the same height so
+             they align on one line instead of some sitting lower under a label. -->
+        <div class="home-search__filters" [class.open]="showFilters()">
+          <div class="home-search__filter-group">
+            <input type="text" [attr.aria-label]="'search.country' | translate" [(ngModel)]="filters.country" [placeholder]="'search.filterPlaceholder.country' | translate" (keyup.enter)="navigateToSearch()" />
           </div>
+          <div class="home-search__filter-group">
+            <input type="text" [attr.aria-label]="'search.category' | translate" [(ngModel)]="filters.category" [placeholder]="'search.filterPlaceholder.category' | translate" (keyup.enter)="navigateToSearch()" />
+          </div>
+          <div class="home-search__filter-group">
+            <select [attr.aria-label]="'search.reviewType' | translate" [(ngModel)]="filters.severity">
+              <option value="">{{ 'search.allTypes' | translate }}</option>
+              <optgroup [label]="'severity.groupNegative' | translate">
+                <option value="0">{{ 'severity.info' | translate }}</option>
+                <option value="1">{{ 'severity.warning' | translate }}</option>
+                <option value="2">{{ 'severity.critical' | translate }}</option>
+                <option value="3">{{ 'severity.behavior' | translate }}</option>
+                <option value="4">{{ 'severity.fraud' | translate }}</option>
+                <option value="5">{{ 'severity.quality' | translate }}</option>
+                <option value="6">{{ 'severity.delivery' | translate }}</option>
+                <option value="7">{{ 'severity.payment' | translate }}</option>
+                <option value="8">{{ 'severity.financiallyDistressed' | translate }}</option>
+                <option value="9">{{ 'severity.bankrupt' | translate }}</option>
+                <option value="10">{{ 'severity.poorManagement' | translate }}</option>
+                <option value="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
+                <option value="12">{{ 'severity.bribeOthers' | translate }}</option>
+                <option value="13">{{ 'severity.fakeSupplier' | translate }}</option>
+                <option value="14">{{ 'severity.other' | translate }}</option>
+              </optgroup>
+              <optgroup [label]="'severity.groupPositive' | translate">
+                <option value="15">{{ 'severity.positive' | translate }}</option>
+                <option value="16">{{ 'severity.recommended' | translate }}</option>
+                <option value="17">{{ 'severity.highQuality' | translate }}</option>
+                <option value="18">{{ 'severity.onTimeDelivery' | translate }}</option>
+                <option value="19">{{ 'severity.goodCommunication' | translate }}</option>
+                <option value="20">{{ 'severity.reliable' | translate }}</option>
+              </optgroup>
+            </select>
+          </div>
+          <button class="home-search__submit" (click)="navigateToSearch()">
+            🔍 {{ 'nav.search' | translate }}
+          </button>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Domain.Entities;
@@ -12,6 +13,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
 public class AdminController : ControllerBase
 {
@@ -37,6 +39,49 @@ public class AdminController : ControllerBase
 
     private string? CurrentUserId => User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
     private bool IsSuperAdmin => User.IsInRole("SuperAdmin");
+
+    /// <summary>
+    /// Every count the admin navigation renders, in one call.
+    /// The shell needs these before any tab is opened — otherwise a badge only appears
+    /// after you visit the tab it belongs to, which defeats the point of a badge.
+    /// SuperAdmin-only counts come back as zero for other moderators, who cannot see
+    /// the tabs that display them anyway.
+    /// </summary>
+    [HttpGet("nav-counts")]
+    public async Task<IActionResult> GetNavCounts(CancellationToken ct)
+    {
+        var pendingReviews = await _context.Reviews.CountAsync(r => r.Status == ReviewStatus.Pending, ct);
+        var hiddenReviews = await _context.Reviews.CountAsync(r => r.Status == ReviewStatus.Hidden, ct);
+        var totalEntities = await _context.TradeEntities.CountAsync(ct);
+        var hiddenEntities = await _context.TradeEntities.CountAsync(e => e.IsHidden, ct);
+        var pendingSubscriptions = await _context.SubscriptionRequests
+            .CountAsync(s => s.Status == SubscriptionRequestStatus.Pending, ct);
+        var unreadMessages = await _context.ContactMessages.CountAsync(m => !m.IsRead, ct);
+        var totalUsers = await _userManager.Users.CountAsync(ct);
+
+        var pendingActions = 0;
+        var pendingUsers = 0;
+        if (IsSuperAdmin)
+        {
+            pendingActions = await _context.PendingAdminActions
+                .CountAsync(a => a.Status == AdminActionStatus.Pending, ct);
+            pendingUsers = await _userManager.Users
+                .CountAsync(u => !u.IsActive && u.ApprovedAt == null && u.Role == UserRole.Buyer, ct);
+        }
+
+        return Ok(new
+        {
+            pendingReviews,
+            hiddenReviews,
+            totalEntities,
+            hiddenEntities,
+            pendingSubscriptions,
+            unreadMessages,
+            totalUsers,
+            pendingActions,
+            pendingUsers
+        });
+    }
 
     /// <summary>
     /// Get dashboard statistics for internal analytics.
@@ -404,6 +449,8 @@ public class AdminController : ControllerBase
                     Type = NotificationType.EnquiryReply,
                     Title = "Supplier Enquiry Reply",
                     Message = $"Your enquiry about \"{wr.EntityName}\" has been answered.",
+                    TemplateKey = "enquiryReplyToRequester",
+                    Subject = wr.EntityName,
                     IsRead = false
                 });
                 foreach (var sub in wr.Subscribers)
@@ -414,6 +461,8 @@ public class AdminController : ControllerBase
                         Type = NotificationType.EnquiryReply,
                         Title = "Supplier Enquiry Reply",
                         Message = $"The enquiry about \"{wr.EntityName}\" that you subscribed to has been answered.",
+                        TemplateKey = "enquiryReplyToSubscriber",
+                        Subject = wr.EntityName,
                         IsRead = false
                     });
                 }
@@ -478,6 +527,203 @@ public class AdminController : ControllerBase
 
     public record UpdateSettingRequest(string Key, string Value, string? Description = null);
 
+    // ==================== USER MANAGEMENT (SuperAdmin only) ====================
+
+    /// <summary>
+    /// The full user directory — every role, paged and filterable. Distinct from
+    /// <see cref="GetTeam"/>, which is the same data narrowed to admin roles.
+    /// </summary>
+    [HttpGet("users")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> GetUsers(
+        [FromQuery] string? q,
+        [FromQuery] UserRole? role,
+        [FromQuery] string? status,
+        [FromQuery] SubscriptionTier? tier,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        CancellationToken ct = default)
+    {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize is < 1 or > 100 ? 25 : pageSize;
+
+        var query = _userManager.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var term = q.Trim().ToLower();
+            query = query.Where(u =>
+                u.FullName.ToLower().Contains(term) ||
+                (u.Email != null && u.Email.ToLower().Contains(term)) ||
+                (u.Organization != null && u.Organization.ToLower().Contains(term)));
+        }
+
+        if (role.HasValue)
+            query = query.Where(u => u.Role == role.Value);
+
+        if (tier.HasValue)
+            query = query.Where(u => u.SubscriptionTier == tier.Value);
+
+        query = status?.ToLower() switch
+        {
+            "active" => query.Where(u => u.IsActive),
+            // Frozen and pending are both "not active" but mean different things —
+            // see ApplicationUser.ApprovedAt.
+            "frozen" => query.Where(u => !u.IsActive && u.ApprovedAt != null),
+            "pending" => query.Where(u => !u.IsActive && u.ApprovedAt == null),
+            _ => query
+        };
+
+        var totalCount = await query.CountAsync(ct);
+
+        var items = await query
+            .OrderByDescending(u => u.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(u => new
+            {
+                u.Id,
+                u.FullName,
+                u.Email,
+                u.PhoneNumber,
+                u.Organization,
+                u.Region,
+                Role = u.Role.ToString(),
+                Tier = u.SubscriptionTier.ToString(),
+                u.SubscriptionExpiryDate,
+                u.IsActive,
+                u.ApprovedAt,
+                u.IsBusinessVerified,
+                u.TrustScore,
+                u.CreatedAt,
+                u.UpdatedAt,
+                ReviewCount = _context.Reviews.Count(r => r.ReviewerId == u.Id)
+            })
+            .ToListAsync(ct);
+
+        return Ok(new { items, totalCount, page, pageSize });
+    }
+
+    /// <summary>
+    /// Edit a user's profile, role, or subscription tier.
+    /// </summary>
+    [HttpPut("users/{userId}")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> UpdateUser(string userId, [FromBody] UpdateUserRequest request, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+
+        // Demoting yourself out of SuperAdmin would lock you out of this screen mid-edit.
+        if (user.Id == CurrentUserId && request.Role != UserRole.SuperAdmin)
+            return BadRequest(new { errors = new[] { "You cannot change your own role." } });
+
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+            user.FullName = request.FullName.Trim();
+
+        user.Organization = string.IsNullOrWhiteSpace(request.Organization) ? null : request.Organization.Trim();
+        user.Region = string.IsNullOrWhiteSpace(request.Region) ? null : request.Region.Trim();
+        user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
+        user.SubscriptionTier = request.Tier;
+        user.SubscriptionExpiryDate = request.SubscriptionExpiryDate;
+        user.IsBusinessVerified = request.IsBusinessVerified;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Role lives in two places — the column the app reads and the Identity role claim
+        // the [Authorize] attributes read. Both have to move together or the user's token
+        // and their profile disagree.
+        if (user.Role != request.Role)
+        {
+            var newRoleName = request.Role.ToString();
+            if (!await _roleManager.RoleExistsAsync(newRoleName))
+                await _roleManager.CreateAsync(new IdentityRole(newRoleName));
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Count > 0)
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            await _userManager.AddToRoleAsync(user, newRoleName);
+
+            user.Role = request.Role;
+        }
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+
+        return Ok(new { message = "User updated." });
+    }
+
+    public record UpdateUserRequest(
+        string FullName,
+        UserRole Role,
+        SubscriptionTier Tier,
+        string? Organization = null,
+        string? Region = null,
+        string? PhoneNumber = null,
+        DateTime? SubscriptionExpiryDate = null,
+        bool IsBusinessVerified = false);
+
+    /// <summary>
+    /// Freeze or unfreeze any user account. Freezing blocks sign-in but keeps the
+    /// account and everything it authored intact — this is the reversible removal, and
+    /// the one to reach for instead of deletion.
+    /// </summary>
+    [HttpPut("users/{userId}/toggle-active")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> ToggleUserActive(string userId, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+        if (user.Id == CurrentUserId)
+            return BadRequest(new { errors = new[] { "You cannot freeze your own account." } });
+
+        // A never-approved registration is not "frozen" — activating it here is an
+        // approval, so record it as one rather than leaving ApprovedAt null and letting
+        // the account bounce back into the pending queue.
+        user.IsActive = !user.IsActive;
+        if (user.IsActive)
+            user.ApprovedAt ??= DateTime.UtcNow;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        return Ok(new { isActive = user.IsActive, message = user.IsActive ? "Account activated." : "Account frozen." });
+    }
+
+    /// <summary>
+    /// Permanently delete a user. Refused while the account still owns reviews or watch
+    /// requests — those foreign keys are Restrict because reviews are verified records,
+    /// so the caller is told to freeze instead. Same rule, and same reasoning, as
+    /// refusing to delete an entity that still has reviews.
+    /// </summary>
+    [HttpDelete("users/{userId}")]
+    [Authorize(Roles = "SuperAdmin")]
+    public async Task<IActionResult> DeleteUser(string userId, CancellationToken ct)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null) return NotFound();
+        if (user.Id == CurrentUserId)
+            return BadRequest(new { errors = new[] { "You cannot delete your own account." } });
+
+        var reviewCount = await _context.Reviews.CountAsync(r => r.ReviewerId == userId, ct);
+        var watchRequestCount = await _context.WatchRequests.CountAsync(w => w.RequestedById == userId, ct);
+        if (reviewCount > 0 || watchRequestCount > 0)
+        {
+            return BadRequest(new
+            {
+                errors = new[]
+                {
+                    $"This user has {reviewCount} review(s) and {watchRequestCount} watch request(s) on record and cannot be deleted. Freeze the account instead."
+                }
+            });
+        }
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+
+        return Ok(new { message = "User deleted." });
+    }
+
     // ==================== TEAM MANAGEMENT (SuperAdmin only) ====================
 
     /// <summary>
@@ -532,6 +778,7 @@ public class AdminController : ControllerBase
             Role = role,
             SubscriptionTier = SubscriptionTier.Pro,
             IsActive = true,
+            ApprovedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -592,7 +839,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetPendingUsers(CancellationToken ct)
     {
         var pending = await _userManager.Users
-            .Where(u => !u.IsActive && u.Role == UserRole.Buyer)
+            .Where(u => !u.IsActive && u.ApprovedAt == null && u.Role == UserRole.Buyer)
             .OrderByDescending(u => u.CreatedAt)
             .Select(u => new
             {
@@ -618,7 +865,7 @@ public class AdminController : ControllerBase
     public async Task<IActionResult> GetPendingUserCount(CancellationToken ct)
     {
         var count = await _userManager.Users
-            .CountAsync(u => !u.IsActive && u.Role == UserRole.Buyer, ct);
+            .CountAsync(u => !u.IsActive && u.ApprovedAt == null && u.Role == UserRole.Buyer, ct);
         return Ok(new { count });
     }
 
@@ -634,6 +881,7 @@ public class AdminController : ControllerBase
         if (user.IsActive) return Ok(new { message = "User is already active." });
 
         user.IsActive = true;
+        user.ApprovedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
         await _userManager.UpdateAsync(user);
 
@@ -642,7 +890,8 @@ public class AdminController : ControllerBase
             user.Id,
             NotificationType.UserAccountApproved,
             "Account approved",
-            "Your OrderShieldPro account has been approved. You can now sign in.",
+            "Your Suplyrate account has been approved. You can now sign in.",
+            templateKey: "userAccountApproved",
             cancellationToken: ct);
 
         return Ok(new { message = "User approved." });
@@ -657,8 +906,11 @@ public class AdminController : ControllerBase
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user is null) return NotFound();
-        if (user.IsActive)
-            return BadRequest(new { errors = new[] { "User is already active and cannot be rejected." } });
+        // Rejection deletes the account, so it is only ever valid for a registration that
+        // was never approved. A frozen account has history behind it and must be reactivated
+        // or deleted through user management, not silently discarded here.
+        if (user.IsActive || user.ApprovedAt is not null)
+            return BadRequest(new { errors = new[] { "Only a never-approved registration can be rejected." } });
 
         await _userManager.DeleteAsync(user);
         return Ok(new { message = "User rejected and removed." });

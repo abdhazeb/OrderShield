@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Users.Commands;
 using OrderShieldPro.Application.Users.Queries;
@@ -10,6 +11,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 [Authorize]
 public class UserProfileController : ControllerBase
 {

@@ -33,6 +33,14 @@ export class ApiService {
     return this.http.delete<T>(`${this.baseUrl}/${path}`);
   }
 
+  /**
+   * Fetches a protected file as a Blob. Uses HttpClient (not a plain anchor href) so the
+   * JWT interceptor attaches the bearer token — protected downloads 401 without it.
+   */
+  download(path: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${path}`, { responseType: 'blob' });
+  }
+
   upload<T>(path: string, fileOrData: File | FormData): Observable<T> {
     const formData = fileOrData instanceof FormData ? fileOrData : new FormData();
     if (fileOrData instanceof File) {

@@ -1,0 +1,129 @@
+<div class="hidden-content">
+  @if (mode() === 'both') {
+  <div class="section-tabs">
+    <button
+      type="button"
+      class="section-tab"
+      [class.active]="section() === 'entities'"
+      (click)="section.set('entities')">
+      {{ 'admin.hiddenEntitiesTab' | translate }}
+      @if (hiddenEntities().length > 0) {
+        <span class="section-badge">{{ hiddenEntities().length }}</span>
+      }
+    </button>
+    <button
+      type="button"
+      class="section-tab"
+      [class.active]="section() === 'reviews'"
+      (click)="section.set('reviews')">
+      {{ 'admin.hiddenReviewsTab' | translate }}
+      @if (hiddenReviews().length > 0) {
+        <span class="section-badge">{{ hiddenReviews().length }}</span>
+      }
+    </button>
+  </div>
+  }
+
+  @if (section() === 'entities') {
+    @if (loadingEntities()) {
+      <div class="content-card"><app-loading-spinner [message]="'admin.loadingQueue' | translate" /></div>
+    } @else if (hiddenEntities().length === 0) {
+      <div class="content-card empty-card">
+        <app-empty-state [title]="'admin.hiddenEntitiesEmpty' | translate" [subtitle]="'admin.hiddenEntitiesEmptyDesc' | translate" />
+      </div>
+    } @else {
+      <div class="hidden-list">
+        @for (entity of hiddenEntities(); track entity.id) {
+          <div class="hidden-card">
+            <div class="hidden-card-main" (click)="viewEntity(entity)">
+              <div class="hidden-card-title-group">
+                <h3 class="hidden-card-title">{{ entity.legalName }}</h3>
+                <div class="hidden-card-meta">
+                  <span>{{ entity.country }}</span>
+                  <span class="meta-sep">&middot;</span>
+                  <span>{{ 'entity.stats.total' | translate }}: {{ entity.totalReviewCount }}</span>
+                  @if (entity.hiddenAt) {
+                    <span class="meta-sep">&middot;</span>
+                    <span>{{ 'admin.hiddenOn' | translate }} {{ entity.hiddenAt | date:'MMM d, yyyy' }}</span>
+                  }
+                  @if (entity.hiddenByName) {
+                    <span class="meta-sep">&middot;</span>
+                    <span>{{ 'admin.hiddenBy' | translate }} {{ entity.hiddenByName }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="hidden-card-actions">
+              <button
+                type="button"
+                class="toolbar-btn btn-approve"
+                [disabled]="processingEntityId() === entity.id"
+                (click)="unhideEntity(entity)">
+                👁️ {{ 'entity.unhideEntity' | translate }}
+              </button>
+              <button
+                type="button"
+                class="toolbar-btn btn-delete"
+                [disabled]="processingEntityId() === entity.id"
+                (click)="deleteEntity(entity)">
+                🗑️ {{ 'entity.deleteEntity' | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+    @if (loadingReviews()) {
+      <div class="content-card"><app-loading-spinner [message]="'admin.loadingQueue' | translate" /></div>
+    } @else if (hiddenReviews().length === 0) {
+      <div class="content-card empty-card">
+        <app-empty-state [title]="'admin.hiddenReviewsEmpty' | translate" [subtitle]="'admin.hiddenReviewsEmptyDesc' | translate" />
+      </div>
+    } @else {
+      <div class="hidden-list">
+        @for (review of hiddenReviews(); track review.id) {
+          <div class="hidden-card">
+            <div class="hidden-card-main" (click)="viewReviewEntity(review)">
+              <span class="severity-dot" [class]="'dot-' + getSeverityString(review.severity)"></span>
+              <div class="hidden-card-title-group">
+                <h3 class="hidden-card-title">{{ review.title }}</h3>
+                <div class="hidden-card-meta">
+                  <span>{{ review.tradeEntityName }}</span>
+                  <span class="meta-sep">&middot;</span>
+                  <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
+                    {{ getSeverityString(review.severity) | uppercase }}
+                  </span>
+                  @if (review.updatedAt) {
+                    <span class="meta-sep">&middot;</span>
+                    <span>{{ 'admin.hiddenOn' | translate }} {{ review.updatedAt | date:'MMM d, yyyy' }}</span>
+                  }
+                  @if (review.updatedByName) {
+                    <span class="meta-sep">&middot;</span>
+                    <span>{{ 'admin.hiddenBy' | translate }} {{ review.updatedByName }}</span>
+                  }
+                </div>
+              </div>
+            </div>
+            <div class="hidden-card-actions">
+              <button
+                type="button"
+                class="toolbar-btn btn-approve"
+                [disabled]="processingReviewId() === review.id"
+                (click)="restoreReview(review)">
+                👁️ {{ 'admin.restoreReview' | translate }}
+              </button>
+              <button
+                type="button"
+                class="toolbar-btn btn-delete"
+                [disabled]="processingReviewId() === review.id"
+                (click)="deleteReview(review)">
+                🗑️ {{ 'review.delete' | translate }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

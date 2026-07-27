@@ -43,8 +43,13 @@ public class TradeEntityConfiguration : IEntityTypeConfiguration<TradeEntity>
             .HasConversion<string>()
             .HasMaxLength(20);
 
+        builder.Property(e => e.IsHidden)
+            .HasDefaultValue(false);
+
         // Indexes for search performance (BRD: search by name)
         builder.HasIndex(e => e.LegalName);
+        // Every public search filters on this, so it is worth an index.
+        builder.HasIndex(e => e.IsHidden);
         builder.HasIndex(e => e.TradeName);
         builder.HasIndex(e => e.Country);
         builder.HasIndex(e => e.EntityType);

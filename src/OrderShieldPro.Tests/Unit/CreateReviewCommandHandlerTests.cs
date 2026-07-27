@@ -15,6 +15,7 @@ public class CreateReviewCommandHandlerTests
     private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly Mock<ITradeEntityRepository> _entityRepoMock;
     private readonly Mock<IReviewRepository> _reviewRepoMock;
+    private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly CreateReviewCommandHandler _handler;
     private readonly string _testUserId = Guid.NewGuid().ToString();
 
@@ -24,6 +25,7 @@ public class CreateReviewCommandHandlerTests
         _currentUserServiceMock = new Mock<ICurrentUserService>();
         _entityRepoMock = new Mock<ITradeEntityRepository>();
         _reviewRepoMock = new Mock<IReviewRepository>();
+        _notificationServiceMock = new Mock<INotificationService>();
 
         _unitOfWorkMock.Setup(u => u.TradeEntities).Returns(_entityRepoMock.Object);
         _unitOfWorkMock.Setup(u => u.Reviews).Returns(_reviewRepoMock.Object);
@@ -31,7 +33,10 @@ public class CreateReviewCommandHandlerTests
         _currentUserServiceMock.Setup(s => s.IsAuthenticated).Returns(true);
         _currentUserServiceMock.Setup(s => s.UserId).Returns(_testUserId);
 
-        _handler = new CreateReviewCommandHandler(_unitOfWorkMock.Object, _currentUserServiceMock.Object);
+        _handler = new CreateReviewCommandHandler(
+            _unitOfWorkMock.Object,
+            _currentUserServiceMock.Object,
+            _notificationServiceMock.Object);
     }
 
     [Fact]

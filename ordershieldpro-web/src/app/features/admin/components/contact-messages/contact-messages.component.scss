@@ -14,7 +14,7 @@
 .queue-card.selected {
   border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6, 0 4px 16px rgba(59, 130, 246, 0.12);
 }
-.queue-card.unread { border-left: 3px solid #3b82f6; }
+.queue-card.unread { border-inline-start: 3px solid #3b82f6; }
 .queue-card-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 20px; cursor: pointer; transition: background 0.1s;

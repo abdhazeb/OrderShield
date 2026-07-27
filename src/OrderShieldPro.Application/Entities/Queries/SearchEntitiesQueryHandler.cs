@@ -25,6 +25,7 @@ public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, P
             request.Page,
             request.PageSize,
             request.SortBy,
+            request.IncludeHidden,
             cancellationToken);
 
         var dtos = items.Select(e => new EntitySearchResultDto
@@ -42,7 +43,8 @@ public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, P
             WarningReviewCount = e.WarningReviewCount,
             CriticalReviewCount = e.CriticalReviewCount,
             LastReviewDate = e.LastReviewDate,
-            ListedDate = e.ListedDate
+            ListedDate = e.ListedDate,
+            IsHidden = e.IsHidden
         }).ToList();
 
         return PaginatedList<EntitySearchResultDto>.Create(dtos, totalCount, request.Page, request.PageSize);

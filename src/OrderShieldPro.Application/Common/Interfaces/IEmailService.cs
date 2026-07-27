@@ -10,4 +10,10 @@ public interface IEmailService
     Task SendReviewStatusNotificationAsync(string to, string reviewTitle, string newStatus, CancellationToken cancellationToken = default);
 
     Task SendInvestigationCompleteNotificationAsync(string to, string entityName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a password reset link. <paramref name="resetUrl"/> is already tokenised and
+    /// must be treated as a secret — never log it.
+    /// </summary>
+    Task SendPasswordResetAsync(string to, string resetUrl, CancellationToken cancellationToken = default);
 }

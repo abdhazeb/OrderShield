@@ -28,6 +28,13 @@ public class TradeEntity : AuditableEntity
     // Historical names for rebrand tracking (BRD Section 6)
     public ICollection<EntityHistoricalName> HistoricalNames { get; set; } = new List<EntityHistoricalName>();
 
+    /// <summary>
+    /// Hidden entities are withheld from public search and profile pages but remain
+    /// intact and visible to moderators, who can restore them. This is the reversible
+    /// alternative to deletion, which is refused once an entity has reviews.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
     // Verification
     public VerificationStatus VerificationStatus { get; set; } = VerificationStatus.Unverified;
     public int VerificationScore { get; set; }

@@ -15,6 +15,8 @@ export interface EntitySearchResult {
   criticalReviewCount: number;
   lastReviewDate?: string;
   listedDate: string;
+  /** Only ever present for moderators — hidden entities are filtered out for everyone else. */
+  isHidden?: boolean;
 }
 
 export interface EntityDetail {
@@ -40,6 +42,8 @@ export interface EntityDetail {
   historicalNames: EntityHistoricalName[];
   followerCount: number;
   isFollowed: boolean;
+  /** Withheld from public search and profile pages. Only moderators ever see this true. */
+  isHidden?: boolean;
 }
 
 export interface EntityPhoneNumber {

@@ -29,6 +29,8 @@ public class NotificationService : INotificationService
         string message,
         Guid? referenceEntityId = null,
         Guid? referenceReviewId = null,
+        string? templateKey = null,
+        string? subject = null,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(userId)) return;
@@ -39,6 +41,8 @@ public class NotificationService : INotificationService
             Type = type,
             Title = title,
             Message = message,
+            TemplateKey = templateKey,
+            Subject = subject,
             ReferenceEntityId = referenceEntityId,
             ReferenceReviewId = referenceReviewId,
             IsRead = false
@@ -53,6 +57,8 @@ public class NotificationService : INotificationService
         string message,
         Guid? referenceEntityId = null,
         Guid? referenceReviewId = null,
+        string? templateKey = null,
+        string? subject = null,
         CancellationToken cancellationToken = default)
     {
         var superAdminIds = await _userManager.Users
@@ -70,6 +76,8 @@ public class NotificationService : INotificationService
                 Type = type,
                 Title = title,
                 Message = message,
+                TemplateKey = templateKey,
+                Subject = subject,
                 ReferenceEntityId = referenceEntityId,
                 ReferenceReviewId = referenceReviewId,
                 IsRead = false

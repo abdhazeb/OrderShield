@@ -66,6 +66,25 @@
     "historicalNames": "历史名称",
     "phoneNumbers": "电话号码",
     "weChatIds": "微信ID",
+    "city": "城市",
+    "editEntity": "编辑实体",
+    "saveChanges": "保存更改",
+    "editSuccess": "实体已更新。",
+    "editFailed": "更新实体失败，请重试。",
+    "editRequiredFields": "法定名称和国家为必填项。",
+    "hideEntity": "隐藏",
+    "unhideEntity": "取消隐藏",
+    "deleteEntity": "删除",
+    "hiddenBanner": "此实体已隐藏。它不会出现在搜索中，其资料页对公众不可见。",
+    "hideConfirm": "隐藏此实体？它将从搜索结果中消失，其资料页对公众不可见。相关评审会保留，您可以随时取消隐藏。",
+    "unhideConfirm": "重新公开此实体？它将再次出现在搜索结果中。",
+    "hideSuccess": "实体已隐藏。",
+    "unhideSuccess": "实体已重新公开。",
+    "hideFailed": "隐藏实体失败，请重试。",
+    "unhideFailed": "取消隐藏失败，请重试。",
+    "deleteConfirm": "永久删除“{{name}}”？此操作无法撤销。仍有评审的实体无法删除——请改为隐藏。",
+    "deleteSuccess": "实体已删除。",
+    "deleteFailed": "删除实体失败，请重试。",
     "stats": {
       "total": "总计",
       "info": "信息",
@@ -180,7 +199,61 @@
     "investigationComplete": "调查已完成",
     "loading": "加载通知中...",
     "noNotificationsTitle": "暂无通知",
-    "allCaughtUp": "您已查看所有通知！"
+    "allCaughtUp": "您已查看所有通知！",
+    "templates": {
+      "newReviewPendingApproval": {
+        "title": "新评审待审批",
+        "message": "已提交新评审 \"{{subject}}\"，需要审核。"
+      },
+      "reviewEditPendingApproval": {
+        "title": "评审编辑待审批",
+        "message": "已发布的评审 \"{{subject}}\" 有待处理的编辑需要审批。"
+      },
+      "editedReviewNeedsReModeration": {
+        "title": "已编辑的评审待重新审核",
+        "message": "评审 \"{{subject}}\" 已被编辑，需要重新审核。"
+      },
+      "reviewApproved": {
+        "title": "评审已通过",
+        "message": "您的评审 \"{{subject}}\" 已通过审核并发布。"
+      },
+      "reviewRejected": {
+        "title": "评审被拒绝",
+        "message": "您的评审 \"{{subject}}\" 未通过审核团队的批准。"
+      },
+      "newEnquiryPendingReview": {
+        "title": "新咨询待审核",
+        "message": "已提交关于 \"{{subject}}\" 的新咨询。"
+      },
+      "enquiryAccepted": {
+        "title": "咨询已接受",
+        "message": "您关于 \"{{subject}}\" 的咨询已被接受并处理完毕。"
+      },
+      "enquiryRejected": {
+        "title": "咨询被拒绝",
+        "message": "您关于 \"{{subject}}\" 的咨询被审核团队拒绝。"
+      },
+      "enquiryResolvedSubscriber": {
+        "title": "供应商咨询已完成",
+        "message": "您关注的关于 \"{{subject}}\" 的咨询已处理完毕。"
+      },
+      "enquiryReplyToRequester": {
+        "title": "供应商咨询回复",
+        "message": "您关于 \"{{subject}}\" 的咨询已收到回复。"
+      },
+      "enquiryReplyToSubscriber": {
+        "title": "供应商咨询回复",
+        "message": "您关注的关于 \"{{subject}}\" 的咨询已收到回复。"
+      },
+      "newUserPendingApproval": {
+        "title": "新用户待审批",
+        "message": "{{subject}} 已注册，正在等待审批。"
+      },
+      "userAccountApproved": {
+        "title": "账户已批准",
+        "message": "您的 Suplyrate 账户已获批准，现在可以登录。"
+      }
+    }
   },
   "admin": {
     "dashboard": "管理面板",
@@ -195,6 +268,30 @@
     "reviewsRequests": "评审请求",
     "investigations": "调查",
     "analytics": "分析",
+    "hiddenContent": "隐藏内容",
+    "importEntities": "导入实体",
+    "importEntitiesTitle": "从表格批量导入",
+    "importEntitiesDesc": "上传 Cantoon 或企查查导出文件——系统会自动识别格式。法定名称已存在的条目（在文件中或系统中）将被跳过，因此可以安全地重复上传同一文件。",
+    "importChooseFile": "选择文件（.xls、.xlsx）",
+    "importUploading": "正在导入...",
+    "importSuccess": "导入完成 — 已创建 {{count}} 个实体。",
+    "importFailed": "导入失败，请检查文件后重试。",
+    "importCreated": "已创建",
+    "importSkippedDuplicates": "已跳过（重复）",
+    "importSkippedInvalid": "已跳过（无名称）",
+    "importTotalRows": "读取的总行数",
+    "hiddenEntitiesTab": "隐藏的实体",
+    "hiddenReviewsTab": "隐藏的评审",
+    "hiddenEntitiesEmpty": "暂无隐藏的实体",
+    "hiddenEntitiesEmptyDesc": "您隐藏的实体会显示在此处，可在此恢复或永久删除。",
+    "hiddenReviewsEmpty": "暂无隐藏的评审",
+    "hiddenReviewsEmptyDesc": "您在发布后隐藏的评审会显示在此处，可在此恢复或永久删除。",
+    "hiddenOn": "隐藏于",
+    "hiddenBy": "操作人",
+    "restoreReview": "恢复",
+    "restoreReviewConfirm": "将此评审恢复到实体的公开时间线？",
+    "restoreReviewSuccess": "评审已恢复并发布。",
+    "restoreReviewFailed": "恢复评审失败，请重试。",
     "publish": "发布",
     "messageReviewer": "联系评审人",
     "reviewDetails": "评审详情",
@@ -433,7 +530,8 @@
     "noData": "暂无数据",
     "dismiss": "好的",
     "yes": "是",
-    "no": "否"
+    "no": "否",
+    "downloadFailed": "文件下载失败，请重试。"
   },
   "severity": {
     "groupNegative": "问题 / 风险",
@@ -532,6 +630,23 @@
     "sendResetLink": "发送重置链接",
     "backToLogin": "返回登录",
     "sending": "发送中..."
+  },
+  "resetPassword": {
+    "title": "设置新密码",
+    "subtitle": "为您的 Suplyrate 账户选择一个新密码",
+    "newPassword": "新密码",
+    "confirmPassword": "确认新密码",
+    "passwordHint": "至少 10 个字符，包含大小写字母、数字和符号。",
+    "mismatch": "两次输入的密码不一致。",
+    "submit": "重置密码",
+    "saving": "保存中...",
+    "success": "密码已更新",
+    "successDesc": "您的密码已重置，现在可以使用新密码登录。",
+    "goToLogin": "前往登录",
+    "invalidLink": "此链接无效",
+    "invalidLinkDesc": "重置链接不完整或已过期。请重新申请一个链接。",
+    "requestNewLink": "申请新链接",
+    "failed": "无法重置您的密码，链接可能已过期。"
   },
   "enquiry": {
     "noResultsHint": "找不到您要找的供应商？提交咨询，我们的团队将进行调查。",

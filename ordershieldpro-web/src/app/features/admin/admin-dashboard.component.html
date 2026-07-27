@@ -1,63 +1,81 @@
-<div class="admin-page" dir="ltr">
-  <!-- Tab Bar -->
-  <div class="tab-bar">
-    <button class="tab-item" [class.active]="activeTab() === 'queue'" (click)="activeTab.set('queue')">
-      {{ 'admin.reviewsRequests' | translate }}
-      @if (pendingCount() > 0) {
-        <span class="tab-badge">{{ pendingCount() }}</span>
-      }
-    </button>
-    <button class="tab-item" [class.active]="activeTab() === 'analytics'" (click)="activeTab.set('analytics')">
-      {{ 'admin.analytics' | translate }}
-    </button>
-    <button class="tab-item" [class.active]="activeTab() === 'messages'" (click)="activeTab.set('messages')">
-      {{ 'admin.contactMessages' | translate }}
-      @if (unreadMsgCount() > 0) {
-        <span class="tab-badge">{{ unreadMsgCount() }}</span>
-      }
-    </button>
-    <button class="tab-item" [class.active]="activeTab() === 'subscriptions'" (click)="activeTab.set('subscriptions')">
-      {{ 'admin.subscriptions' | translate }}
-      @if (pendingSubCount() > 0) {
-        <span class="tab-badge">{{ pendingSubCount() }}</span>
-      }
-    </button>
-    @if (authService.isSuperAdmin()) {
-      <button class="tab-item" [class.active]="activeTab() === 'approvals'" (click)="activeTab.set('approvals')">
-        {{ 'admin.approvals' | translate }}
-        @if (pendingActionCount() > 0) {
-          <span class="tab-badge">{{ pendingActionCount() }}</span>
+<div class="admin-page">
+  <!-- Primary navigation: what you are working on -->
+  <nav class="section-bar" role="tablist" [attr.aria-label]="'admin.nav.sections' | translate">
+    @for (section of visibleSections(); track section.id) {
+      <button
+        type="button"
+        role="tab"
+        class="section-item"
+        [class.active]="activeSection() === section.id"
+        [attr.aria-selected]="activeSection() === section.id"
+        (click)="selectSection(section.id)">
+        {{ section.labelKey | translate }}
+        @if (sectionBadge(section) > 0) {
+          <span class="nav-badge">{{ sectionBadge(section) }}</span>
         }
       </button>
-      <button class="tab-item" [class.active]="activeTab() === 'team'" (click)="activeTab.set('team')">
-        {{ 'admin.team' | translate }}
-      </button>
-      <button class="tab-item" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">
-        {{ 'admin.settings' | translate }}
-      </button>
     }
-  </div>
+  </nav>
 
-  <!-- Tab Content -->
+  <!-- Secondary navigation: which slice of it. Hidden when a section has only one view. -->
+  @if (visibleTabs().length > 1) {
+    <div class="subtab-bar" role="tablist">
+      @for (tab of visibleTabs(); track tab.id) {
+        <button
+          type="button"
+          role="tab"
+          class="subtab-item"
+          [class.active]="activeTab() === tab.id"
+          [attr.aria-selected]="activeTab() === tab.id"
+          (click)="selectTab(tab.id)">
+          {{ tab.labelKey | translate }}
+          @if (tabBadge(tab) > 0) {
+            <span class="nav-badge">{{ tabBadge(tab) }}</span>
+          } @else if (tabCount(tab) > 0) {
+            <span class="nav-count">{{ tabCount(tab) }}</span>
+          }
+        </button>
+      }
+    </div>
+  }
+
   <div class="tab-content">
     @switch (activeTab()) {
-      @case ('queue') {
-        <app-moderation-queue (countChange)="pendingCount.set($event)" />
-      }
       @case ('analytics') {
         <app-admin-analytics (navigate)="onAnalyticsNavigate($event)" />
       }
-      @case ('messages') {
-        <app-contact-messages (countChange)="unreadMsgCount.set($event)" />
+      @case ('queue') {
+        <app-moderation-queue (countChange)="pendingCount.set($event)" />
+      }
+      @case ('hiddenReviews') {
+        <app-hidden-content mode="reviews" (countChange)="hiddenReviewCount.set($event)" />
+      }
+      @case ('entityList') {
+        <app-entity-management (countChange)="entityCount.set($event)" />
+      }
+      @case ('hiddenEntities') {
+        <app-hidden-content mode="entities" (countChange)="hiddenEntityCount.set($event)" />
+      }
+      @case ('import') {
+        <app-import-entities />
+      }
+      @case ('userList') {
+        <app-user-management (countChange)="userCount.set($event)" />
+      }
+      @case ('pendingUsers') {
+        <app-admin-approvals mode="users" (countChange)="pendingUserCount.set($event)" />
+      }
+      @case ('team') {
+        <app-admin-team />
       }
       @case ('subscriptions') {
         <app-subscription-requests (countChange)="pendingSubCount.set($event)" />
       }
-      @case ('approvals') {
-        <app-admin-approvals (countChange)="pendingActionCount.set($event)" />
+      @case ('messages') {
+        <app-contact-messages (countChange)="unreadMsgCount.set($event)" />
       }
-      @case ('team') {
-        <app-admin-team />
+      @case ('approvals') {
+        <app-admin-approvals mode="actions" (countChange)="pendingActionCount.set($event)" />
       }
       @case ('settings') {
         <app-admin-settings />

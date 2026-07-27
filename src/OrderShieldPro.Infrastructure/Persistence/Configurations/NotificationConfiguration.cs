@@ -28,6 +28,12 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasConversion<string>()
             .HasMaxLength(50);
 
+        builder.Property(e => e.TemplateKey)
+            .HasMaxLength(100);
+
+        builder.Property(e => e.Subject)
+            .HasMaxLength(500);
+
         builder.HasIndex(e => e.UserId);
         builder.HasIndex(e => new { e.UserId, e.IsRead });
         builder.HasIndex(e => e.CreatedAt);

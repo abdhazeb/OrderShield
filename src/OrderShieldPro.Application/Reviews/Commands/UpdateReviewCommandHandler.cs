@@ -83,6 +83,8 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
                 $"A published review \"{review.Title}\" has a pending edit that needs approval.",
                 referenceEntityId: review.TradeEntityId,
                 referenceReviewId: review.Id,
+                templateKey: "reviewEditPendingApproval",
+                subject: review.Title,
                 cancellationToken: cancellationToken);
 
             return Result.Success();
@@ -109,6 +111,8 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
             $"A review \"{review.Title}\" was edited and needs re-moderation.",
             referenceEntityId: review.TradeEntityId,
             referenceReviewId: review.Id,
+            templateKey: "editedReviewNeedsReModeration",
+            subject: review.Title,
             cancellationToken: cancellationToken);
 
         return Result.Success();

@@ -18,8 +18,8 @@
             <div class="notif-item" [class.unread]="!notif.isRead" [class.clickable]="hasLink(notif)" (click)="onNotifClick(notif)">
               <span class="notif-icon">{{ getIcon(notif.type) }}</span>
               <div class="notif-content">
-                <strong class="notif-title">{{ notif.title }}</strong>
-                <p class="notif-message">{{ notif.message }}</p>
+                <strong class="notif-title">{{ getTitle(notif) }}</strong>
+                <p class="notif-message">{{ getMessage(notif) }}</p>
                 <span class="notif-time">{{ notif.createdAt | relativeDate }}</span>
               </div>
               @if (hasLink(notif)) {

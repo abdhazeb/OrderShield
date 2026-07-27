@@ -182,6 +182,10 @@ public static class DataSeeder
         if (existing != null)
             return existing;
 
+        // Demo accounts are pre-approved — without this they would sit in the
+        // pending-registration queue, which keys off ApprovedAt being null.
+        user.ApprovedAt ??= DateTime.UtcNow;
+
         var result = await userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {

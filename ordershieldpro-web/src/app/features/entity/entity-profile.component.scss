@@ -24,18 +24,70 @@
 
     .trade-name { font-size: 14px; color: var(--text-tertiary); margin-top: 2px; }
 
+    .admin-entity-actions {
+      display: flex;
+      gap: 8px;
+      align-self: flex-start;
+      margin-left: 16px;
+      flex: 0 0 auto;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .admin-edit-entity {
       align-self: flex-start;
       white-space: nowrap;
-      margin-left: 16px;
       flex: 0 0 auto;
     }
 
-    /* Override global .btn flex:1 used elsewhere so admin edit doesn't grow */
+    .admin-hide-entity,
+    .admin-delete-entity {
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    /* Override global .btn flex:1 used elsewhere so admin actions don't grow */
     .admin-edit-entity.btn,
-    .profile-name-row > .admin-edit-entity {
+    .admin-hide-entity.btn,
+    .admin-delete-entity.btn,
+    .admin-entity-actions > .btn {
       flex: 0 0 auto !important;
       width: auto !important;
+    }
+
+    /* Deletion is irreversible — give it danger styling so it never reads as routine. */
+    .admin-delete-entity.btn {
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+    .admin-delete-entity.btn:hover:not(:disabled) {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+    }
+
+    .admin-entity-actions .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .entity-hidden-banner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-100, #f1f3f7);
+      border: 1px dashed var(--text-tertiary);
+      color: var(--text-secondary);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    /* Keep the admin action row on the correct side in RTL. */
+    :host-context([dir="rtl"]) .admin-entity-actions {
+      margin-left: 0;
+      margin-right: 16px;
     }
 
     .entity-edit-form {

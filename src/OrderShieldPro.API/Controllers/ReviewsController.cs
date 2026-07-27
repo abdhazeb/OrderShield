@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Reviews.Commands;
 using OrderShieldPro.Application.Reviews.Queries;
@@ -10,6 +11,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 public class ReviewsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -73,6 +75,25 @@ public class ReviewsController : ControllerBase
     }
 
     /// <summary>
+    /// Download an evidence file attached to a review. Restricted to the reviewer who
+    /// submitted it and to moderators assessing it.
+    /// </summary>
+    [HttpGet("{reviewId:guid}/evidence/{fileId:guid}")]
+    [Authorize]
+    public async Task<IActionResult> DownloadEvidence(Guid reviewId, Guid fileId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetEvidenceFileQuery(reviewId, fileId), ct);
+        if (!result.Succeeded || result.Data is null)
+            return NotFound(new { error = "File not found." });
+
+        var stream = await _fileStorage.OpenReadAsync(result.Data.StoragePath, ct);
+        if (stream is null)
+            return NotFound(new { error = "File not found." });
+
+        return File(stream, FileContentTypes.FromFileName(result.Data.FileName), result.Data.FileName);
+    }
+
+    /// <summary>
     /// Get reviews for an entity (public — published reviews only).
     /// </summary>
     [HttpGet]
@@ -105,6 +126,17 @@ public class ReviewsController : ControllerBase
             PageSize = pageSize
         }, ct);
 
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// List hidden reviews (service team only) — the "Hidden Content" management screen.
+    /// </summary>
+    [HttpGet("hidden")]
+    [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
+    public async Task<IActionResult> GetHiddenQueue([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+    {
+        var result = await _mediator.Send(new GetHiddenReviewsQuery { Page = page, PageSize = pageSize }, ct);
         return Ok(result);
     }
 

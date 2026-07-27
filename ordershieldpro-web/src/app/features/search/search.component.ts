@@ -119,11 +119,20 @@ export class SearchComponent implements OnInit {
     this.route.queryParams
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
+        // Filters chosen on the home page (or a shared link) arrive as query params so
+        // the results here reflect exactly what the user picked before searching.
+        if (params['country']) this.filters.country = params['country'];
+        if (params['category']) this.filters.category = params['category'];
+        if (params['severity']) this.filters.severity = params['severity'];
+
+        const hasIncomingFilter = !!(params['country'] || params['category'] || params['severity']);
+
         if (params['q']) {
           this.searchQuery.set(params['q']);
           this.performSearch();
-        } else if (params['initial'] === 'true') {
-          // "View All" entry point — load every entity so the page is not empty.
+        } else if (params['initial'] === 'true' || hasIncomingFilter) {
+          // "View All" entry point, or filters-only search from the home page —
+          // load matching entities so the page is not empty.
           this.performSearch();
         }
         if (params['openEnquiry'] === 'true') {
@@ -178,6 +187,7 @@ export class SearchComponent implements OnInit {
     if (this.searchQuery()) url += `&q=${encodeURIComponent(this.searchQuery())}`;
     if (this.filters.country) url += `&country=${encodeURIComponent(this.filters.country)}`;
     if (this.filters.category) url += `&productCategory=${encodeURIComponent(this.filters.category)}`;
+    if (this.filters.severity !== '') url += `&severity=${encodeURIComponent(this.filters.severity)}`;
 
     this.apiService.get<PaginatedResult<EntitySearchResult>>(url).subscribe({
       next: (result) => {

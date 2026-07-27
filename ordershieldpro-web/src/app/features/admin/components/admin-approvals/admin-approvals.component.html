@@ -1,3 +1,4 @@
+@if (mode() === 'both') {
 <div class="approvals-tabs" role="tablist">
   <button
     type="button"
@@ -24,6 +25,7 @@
     }
   </button>
 </div>
+}
 
 @if (activeSection() === 'actions') {
   @if (loadingActions()) {

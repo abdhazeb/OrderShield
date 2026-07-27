@@ -55,7 +55,7 @@
                 @if (req.paymentProofStoragePath) {
                   <div class="detail-item">
                     <span class="detail-key">{{ 'subscription.paymentProof' | translate }}</span>
-                    <a class="detail-val file-link" [href]="getPaymentProofUrl(req.paymentProofStoragePath)" target="_blank" rel="noopener">📎 {{ req.paymentProofFileName }}</a>
+                    <button type="button" class="detail-val file-link" (click)="downloadPaymentProof(req)">📎 {{ req.paymentProofFileName }}</button>
                   </div>
                 }
                 @if (req.paymentNotes) {

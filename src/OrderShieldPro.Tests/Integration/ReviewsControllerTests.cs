@@ -131,6 +131,10 @@ public class ReviewsControllerTests : IClassFixture<TestWebApplicationFactory>
             Language = 0
         });
 
+        // Registration leaves the account awaiting SuperAdmin approval; approve it so the
+        // account can sign in.
+        await _factory.ApproveUserAsync(email);
+
         var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
         {
             Email = email,

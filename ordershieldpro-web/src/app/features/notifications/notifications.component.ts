@@ -1,7 +1,7 @@
 import { Component, inject, signal, OnInit, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { timer, switchMap } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -24,6 +24,7 @@ export class NotificationsComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
+  private translate = inject(TranslateService);
 
   notifications = signal<AppNotification[]>([]);
   loading = signal(false);
@@ -120,6 +121,27 @@ export class NotificationsComponent implements OnInit {
   markAllRead(): void {
     this.notificationService.markAllAsRead();
     this.notifications.update(list => list.map(n => ({ ...n, isRead: true })));
+  }
+
+  /**
+   * Notifications are created server-side with an English fallback plus, for anything
+   * that isn't inherently free text (a moderator's own message), a `templateKey` naming a
+   * fully localized template under notification.templates and a `subject` — the one piece
+   * of user-authored text (a review title, an entity name) the template interpolates.
+   * Free-text notifications have no templateKey and fall back to the stored text.
+   */
+  getTitle(notif: AppNotification): string {
+    if (!notif.templateKey) return notif.title;
+    return this.translate.instant(`notification.templates.${notif.templateKey}.title`, {
+      subject: notif.subject ?? '',
+    });
+  }
+
+  getMessage(notif: AppNotification): string {
+    if (!notif.templateKey) return notif.message;
+    return this.translate.instant(`notification.templates.${notif.templateKey}.message`, {
+      subject: notif.subject ?? '',
+    });
   }
 
   getIcon(type: NotificationType): string {

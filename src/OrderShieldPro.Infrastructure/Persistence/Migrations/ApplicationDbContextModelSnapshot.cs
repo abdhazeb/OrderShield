@@ -17,7 +17,7 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.24")
+                .HasAnnotation("ProductVersion", "8.0.29")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -374,6 +374,14 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ReferenceReviewId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Subject")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TemplateKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(300)
@@ -548,9 +556,6 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("PendingEditJson")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -813,6 +818,11 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
                     b.Property<int>("InfoReviewCount")
                         .HasColumnType("int");
 
+                    b.Property<bool>("IsHidden")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime?>("LastReviewDate")
                         .HasColumnType("datetime2");
 
@@ -861,6 +871,8 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
                     b.HasIndex("Country");
 
                     b.HasIndex("EntityType");
+
+                    b.HasIndex("IsHidden");
 
                     b.HasIndex("LegalName");
 
@@ -1014,6 +1026,9 @@ namespace OrderShieldPro.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("BusinessLicenseFilePath")
                         .HasColumnType("nvarchar(max)");

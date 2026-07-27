@@ -72,6 +72,19 @@
     "editSuccess": "Entity updated successfully.",
     "editFailed": "Failed to update entity. Please try again.",
     "editRequiredFields": "Legal name and country are required.",
+    "hideEntity": "Hide",
+    "unhideEntity": "Unhide",
+    "deleteEntity": "Delete",
+    "hiddenBanner": "This entity is hidden. It does not appear in search and its profile is not visible to the public.",
+    "hideConfirm": "Hide this entity? It will disappear from search and its profile will not be visible to the public. Its reviews are kept and you can unhide it at any time.",
+    "unhideConfirm": "Make this entity public again? It will reappear in search results.",
+    "hideSuccess": "Entity hidden.",
+    "unhideSuccess": "Entity is public again.",
+    "hideFailed": "Failed to hide the entity. Please try again.",
+    "unhideFailed": "Failed to unhide the entity. Please try again.",
+    "deleteConfirm": "Permanently delete \"{{name}}\"? This cannot be undone. Entities that still have reviews cannot be deleted — hide them instead.",
+    "deleteSuccess": "Entity deleted.",
+    "deleteFailed": "Failed to delete the entity. Please try again.",
     "stats": {
       "total": "Total",
       "info": "Info",
@@ -203,7 +216,61 @@
     "investigationComplete": "Investigation complete",
     "loading": "Loading notifications...",
     "noNotificationsTitle": "No Notifications",
-    "allCaughtUp": "You're all caught up!"
+    "allCaughtUp": "You're all caught up!",
+    "templates": {
+      "newReviewPendingApproval": {
+        "title": "New review awaiting approval",
+        "message": "A new review \"{{subject}}\" was submitted and needs moderation."
+      },
+      "reviewEditPendingApproval": {
+        "title": "Review edit awaiting approval",
+        "message": "A published review \"{{subject}}\" has a pending edit that needs approval."
+      },
+      "editedReviewNeedsReModeration": {
+        "title": "Edited review awaiting approval",
+        "message": "A review \"{{subject}}\" was edited and needs re-moderation."
+      },
+      "reviewApproved": {
+        "title": "Review approved",
+        "message": "Your review \"{{subject}}\" has been approved and published."
+      },
+      "reviewRejected": {
+        "title": "Review rejected",
+        "message": "Your review \"{{subject}}\" was not approved by the moderation team."
+      },
+      "newEnquiryPendingReview": {
+        "title": "New enquiry awaiting review",
+        "message": "A new enquiry was submitted for \"{{subject}}\"."
+      },
+      "enquiryAccepted": {
+        "title": "Enquiry accepted",
+        "message": "Your enquiry about \"{{subject}}\" was accepted and resolved."
+      },
+      "enquiryRejected": {
+        "title": "Enquiry rejected",
+        "message": "Your enquiry about \"{{subject}}\" was rejected by the moderation team."
+      },
+      "enquiryResolvedSubscriber": {
+        "title": "Supplier enquiry complete",
+        "message": "The enquiry about \"{{subject}}\" that you subscribed to has been resolved."
+      },
+      "enquiryReplyToRequester": {
+        "title": "Supplier enquiry reply",
+        "message": "Your enquiry about \"{{subject}}\" has been answered."
+      },
+      "enquiryReplyToSubscriber": {
+        "title": "Supplier enquiry reply",
+        "message": "The enquiry about \"{{subject}}\" that you subscribed to has been answered."
+      },
+      "newUserPendingApproval": {
+        "title": "New user awaiting approval",
+        "message": "{{subject}} registered and is waiting for approval."
+      },
+      "userAccountApproved": {
+        "title": "Account approved",
+        "message": "Your Suplyrate account has been approved. You can now sign in."
+      }
+    }
   },
   "admin": {
     "dashboard": "Admin Dashboard",
@@ -211,6 +278,30 @@
     "reviewsRequests": "Reviews Requests",
     "investigations": "Investigations",
     "analytics": "Analytics",
+    "hiddenContent": "Hidden Content",
+    "importEntities": "Import Entities",
+    "importEntitiesTitle": "Bulk import from a spreadsheet",
+    "importEntitiesDesc": "Upload a Cantoon or Qicha (企查查) export — the format is detected automatically. Entities whose legal name already exists (in the file or already in the system) are skipped, so you can re-upload the same file safely.",
+    "importChooseFile": "Choose File (.xls, .xlsx)",
+    "importUploading": "Importing...",
+    "importSuccess": "Import complete — {{count}} entities created.",
+    "importFailed": "Import failed. Please check the file and try again.",
+    "importCreated": "Created",
+    "importSkippedDuplicates": "Duplicates skipped",
+    "importSkippedInvalid": "Rows skipped (no name)",
+    "importTotalRows": "Total rows read",
+    "hiddenEntitiesTab": "Hidden Entities",
+    "hiddenReviewsTab": "Hidden Reviews",
+    "hiddenEntitiesEmpty": "No hidden entities",
+    "hiddenEntitiesEmptyDesc": "Entities you hide appear here so they can be restored or permanently deleted.",
+    "hiddenReviewsEmpty": "No hidden reviews",
+    "hiddenReviewsEmptyDesc": "Reviews you hide after publishing appear here so they can be restored or permanently deleted.",
+    "hiddenOn": "Hidden on",
+    "hiddenBy": "by",
+    "restoreReview": "Restore",
+    "restoreReviewConfirm": "Restore this review to the entity's public timeline?",
+    "restoreReviewSuccess": "Review restored and published.",
+    "restoreReviewFailed": "Failed to restore the review. Please try again.",
     "jumpToQueue": "Open the moderation queue",
     "jumpToEntities": "Browse and edit entities",
     "pendingReviews": "Pending Reviews",
@@ -318,19 +409,6 @@
     "rejectEditSuccess": "Edit discarded. The review shows the original content.",
     "failedApproveEdit": "Failed to approve edit",
     "failedRejectEdit": "Failed to reject edit",
-    "pendingEditTitle": "Pending Edit \u2014 Review Comparison",
-    "pendingEditDesc": "The reviewer submitted an edit to this published review. Approve to apply the changes, or discard to keep the original.",
-    "pendingEditBadge": "Edit Pending",
-    "originalContent": "Current (Live) Content",
-    "proposedEdit": "Proposed Changes",
-    "approveEdit": "Approve Edit",
-    "rejectEdit": "Discard Edit",
-    "approveEditConfirm": "Apply the user's proposed edits? The review will remain published with the updated content.",
-    "rejectEditConfirm": "Discard the user's proposed edits? The review will stay published with its original content.",
-    "approveEditSuccess": "Edit approved. The review now shows the updated content.",
-    "rejectEditSuccess": "Edit discarded. The review shows the original content.",
-    "failedApproveEdit": "Failed to approve edit",
-    "failedRejectEdit": "Failed to reject edit",
     "pendingEditTitle": "Pending Edit — Review Comparison",
     "pendingEditDesc": "The reviewer submitted an edit to this published review. Approve to apply the changes, or discard to keep the original.",
     "pendingEditBadge": "Edit Pending",
@@ -402,6 +480,95 @@
       "failedReject": "Failed to reject user.",
       "confirmRejectTitle": "Reject registration?",
       "confirmRejectMessage": "This will permanently delete the account for {{name}}. Continue?"
+    },
+    "nav": {
+      "sections": "Admin sections",
+      "overview": "Overview",
+      "moderation": "Moderation",
+      "entities": "Entities",
+      "users": "Users",
+      "requests": "Requests",
+      "system": "System",
+      "reviewQueue": "Review Queue",
+      "hiddenReviews": "Hidden Reviews",
+      "allEntities": "All Entities",
+      "hiddenEntities": "Hidden Entities",
+      "allUsers": "All Users",
+      "pendingUsers": "Pending Registrations"
+    },
+    "entityManagement": {
+      "loading": "Loading entities…",
+      "loadFailed": "Could not load entities.",
+      "empty": "No entities match these filters",
+      "emptyDesc": "Try a different search term, or clear the filters to see the full directory.",
+      "searchPlaceholder": "Search by name, phone, or WeChat ID",
+      "countryPlaceholder": "Country",
+      "totalCount": "{{count}} entities",
+      "pageOf": "Page {{page}} of {{total}}",
+      "columnName": "Entity",
+      "columnLocation": "Location",
+      "columnReviews": "Reviews",
+      "columnStatus": "Status",
+      "columnListed": "Listed",
+      "columnActions": "Actions",
+      "live": "Live",
+      "hidden": "Hidden",
+      "visibility": {
+        "all": "All",
+        "visible": "Live",
+        "hidden": "Hidden"
+      }
+    },
+    "userManagement": {
+      "loading": "Loading users…",
+      "loadFailed": "Could not load users.",
+      "empty": "No users match these filters",
+      "emptyDesc": "Try a different search term, or clear the filters to see everyone.",
+      "searchPlaceholder": "Search by name, email, or organization",
+      "totalCount": "{{count}} users",
+      "allRoles": "All roles",
+      "columnUser": "User",
+      "columnRole": "Role",
+      "columnTier": "Plan",
+      "columnStatus": "Status",
+      "columnReviews": "Reviews",
+      "columnJoined": "Joined",
+      "you": "You",
+      "phone": "Phone",
+      "businessVerified": "Business verified",
+      "editTitle": "Edit {{name}}",
+      "nameRequired": "A full name is required.",
+      "saveSuccess": "User updated.",
+      "saveFailed": "Could not update this user.",
+      "notYourself": "You cannot do this to your own account.",
+      "notYourRole": "You cannot change your own role.",
+      "freezeConfirm": "Freeze {{name}}? They will not be able to sign in, but their account and reviews stay intact.",
+      "unfreezeConfirm": "Reactivate {{name}} so they can sign in again?",
+      "frozen": "{{name}} has been frozen.",
+      "unfrozen": "{{name}} has been reactivated.",
+      "toggleFailed": "Could not change this account.",
+      "deleteConfirm": "Permanently delete {{name}}? This cannot be undone.",
+      "deleteSuccess": "User deleted.",
+      "deleteFailed": "Could not delete this user.",
+      "deleteBlocked": "{{name}} has {{count}} review(s) on record and cannot be deleted. Freeze the account instead.",
+      "deleteBlockedHint": "Users with reviews on record cannot be deleted — freeze them instead.",
+      "roles": {
+        "Broker": "Broker",
+        "Buyer": "Buyer",
+        "ServiceTeam": "Service Team",
+        "Admin": "Admin",
+        "SuperAdmin": "Super Admin"
+      },
+      "tiers": {
+        "Free": "Free",
+        "Pro": "Pro"
+      },
+      "status": {
+        "all": "All",
+        "active": "Active",
+        "frozen": "Frozen",
+        "pending": "Pending"
+      }
     }
   },
   "auth": {
@@ -484,7 +651,8 @@
     "noData": "No data available",
     "dismiss": "OK",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "downloadFailed": "Could not download the file. Please try again."
   },
   "severity": {
     "groupNegative": "Concerns / Risks",
@@ -583,6 +751,23 @@
     "sendResetLink": "Send Reset Link",
     "backToLogin": "Back to Login",
     "sending": "Sending..."
+  },
+  "resetPassword": {
+    "title": "Set a New Password",
+    "subtitle": "Choose a new password for your Suplyrate account",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "passwordHint": "At least 10 characters, with upper and lower case letters, a number, and a symbol.",
+    "mismatch": "The two passwords do not match.",
+    "submit": "Reset Password",
+    "saving": "Saving...",
+    "success": "Password updated",
+    "successDesc": "Your password has been reset. You can now sign in with your new password.",
+    "goToLogin": "Go to Login",
+    "invalidLink": "This link is not valid",
+    "invalidLinkDesc": "The reset link is incomplete or has expired. Request a new one to continue.",
+    "requestNewLink": "Request a New Link",
+    "failed": "We could not reset your password. The link may have expired."
   },
   "enquiry": {
     "noResultsHint": "Can't find the supplier you're looking for? Submit an enquiry and our team will investigate.",

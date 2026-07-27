@@ -18,4 +18,11 @@ public record SearchEntitiesQuery : IRequest<PaginatedList<EntitySearchResultDto
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 20;
     public string? SortBy { get; init; } // "recent", "reviews", "name"
+
+    /// <summary>
+    /// Include entities a moderator has hidden. Set only by the admin entity-management
+    /// screen — the controller refuses to honour it for non-moderators, so hidden entities
+    /// stay out of public search exactly as before.
+    /// </summary>
+    public bool IncludeHidden { get; init; }
 }

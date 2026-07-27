@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Notifications.Commands;
@@ -10,6 +11,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 [Authorize]
 public class NotificationsController : ControllerBase
 {

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Subscriptions.Commands;
 using OrderShieldPro.Application.Subscriptions.Queries;
@@ -10,6 +11,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 public class SubscriptionsController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -94,32 +96,23 @@ public class SubscriptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Download a subscription payment proof file.
+    /// Download the payment proof for a subscription request. Restricted to the user who
+    /// submitted the request and to moderators; addressed by request id so that stored
+    /// file names cannot be enumerated.
     /// </summary>
-    [HttpGet("download/{fileName}")]
+    [HttpGet("{requestId:guid}/payment-proof")]
     [Authorize]
-    public IActionResult DownloadFile(string fileName)
+    public async Task<IActionResult> DownloadPaymentProof(Guid requestId, CancellationToken ct)
     {
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        var filePath = Path.Combine(uploadsPath, fileName);
-        if (!System.IO.File.Exists(filePath))
+        var result = await _mediator.Send(new GetPaymentProofQuery(requestId), ct);
+        if (!result.Succeeded || result.Data is null)
             return NotFound(new { error = "File not found." });
 
-        var contentType = "application/octet-stream";
-        var ext = Path.GetExtension(fileName).ToLowerInvariant();
-        contentType = ext switch
-        {
-            ".jpg" or ".jpeg" => "image/jpeg",
-            ".png" => "image/png",
-            ".gif" => "image/gif",
-            ".webp" => "image/webp",
-            ".bmp" => "image/bmp",
-            ".pdf" => "application/pdf",
-            _ => contentType
-        };
+        var stream = await _fileStorage.OpenReadAsync(result.Data.StoragePath, ct);
+        if (stream is null)
+            return NotFound(new { error = "File not found." });
 
-        var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        return File(stream, contentType, fileName);
+        return File(stream, FileContentTypes.FromFileName(result.Data.FileName), result.Data.FileName);
     }
 
     /// <summary>

@@ -123,10 +123,10 @@
                 <h4 class="section-title">{{ 'admin.evidenceFiles' | translate }} ({{ review.evidenceFiles.length }})</h4>
                 <div class="file-list">
                   @for (file of review.evidenceFiles; track file.id) {
-                    <div class="file-row">
-                      <span class="file-name">{{ file.fileName }}</span>
+                    <button type="button" class="file-row" (click)="downloadEvidence(review.id, file)">
+                      <span class="file-name">📎 {{ file.fileName }}</span>
                       <span class="file-size">{{ file.fileSizeBytes | fileSize }}</span>
-                    </div>
+                    </button>
                   }
                 </div>
               </div>

@@ -85,6 +85,24 @@ public class ReviewRepository : IReviewRepository
         return (items, totalCount);
     }
 
+    public async Task<(IReadOnlyList<Review> Items, int TotalCount)> GetHiddenAsync(
+        int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        var query = _context.Reviews
+            .Include(r => r.TradeEntity)
+            .Where(r => r.Status == ReviewStatus.Hidden)
+            .OrderByDescending(r => r.UpdatedAt);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
+    }
+
     public async Task<Review> AddAsync(Review review, CancellationToken cancellationToken = default)
     {
         await _context.Reviews.AddAsync(review, cancellationToken);

@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { EntityCardComponent } from '../../shared/components/entity-card/entity-card.component';
 import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
@@ -12,6 +13,7 @@ import { EntitySearchResult, PaginatedResult } from '../../core/models';
   standalone: true,
   imports: [
     RouterLink,
+    FormsModule,
     TranslateModule,
     EntityCardComponent,
     SearchBarComponent,
@@ -28,6 +30,16 @@ export class HomeComponent implements OnInit {
   recentEntities = signal<EntitySearchResult[]>([]);
   loading = signal(true);
   searchQuery = '';
+
+  // Filters can be set here so the user can narrow results before ever leaving the
+  // home page — mirrors the filter fields on the search page, which reads these back
+  // out of the query params this navigation sets.
+  showFilters = signal(false);
+  filters = {
+    country: '',
+    category: '',
+    severity: '',
+  };
 
   ngOnInit(): void {
     this.loadRecentEntities();
@@ -47,8 +59,17 @@ export class HomeComponent implements OnInit {
   }
 
   navigateToSearch(): void {
-    if (this.searchQuery.trim()) {
-      this.router.navigate(['/search'], { queryParams: { q: this.searchQuery } });
+    const queryParams: Record<string, string> = {};
+    if (this.searchQuery.trim()) queryParams['q'] = this.searchQuery.trim();
+    if (this.filters.country.trim()) queryParams['country'] = this.filters.country.trim();
+    if (this.filters.category.trim()) queryParams['category'] = this.filters.category.trim();
+    if (this.filters.severity !== '') queryParams['severity'] = this.filters.severity;
+
+    // Nothing entered at all — fall back to "View All" rather than doing nothing.
+    if (Object.keys(queryParams).length === 0) {
+      queryParams['initial'] = 'true';
     }
+
+    this.router.navigate(['/search'], { queryParams });
   }
 }

@@ -49,6 +49,8 @@ public class ResolveWatchRequestCommandHandler : IRequestHandler<ResolveWatchReq
                 Message = accepted
                     ? $"Your enquiry about \"{watchRequest.EntityName}\" was accepted and resolved."
                     : $"Your enquiry about \"{watchRequest.EntityName}\" was rejected by the moderation team.",
+                TemplateKey = accepted ? "enquiryAccepted" : "enquiryRejected",
+                Subject = watchRequest.EntityName,
                 ReferenceEntityId = request.ResultEntityId
             });
 
@@ -61,6 +63,8 @@ public class ResolveWatchRequestCommandHandler : IRequestHandler<ResolveWatchReq
                     Type = NotificationType.EnquiryReply,
                     Title = "Supplier Enquiry Complete",
                     Message = $"The enquiry about \"{watchRequest.EntityName}\" that you subscribed to has been resolved.",
+                    TemplateKey = "enquiryResolvedSubscriber",
+                    Subject = watchRequest.EntityName,
                     ReferenceEntityId = request.ResultEntityId
                 });
             }

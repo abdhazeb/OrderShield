@@ -1,6 +1,12 @@
 .search-page { padding: 16px; }
     .search-header { margin-bottom: 16px; }
 
+    .search-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .search-row {
       display: flex;
       align-items: center;
@@ -58,24 +64,22 @@
     }
     .btn-enquiry:hover { background: var(--accent-50); transform: translateY(-1px); }
 
+    /* Mobile/tablet: an expandable panel, toggled via the Filters button (hidden by
+       default; .open is added when showFilters() is true). From the desktop breakpoint
+       up this is overridden to sit inline next to the search bar, always visible —
+       see the (min-width: 1024px) block below. */
     .filters-panel {
+      display: none;
       background: var(--surface-0);
       border-radius: var(--radius-lg);
       padding: 16px;
-      margin-bottom: 16px;
       border: 1px solid var(--surface-border-subtle);
       box-shadow: var(--shadow-sm);
-      display: grid;
       grid-template-columns: 1fr;
       gap: 12px;
     }
-
-    .filter-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: var(--text-secondary);
-      font-size: 13px;
+    .filters-panel.open {
+      display: grid;
     }
 
     .filter-group select,
@@ -103,6 +107,16 @@
       color: var(--text-tertiary);
       margin-bottom: 12px;
       font-weight: 500;
+    }
+
+    .results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      .results-list { gap: 16px; }
     }
 
     .btn-load-more {
@@ -262,6 +276,34 @@
       .search-page { padding: 2rem 0; }
       .filters-panel { grid-template-columns: repeat(3, 1fr); }
     }
+
+    /* Desktop: filters sit next to the search bar, always visible — no toggle needed. */
+    @media (min-width: 1024px) {
+      .search-controls {
+        flex-direction: row;
+        align-items: center;
+      }
+      .search-row { flex: 0 1 380px; }
+      .filters-toggle-btn { display: none; }
+      .filters-panel {
+        display: flex !important;
+        flex: 1 1 480px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        padding: 0;
+        margin: 0;
+        border: none;
+        box-shadow: none;
+        background: transparent;
+      }
+      .filter-group {
+        flex: 1 1 160px;
+        min-width: 160px;
+      }
+    }
+
     @media (max-width: 480px) {
       .form-grid { grid-template-columns: 1fr; }
       .form-group.full-width { grid-column: span 1; }

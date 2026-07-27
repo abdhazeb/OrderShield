@@ -27,6 +27,18 @@ public class ApplicationUser : IdentityUser
     public int TrustScore { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    /// <summary>
+    /// When a SuperAdmin approved this registration; null means it never has been.
+    /// This is what separates the two reasons an account can be inactive: a brand-new
+    /// registration awaiting approval (ApprovedAt == null) versus an approved account a
+    /// moderator later froze (ApprovedAt set, IsActive false). They must stay distinct —
+    /// the pending-registration queue keys off ApprovedAt, so without it a frozen user
+    /// would resurface as a new signup awaiting approval, and "rejecting" them would
+    /// delete a real account.
+    /// </summary>
+    public DateTime? ApprovedAt { get; set; }
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 

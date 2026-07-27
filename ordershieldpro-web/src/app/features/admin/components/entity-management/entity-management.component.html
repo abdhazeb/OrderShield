@@ -1,0 +1,150 @@
+<div class="entity-management">
+  <div class="toolbar">
+    <div class="toolbar-search">
+      <input
+        type="search"
+        class="search-input"
+        [value]="searchTerm"
+        (input)="onSearchInput($any($event.target).value)"
+        [placeholder]="'admin.entityManagement.searchPlaceholder' | translate" />
+    </div>
+
+    <input
+      type="text"
+      class="filter-input"
+      [(ngModel)]="countryFilter"
+      (change)="onFilterChange()"
+      [placeholder]="'admin.entityManagement.countryPlaceholder' | translate" />
+
+    <div class="filter-group" role="group">
+      @for (option of ['all', 'visible', 'hidden']; track option) {
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="visibilityFilter() === option"
+          (click)="visibilityFilter.set($any(option))">
+          {{ 'admin.entityManagement.visibility.' + option | translate }}
+        </button>
+      }
+    </div>
+
+    <span class="toolbar-total">
+      {{ 'admin.entityManagement.totalCount' | translate: { count: totalCount() } }}
+    </span>
+  </div>
+
+  @if (loading()) {
+    <div class="content-card"><app-loading-spinner [message]="'admin.entityManagement.loading' | translate" /></div>
+  } @else if (visibleEntities().length === 0) {
+    <div class="content-card empty-card">
+      <app-empty-state
+        [title]="'admin.entityManagement.empty' | translate"
+        [subtitle]="'admin.entityManagement.emptyDesc' | translate" />
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="entity-table">
+        <thead>
+          <tr>
+            <th scope="col">{{ 'admin.entityManagement.columnName' | translate }}</th>
+            <th scope="col">{{ 'admin.entityManagement.columnLocation' | translate }}</th>
+            <th scope="col" class="numeric">{{ 'admin.entityManagement.columnReviews' | translate }}</th>
+            <th scope="col">{{ 'admin.entityManagement.columnStatus' | translate }}</th>
+            <th scope="col">{{ 'admin.entityManagement.columnListed' | translate }}</th>
+            <th scope="col" class="actions-col">{{ 'admin.entityManagement.columnActions' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entity of visibleEntities(); track entity.id) {
+            <tr
+              class="entity-row"
+              [class.is-hidden-row]="entity.isHidden"
+              [class.is-processing]="processingId() === entity.id"
+              tabindex="0"
+              (click)="openEntity(entity)"
+              (keydown.enter)="openEntity(entity)">
+              <td>
+                <div class="cell-name">{{ entity.legalName }}</div>
+                @if (entity.tradeName) {
+                  <div class="cell-subtle">{{ entity.tradeName }}</div>
+                }
+                <div class="cell-subtle">{{ entityTypeKey(entity.entityType) | translate }}</div>
+              </td>
+              <td>
+                <div>{{ entity.country }}</div>
+                @if (entity.region) {
+                  <div class="cell-subtle">{{ entity.region }}</div>
+                }
+              </td>
+              <td class="numeric">
+                <span class="review-total">{{ entity.totalReviewCount }}</span>
+                @if (entity.criticalReviewCount > 0) {
+                  <span class="sev-pill sev-critical" [title]="'severity.critical' | translate">
+                    {{ entity.criticalReviewCount }}
+                  </span>
+                }
+                @if (entity.warningReviewCount > 0) {
+                  <span class="sev-pill sev-warning" [title]="'severity.warning' | translate">
+                    {{ entity.warningReviewCount }}
+                  </span>
+                }
+              </td>
+              <td>
+                <div class="status-stack">
+                  @if (entity.isHidden) {
+                    <span class="status-pill pill-hidden">{{ 'admin.entityManagement.hidden' | translate }}</span>
+                  } @else {
+                    <span class="status-pill pill-live">{{ 'admin.entityManagement.live' | translate }}</span>
+                  }
+                  @if (isVerified(entity)) {
+                    <span class="status-pill pill-verified">{{ 'profile.verified' | translate }}</span>
+                  }
+                </div>
+              </td>
+              <td class="cell-subtle">{{ entity.listedDate | date:'MMM d, yyyy' }}</td>
+              <td class="actions-col">
+                <div class="row-actions">
+                  <button
+                    type="button"
+                    class="row-btn"
+                    [disabled]="processingId() === entity.id"
+                    (click)="editEntity(entity, $event)">
+                    {{ 'common.edit' | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="row-btn"
+                    [disabled]="processingId() === entity.id"
+                    (click)="toggleVisibility(entity, $event)">
+                    {{ (entity.isHidden ? 'entity.unhideEntity' : 'entity.hideEntity') | translate }}
+                  </button>
+                  <button
+                    type="button"
+                    class="row-btn row-btn-danger"
+                    [disabled]="processingId() === entity.id"
+                    (click)="deleteEntity(entity, $event)">
+                    {{ 'common.delete' | translate }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pager">
+        <button type="button" class="pager-btn" [disabled]="page() === 1" (click)="goToPage(page() - 1)">
+          {{ 'common.previous' | translate }}
+        </button>
+        <span class="pager-status">
+          {{ 'admin.entityManagement.pageOf' | translate: { page: page(), total: totalPages() } }}
+        </span>
+        <button type="button" class="pager-btn" [disabled]="page() === totalPages()" (click)="goToPage(page() + 1)">
+          {{ 'common.next' | translate }}
+        </button>
+      </div>
+    }
+  }
+</div>

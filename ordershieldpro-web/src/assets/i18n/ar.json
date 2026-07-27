@@ -72,6 +72,19 @@
     "editSuccess": "تم تحديث الكيان بنجاح.",
     "editFailed": "تعذّر تحديث الكيان. يرجى المحاولة مرة أخرى.",
     "editRequiredFields": "الاسم القانوني والدولة حقلان مطلوبان.",
+    "hideEntity": "إخفاء",
+    "unhideEntity": "إظهار",
+    "deleteEntity": "حذف",
+    "hiddenBanner": "هذا الكيان مخفي. لا يظهر في البحث وصفحته غير مرئية للعامة.",
+    "hideConfirm": "إخفاء هذا الكيان؟ سيختفي من نتائج البحث ولن تكون صفحته مرئية للعامة. تُحفظ التقارير الخاصة به ويمكنك إظهاره في أي وقت.",
+    "unhideConfirm": "إعادة إظهار هذا الكيان للعامة؟ سيظهر مجدداً في نتائج البحث.",
+    "hideSuccess": "تم إخفاء الكيان.",
+    "unhideSuccess": "أصبح الكيان ظاهراً للعامة.",
+    "hideFailed": "تعذّر إخفاء الكيان. يرجى المحاولة مرة أخرى.",
+    "unhideFailed": "تعذّر إظهار الكيان. يرجى المحاولة مرة أخرى.",
+    "deleteConfirm": "حذف \"{{name}}\" نهائياً؟ لا يمكن التراجع عن هذا الإجراء. لا يمكن حذف الكيانات التي لديها تقارير — أخفِها بدلاً من ذلك.",
+    "deleteSuccess": "تم حذف الكيان.",
+    "deleteFailed": "تعذّر حذف الكيان. يرجى المحاولة مرة أخرى.",
     "stats": {
       "total": "الإجمالي",
       "info": "معلومات",
@@ -202,7 +215,61 @@
     "investigationComplete": "اكتمل التحقيق",
     "loading": "جاري تحميل الإشعارات...",
     "noNotificationsTitle": "لا إشعارات",
-    "allCaughtUp": "أنت على اطلاع بكل شيء!"
+    "allCaughtUp": "أنت على اطلاع بكل شيء!",
+    "templates": {
+      "newReviewPendingApproval": {
+        "title": "تقرير جديد بانتظار الموافقة",
+        "message": "تم تقديم تقرير جديد \"{{subject}}\" ويحتاج إلى مراجعة."
+      },
+      "reviewEditPendingApproval": {
+        "title": "تعديل على تقرير بانتظار الموافقة",
+        "message": "يحتوي التقرير المنشور \"{{subject}}\" على تعديل معلّق بحاجة للموافقة."
+      },
+      "editedReviewNeedsReModeration": {
+        "title": "تقرير مُعدَّل بحاجة لإعادة المراجعة",
+        "message": "تم تعديل التقرير \"{{subject}}\" وهو بحاجة لإعادة المراجعة."
+      },
+      "reviewApproved": {
+        "title": "تمت الموافقة على التقرير",
+        "message": "تمت الموافقة على تقريرك \"{{subject}}\" ونشره."
+      },
+      "reviewRejected": {
+        "title": "تم رفض التقرير",
+        "message": "لم تتم الموافقة على تقريرك \"{{subject}}\" من قبل فريق المراجعة."
+      },
+      "newEnquiryPendingReview": {
+        "title": "استفسار جديد بانتظار المراجعة",
+        "message": "تم تقديم استفسار جديد بخصوص \"{{subject}}\"."
+      },
+      "enquiryAccepted": {
+        "title": "تم قبول الاستفسار",
+        "message": "تم قبول استفسارك بخصوص \"{{subject}}\" وحلّه."
+      },
+      "enquiryRejected": {
+        "title": "تم رفض الاستفسار",
+        "message": "تم رفض استفسارك بخصوص \"{{subject}}\" من قبل فريق المراجعة."
+      },
+      "enquiryResolvedSubscriber": {
+        "title": "اكتمل استفسار المورد",
+        "message": "تم حل الاستفسار بخصوص \"{{subject}}\" الذي اشتركت فيه."
+      },
+      "enquiryReplyToRequester": {
+        "title": "رد على استفسار المورد",
+        "message": "تمت الإجابة على استفسارك بخصوص \"{{subject}}\"."
+      },
+      "enquiryReplyToSubscriber": {
+        "title": "رد على استفسار المورد",
+        "message": "تمت الإجابة على الاستفسار بخصوص \"{{subject}}\" الذي اشتركت فيه."
+      },
+      "newUserPendingApproval": {
+        "title": "مستخدم جديد بانتظار الموافقة",
+        "message": "قام {{subject}} بالتسجيل وهو بانتظار الموافقة."
+      },
+      "userAccountApproved": {
+        "title": "تمت الموافقة على الحساب",
+        "message": "تمت الموافقة على حسابك في Suplyrate. يمكنك الآن تسجيل الدخول."
+      }
+    }
   },
   "admin": {
     "dashboard": "لوحة الإدارة",
@@ -217,6 +284,30 @@
     "reviewsRequests": "طلبات التقارير",
     "investigations": "التحقيقات",
     "analytics": "التحليلات",
+    "hiddenContent": "المحتوى المخفي",
+    "importEntities": "استيراد الكيانات",
+    "importEntitiesTitle": "استيراد جماعي من ملف إكسل",
+    "importEntitiesDesc": "ارفع ملف تصدير من نوع Cantoon أو Qicha (企查查) — يتم التعرف على النوع تلقائياً. يتم تخطي الكيانات التي يوجد اسمها القانوني مسبقاً (في الملف أو في النظام)، لذا يمكنك رفع نفس الملف مرة أخرى بأمان.",
+    "importChooseFile": "اختر ملفاً (.xls، .xlsx)",
+    "importUploading": "جاري الاستيراد...",
+    "importSuccess": "اكتمل الاستيراد — تم إنشاء {{count}} كيان.",
+    "importFailed": "فشل الاستيراد. يرجى التحقق من الملف والمحاولة مرة أخرى.",
+    "importCreated": "تم إنشاؤها",
+    "importSkippedDuplicates": "تم تخطيها (مكررة)",
+    "importSkippedInvalid": "تم تخطيها (بلا اسم)",
+    "importTotalRows": "إجمالي الصفوف المقروءة",
+    "hiddenEntitiesTab": "الكيانات المخفية",
+    "hiddenReviewsTab": "التقارير المخفية",
+    "hiddenEntitiesEmpty": "لا توجد كيانات مخفية",
+    "hiddenEntitiesEmptyDesc": "تظهر هنا الكيانات التي تخفيها، ليتسنى إظهارها مرة أخرى أو حذفها نهائياً.",
+    "hiddenReviewsEmpty": "لا توجد تقارير مخفية",
+    "hiddenReviewsEmptyDesc": "تظهر هنا التقارير التي تخفيها بعد نشرها، ليتسنى استعادتها أو حذفها نهائياً.",
+    "hiddenOn": "أُخفي في",
+    "hiddenBy": "بواسطة",
+    "restoreReview": "استعادة",
+    "restoreReviewConfirm": "استعادة هذا التقرير إلى الجدول الزمني العام للكيان؟",
+    "restoreReviewSuccess": "تمت استعادة التقرير ونشره.",
+    "restoreReviewFailed": "تعذّرت استعادة التقرير. يرجى المحاولة مرة أخرى.",
     "jumpToQueue": "فتح قائمة المراجعة",
     "jumpToEntities": "استعراض وتعديل الكيانات",
     "publish": "نشر",
@@ -388,6 +479,95 @@
       "failedReject": "فشل رفض المستخدم.",
       "confirmRejectTitle": "رفض التسجيل؟",
       "confirmRejectMessage": "سيؤدي هذا إلى حذف حساب {{name}} نهائيًا. هل تريد المتابعة؟"
+    },
+    "nav": {
+      "sections": "أقسام الإدارة",
+      "overview": "نظرة عامة",
+      "moderation": "المراجعة",
+      "entities": "الكيانات",
+      "users": "المستخدمون",
+      "requests": "الطلبات",
+      "system": "النظام",
+      "reviewQueue": "قائمة التقارير",
+      "hiddenReviews": "التقارير المخفية",
+      "allEntities": "كل الكيانات",
+      "hiddenEntities": "الكيانات المخفية",
+      "allUsers": "كل المستخدمين",
+      "pendingUsers": "التسجيلات المعلقة"
+    },
+    "entityManagement": {
+      "loading": "جارٍ تحميل الكيانات…",
+      "loadFailed": "تعذّر تحميل الكيانات.",
+      "empty": "لا توجد كيانات مطابقة",
+      "emptyDesc": "جرّب كلمة بحث مختلفة، أو امسح عوامل التصفية لعرض الدليل كاملاً.",
+      "searchPlaceholder": "ابحث بالاسم أو الهاتف أو معرّف وي شات",
+      "countryPlaceholder": "الدولة",
+      "totalCount": "{{count}} كيان",
+      "pageOf": "صفحة {{page}} من {{total}}",
+      "columnName": "الكيان",
+      "columnLocation": "الموقع",
+      "columnReviews": "التقارير",
+      "columnStatus": "الحالة",
+      "columnListed": "تاريخ الإدراج",
+      "columnActions": "الإجراءات",
+      "live": "ظاهر",
+      "hidden": "مخفي",
+      "visibility": {
+        "all": "الكل",
+        "visible": "ظاهر",
+        "hidden": "مخفي"
+      }
+    },
+    "userManagement": {
+      "loading": "جارٍ تحميل المستخدمين…",
+      "loadFailed": "تعذّر تحميل المستخدمين.",
+      "empty": "لا يوجد مستخدمون مطابقون",
+      "emptyDesc": "جرّب كلمة بحث مختلفة، أو امسح عوامل التصفية لعرض الجميع.",
+      "searchPlaceholder": "ابحث بالاسم أو البريد الإلكتروني أو المؤسسة",
+      "totalCount": "{{count}} مستخدم",
+      "allRoles": "كل الأدوار",
+      "columnUser": "المستخدم",
+      "columnRole": "الدور",
+      "columnTier": "الخطة",
+      "columnStatus": "الحالة",
+      "columnReviews": "التقارير",
+      "columnJoined": "تاريخ الانضمام",
+      "you": "أنت",
+      "phone": "الهاتف",
+      "businessVerified": "نشاط تجاري موثّق",
+      "editTitle": "تعديل {{name}}",
+      "nameRequired": "الاسم الكامل مطلوب.",
+      "saveSuccess": "تم تحديث المستخدم.",
+      "saveFailed": "تعذّر تحديث هذا المستخدم.",
+      "notYourself": "لا يمكنك تنفيذ ذلك على حسابك.",
+      "notYourRole": "لا يمكنك تغيير دورك الخاص.",
+      "freezeConfirm": "تجميد {{name}}؟ لن يتمكن من تسجيل الدخول، مع بقاء حسابه وتقاريره كما هي.",
+      "unfreezeConfirm": "إعادة تفعيل {{name}} ليتمكن من تسجيل الدخول مجدداً؟",
+      "frozen": "تم تجميد {{name}}.",
+      "unfrozen": "تم إعادة تفعيل {{name}}.",
+      "toggleFailed": "تعذّر تغيير حالة هذا الحساب.",
+      "deleteConfirm": "حذف {{name}} نهائياً؟ لا يمكن التراجع عن ذلك.",
+      "deleteSuccess": "تم حذف المستخدم.",
+      "deleteFailed": "تعذّر حذف هذا المستخدم.",
+      "deleteBlocked": "لدى {{name}} عدد {{count}} من التقارير المسجّلة ولا يمكن حذفه. جمّد الحساب بدلاً من ذلك.",
+      "deleteBlockedHint": "لا يمكن حذف المستخدمين الذين لديهم تقارير مسجّلة — جمّد الحساب بدلاً من ذلك.",
+      "roles": {
+        "Broker": "وسيط",
+        "Buyer": "مشترٍ",
+        "ServiceTeam": "فريق الخدمة",
+        "Admin": "مدير",
+        "SuperAdmin": "مدير عام"
+      },
+      "tiers": {
+        "Free": "مجاني",
+        "Pro": "احترافي"
+      },
+      "status": {
+        "all": "الكل",
+        "active": "نشط",
+        "frozen": "مجمّد",
+        "pending": "معلّق"
+      }
     }
   },
   "auth": {
@@ -470,7 +650,8 @@
     "noData": "لا توجد بيانات",
     "dismiss": "حسنًا",
     "yes": "نعم",
-    "no": "لا"
+    "no": "لا",
+    "downloadFailed": "تعذر تنزيل الملف. يرجى المحاولة مرة أخرى."
   },
   "severity": {
     "groupNegative": "مخاوف / مخاطر",
@@ -569,6 +750,23 @@
     "sendResetLink": "إرسال رابط إعادة التعيين",
     "backToLogin": "العودة لتسجيل الدخول",
     "sending": "جاري الإرسال..."
+  },
+  "resetPassword": {
+    "title": "تعيين كلمة مرور جديدة",
+    "subtitle": "اختر كلمة مرور جديدة لحسابك في Suplyrate",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "passwordHint": "10 أحرف على الأقل، وتشمل أحرفاً كبيرة وصغيرة ورقماً ورمزاً.",
+    "mismatch": "كلمتا المرور غير متطابقتين.",
+    "submit": "إعادة تعيين كلمة المرور",
+    "saving": "جاري الحفظ...",
+    "success": "تم تحديث كلمة المرور",
+    "successDesc": "تمت إعادة تعيين كلمة المرور. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+    "goToLogin": "الذهاب لتسجيل الدخول",
+    "invalidLink": "هذا الرابط غير صالح",
+    "invalidLinkDesc": "رابط إعادة التعيين غير مكتمل أو منتهي الصلاحية. اطلب رابطاً جديداً للمتابعة.",
+    "requestNewLink": "طلب رابط جديد",
+    "failed": "تعذر إعادة تعيين كلمة المرور. ربما انتهت صلاحية الرابط."
   },
   "enquiry": {
     "noResultsHint": "لا تجد المورد الذي تبحث عنه؟ قدم استفساراً وسيقوم فريقنا بالتحقيق.",

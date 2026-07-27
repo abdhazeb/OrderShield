@@ -1,9 +1,15 @@
+using System.Text;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Common.Models;
 using OrderShieldPro.Application.Users.DTOs;
 using OrderShieldPro.Domain.Enums;
+using OrderShieldPro.Infrastructure.Services;
 
 namespace OrderShieldPro.Infrastructure.Identity;
 
@@ -17,19 +23,28 @@ public class IdentityService : IIdentityService
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IApplicationDbContext _dbContext;
     private readonly INotificationService _notificationService;
+    private readonly IEmailService _emailService;
+    private readonly EmailSettings _emailSettings;
+    private readonly ILogger<IdentityService> _logger;
 
     public IdentityService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IJwtTokenService jwtTokenService,
         IApplicationDbContext dbContext,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IEmailService emailService,
+        IOptions<EmailSettings> emailSettings,
+        ILogger<IdentityService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _jwtTokenService = jwtTokenService;
         _dbContext = dbContext;
         _notificationService = notificationService;
+        _emailService = emailService;
+        _emailSettings = emailSettings.Value;
+        _logger = logger;
     }
 
     public async Task<(bool Succeeded, string? UserId, string? Token, string? RefreshToken, string[] Errors)> RegisterAsync(
@@ -68,6 +83,8 @@ public class IdentityService : IIdentityService
             Domain.Enums.NotificationType.NewUserPendingApproval,
             "New user awaiting approval",
             $"{fullName} ({email}) registered and is waiting for approval.",
+            templateKey: "newUserPendingApproval",
+            subject: $"{fullName} ({email})",
             cancellationToken: cancellationToken);
 
         // Do NOT issue tokens — the user must wait for SuperAdmin approval.
@@ -274,23 +291,83 @@ public class IdentityService : IIdentityService
     }
 
     /// <summary>
-    /// Generate a password reset token for the given email.
-    /// In production this would send an email; for demo we just log and return success.
-    /// Always returns success to avoid leaking whether an email exists.
+    /// Generates a single-use reset token and emails the reset link.
+    /// Always reports success so the response cannot be used to discover which
+    /// email addresses have accounts.
     /// </summary>
     public async Task<bool> ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            // Don't reveal that the user doesn't exist — return true anyway
+
+        // Inactive accounts (awaiting approval or disabled) must not be resettable.
+        if (user is null || !user.IsActive || string.IsNullOrWhiteSpace(user.Email))
             return true;
-        }
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        // In production: send reset email with token
-        // For demo: just log it
-        Console.WriteLine($"[DEMO] Password reset token for {email}: {token}");
+
+        // The raw token contains characters that do not survive a URL round-trip.
+        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        var baseUrl = _emailSettings.AppBaseUrl.TrimEnd('/');
+        var resetUrl =
+            $"{baseUrl}/reset-password?email={UrlEncoder.Default.Encode(user.Email)}&token={encodedToken}";
+
+        try
+        {
+            await _emailService.SendPasswordResetAsync(user.Email, resetUrl, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Swallow so the caller's response stays identical either way; the operator
+            // still gets a logged error. The token itself is never logged.
+            _logger.LogError(ex, "Failed to send password reset email to {Email}.", user.Email);
+        }
+
         return true;
+    }
+
+    /// <summary>
+    /// Completes a password reset. Returns a deliberately vague failure for bad or expired
+    /// tokens so the endpoint cannot be used to probe for valid accounts.
+    /// </summary>
+    public async Task<Result> ResetPasswordAsync(
+        string email, string token, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user is null || !user.IsActive)
+            return Result.Failure("This password reset link is invalid or has expired.");
+
+        string decodedToken;
+        try
+        {
+            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        }
+        catch (FormatException)
+        {
+            return Result.Failure("This password reset link is invalid or has expired.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
+        if (!result.Succeeded)
+        {
+            // Password-policy failures are genuinely useful to the user; token failures are not.
+            var passwordErrors = result.Errors
+                .Where(e => !e.Code.Contains("Token", StringComparison.OrdinalIgnoreCase))
+                .Select(e => e.Description)
+                .ToArray();
+
+            return passwordErrors.Length > 0
+                ? Result.Failure(passwordErrors)
+                : Result.Failure("This password reset link is invalid or has expired.");
+        }
+
+        // A reset invalidates existing sessions: drop the refresh token so old devices
+        // cannot silently renew access with the previous credentials.
+        user.RefreshToken = null;
+        user.RefreshTokenExpiresAt = null;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        _logger.LogInformation("Password reset completed for {Email}.", email);
+        return Result.Success();
     }
 }

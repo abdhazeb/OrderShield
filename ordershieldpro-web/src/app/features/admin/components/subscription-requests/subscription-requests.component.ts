@@ -7,7 +7,7 @@ import { ToastService } from '../../../../core/services/toast.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { SubscriptionRequest, SubscriptionRequestStatus } from '../../../../core/models';
-import { environment } from '../../../../../environments/environment';
+import { FileDownloadService } from '../../../../core/services/file-download.service';
 
 @Component({
   selector: 'app-subscription-requests',
@@ -21,6 +21,7 @@ export class SubscriptionRequestsComponent implements OnInit {
   private apiService = inject(ApiService);
   private translate = inject(TranslateService);
   private toast = inject(ToastService);
+  private fileDownload = inject(FileDownloadService);
 
   countChange = output<number>();
 
@@ -64,8 +65,11 @@ export class SubscriptionRequestsComponent implements OnInit {
     }
   }
 
-  getPaymentProofUrl(storagePath: string): string {
-    return `${environment.apiBaseUrl}/subscriptions/download/${encodeURIComponent(storagePath)}`;
+  downloadPaymentProof(req: SubscriptionRequest): void {
+    this.fileDownload.download(
+      `subscriptions/${req.id}/payment-proof`,
+      req.paymentProofFileName || 'payment-proof'
+    );
   }
 
   getSubStatusClass(status: number): string {

@@ -49,6 +49,8 @@ public class CreateWatchRequestCommandHandler : IRequestHandler<CreateWatchReque
             NotificationType.NewWatchRequestPendingReview,
             "New enquiry awaiting review",
             $"A new enquiry was submitted for \"{watchRequest.EntityName}\".",
+            templateKey: "newEnquiryPendingReview",
+            subject: watchRequest.EntityName,
             cancellationToken: cancellationToken);
 
         return Result<Guid>.Success(watchRequest.Id);

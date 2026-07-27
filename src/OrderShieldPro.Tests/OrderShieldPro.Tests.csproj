@@ -25,6 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="TestData\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\OrderShieldPro.Application\OrderShieldPro.Application.csproj" />
     <ProjectReference Include="..\OrderShieldPro.Infrastructure\OrderShieldPro.Infrastructure.csproj" />
     <ProjectReference Include="..\OrderShieldPro.Domain\OrderShieldPro.Domain.csproj" />

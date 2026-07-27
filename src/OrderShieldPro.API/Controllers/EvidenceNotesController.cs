@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using OrderShieldPro.Application.EvidenceNotes.Commands;
 using OrderShieldPro.Application.EvidenceNotes.Queries;
 
@@ -8,6 +9,7 @@ namespace OrderShieldPro.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("GeneralPolicy")]
 [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
 public class EvidenceNotesController : ControllerBase
 {

@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
@@ -7,24 +8,46 @@ using OrderShieldPro.API.Middleware;
 using OrderShieldPro.Application;
 using OrderShieldPro.Infrastructure;
 using OrderShieldPro.Infrastructure.Persistence;
+using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Structured logging to a rolling file so production has a durable record — console
+// output is discarded when hosted under IIS. Settings under "Serilog" in appsettings
+// override these defaults.
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        Path.Combine(AppContext.BaseDirectory, "logs", "suplyrate-.log"),
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        shared: true));
 
 // Add Application services (MediatR, FluentValidation, Behaviors)
 builder.Services.AddApplication();
 
 // Add Infrastructure services (DbContext, Identity, JWT, Repositories)
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment.IsDevelopment());
 
-// Rate Limiting
+// Rate Limiting. Limits are configurable under "RateLimiting" so they can be tuned per
+// environment without a code change (and raised in tests, which would otherwise trip them).
+var authPermitLimit = builder.Configuration.GetValue("RateLimiting:AuthPermitLimit", 10);
+var generalPermitLimit = builder.Configuration.GetValue("RateLimiting:GeneralPermitLimit", 100);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
-    // Strict policy for auth endpoints (login, register)
+    // Strict policy for auth endpoints (login, register, password reset)
     options.AddFixedWindowLimiter("AuthPolicy", opt =>
     {
-        opt.PermitLimit = 10;
+        opt.PermitLimit = authPermitLimit;
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 0;
@@ -33,7 +56,7 @@ builder.Services.AddRateLimiter(options =>
     // General API policy
     options.AddFixedWindowLimiter("GeneralPolicy", opt =>
     {
-        opt.PermitLimit = 100;
+        opt.PermitLimit = generalPermitLimit;
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 5;
@@ -42,6 +65,11 @@ builder.Services.AddRateLimiter(options =>
 
 // Add Controllers
 builder.Services.AddControllers();
+
+// Health checks: /health is a cheap liveness probe for the load balancer, /health/ready
+// additionally verifies the database connection.
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<ApplicationDbContext>("database", tags: new[] { "ready" });
 
 // Swagger with JWT support
 builder.Services.AddEndpointsApiExplorer();
@@ -142,6 +170,17 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Probes are anonymous and excluded from rate limiting so monitoring never trips it.
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => false
+}).DisableRateLimiting();
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+}).DisableRateLimiting();
 
 // Ensure DB and migrations are applied on first production startup.
 if (!app.Environment.IsDevelopment())

@@ -10,6 +10,8 @@ namespace OrderShieldPro.Application.Entities.Queries;
 
 public class GetEntityByIdQueryHandler : IRequestHandler<GetEntityByIdQuery, Result<EntityDetailDto>>
 {
+    private static readonly string[] ModeratorRoles = { "ServiceTeam", "Admin", "SuperAdmin" };
+
     private readonly ITradeEntityRepository _repository;
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
@@ -29,6 +31,12 @@ public class GetEntityByIdQueryHandler : IRequestHandler<GetEntityByIdQuery, Res
         var entity = await _repository.GetByIdWithDetailsAsync(request.Id, cancellationToken);
 
         if (entity is null)
+            throw new NotFoundException(nameof(Domain.Entities.TradeEntity), request.Id);
+
+        // A hidden entity is invisible to the public but must stay reachable by moderators,
+        // otherwise there would be no way to review or restore it.
+        var isModerator = _currentUserService.Role is { } role && ModeratorRoles.Contains(role);
+        if (entity.IsHidden && !isModerator)
             throw new NotFoundException(nameof(Domain.Entities.TradeEntity), request.Id);
 
         var followerCount = await _context.UserFollowedEntities
@@ -64,7 +72,8 @@ public class GetEntityByIdQueryHandler : IRequestHandler<GetEntityByIdQuery, Res
             WeChatIds = entity.WeChatIds.Select(w => w.WeChatId).ToList(),
             HistoricalNames = entity.HistoricalNames.Select(h => h.PreviousName).ToList(),
             FollowerCount = followerCount,
-            IsFollowedByCurrentUser = isFollowed
+            IsFollowedByCurrentUser = isFollowed,
+            IsHidden = entity.IsHidden
         };
 
         return Result<EntityDetailDto>.Success(dto);

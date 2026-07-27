@@ -128,7 +128,15 @@ body {
   color: var(--navy-900);
 }
 
-/* --- Scrollbar --- */
+/* --- Scrollbar ---
+   Chromium/WebKit read ::-webkit-scrollbar; Firefox ignores it entirely and needs the
+   standard scrollbar-width/scrollbar-color properties instead — without them Firefox
+   falls back to the OS's own scrollbar theme, which is exactly what a plain browser
+   window (no extensions, no site CSS) shows. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--navy-200) transparent;
+}
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -185,11 +193,6 @@ body {
 /* RTL flex row reversal for common patterns */
 [dir="rtl"] .back-btn {
   flex-direction: row-reverse;
-}
-
-/* RTL scrollbar position */
-[dir="rtl"] ::-webkit-scrollbar {
-  direction: rtl;
 }
 
 /* Inputs, selects, textareas */

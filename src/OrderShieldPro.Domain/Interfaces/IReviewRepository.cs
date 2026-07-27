@@ -26,6 +26,15 @@ public interface IReviewRepository
         int pageSize,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Reviews a moderator withdrew from public view (Status == Hidden), most recently
+    /// hidden first — for the admin "Hidden Content" management screen.
+    /// </summary>
+    Task<(IReadOnlyList<Review> Items, int TotalCount)> GetHiddenAsync(
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task<Review> AddAsync(Review review, CancellationToken cancellationToken = default);
 
     Task UpdateAsync(Review review, CancellationToken cancellationToken = default);

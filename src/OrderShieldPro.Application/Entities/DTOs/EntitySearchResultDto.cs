@@ -21,4 +21,10 @@ public record EntitySearchResultDto
     public int CriticalReviewCount { get; init; }
     public DateTime? LastReviewDate { get; init; }
     public DateTime ListedDate { get; init; }
+
+    /// <summary>
+    /// Withheld from public search. Only ever true in results for a moderator, since
+    /// hidden entities are filtered out of every other caller's query.
+    /// </summary>
+    public bool IsHidden { get; init; }
 }

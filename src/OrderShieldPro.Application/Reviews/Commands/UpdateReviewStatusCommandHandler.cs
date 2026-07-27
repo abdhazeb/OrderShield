@@ -37,7 +37,12 @@ public class UpdateReviewStatusCommandHandler : IRequestHandler<UpdateReviewStat
 
         await _unitOfWork.Reviews.UpdateAsync(review, cancellationToken);
 
-        // Update denormalized counts on entity when publishing
+        // Update denormalized counts on entity when a review enters or leaves Published.
+        // These two branches are independent (not if/else): a Published review can move
+        // straight to Rejected (e.g. an admin hiding it), which must decrement the same
+        // counters the original publish incremented — previously this transition was only
+        // handled by the "else if" below, which never touched the counts, so a hidden
+        // review's entity kept showing stale non-zero stats forever.
         if (request.NewStatus == ReviewStatus.Published && oldStatus != ReviewStatus.Published)
         {
             var entity = await _unitOfWork.TradeEntities.GetByIdAsync(review.TradeEntityId, cancellationToken);
@@ -67,11 +72,35 @@ public class UpdateReviewStatusCommandHandler : IRequestHandler<UpdateReviewStat
                 Type = NotificationType.ReviewApproved,
                 Title = "Review approved",
                 Message = $"Your review \"{review.Title}\" has been approved and published.",
+                TemplateKey = "reviewApproved",
+                Subject = review.Title,
                 ReferenceEntityId = review.TradeEntityId,
                 ReferenceReviewId = review.Id
             });
         }
-        else if (request.NewStatus == ReviewStatus.Rejected && oldStatus != ReviewStatus.Rejected)
+        else if (oldStatus == ReviewStatus.Published && request.NewStatus != ReviewStatus.Published)
+        {
+            var entity = await _unitOfWork.TradeEntities.GetByIdAsync(review.TradeEntityId, cancellationToken);
+            if (entity is not null)
+            {
+                entity.TotalReviewCount = Math.Max(0, entity.TotalReviewCount - 1);
+                switch (review.Severity)
+                {
+                    case SeverityLevel.Info:
+                        entity.InfoReviewCount = Math.Max(0, entity.InfoReviewCount - 1);
+                        break;
+                    case SeverityLevel.Warning:
+                        entity.WarningReviewCount = Math.Max(0, entity.WarningReviewCount - 1);
+                        break;
+                    case SeverityLevel.Critical:
+                        entity.CriticalReviewCount = Math.Max(0, entity.CriticalReviewCount - 1);
+                        break;
+                }
+                await _unitOfWork.TradeEntities.UpdateAsync(entity, cancellationToken);
+            }
+        }
+
+        if (request.NewStatus == ReviewStatus.Rejected && oldStatus != ReviewStatus.Rejected)
         {
             // Notify the reviewer that their submission was rejected
             _context.Notifications.Add(new Notification
@@ -80,6 +109,8 @@ public class UpdateReviewStatusCommandHandler : IRequestHandler<UpdateReviewStat
                 Type = NotificationType.ReviewRejected,
                 Title = "Review rejected",
                 Message = $"Your review \"{review.Title}\" was not approved by the moderation team.",
+                TemplateKey = "reviewRejected",
+                Subject = review.Title,
                 ReferenceEntityId = review.TradeEntityId,
                 ReferenceReviewId = review.Id
             });

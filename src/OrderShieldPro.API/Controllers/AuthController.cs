@@ -37,6 +37,11 @@ public class AuthController : ControllerBase
     public record ForgotPasswordRequest(
         [Required, EmailAddress, StringLength(256)] string Email);
 
+    public record ResetPasswordRequest(
+        [Required, EmailAddress, StringLength(256)] string Email,
+        [Required] string Token,
+        [Required, StringLength(128, MinimumLength = 10)] string NewPassword);
+
     /// <summary>
     /// Register a new user account.
     /// New public registrations are created in a pending state and require SuperAdmin approval before login.
@@ -112,12 +117,27 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Send a password reset link (demo: always returns success for security).
+    /// Email a password reset link. Always reports success so the response cannot be used
+    /// to discover which addresses have accounts.
     /// </summary>
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
     {
         await _identityService.ForgotPasswordAsync(request.Email, ct);
         return Ok(new { message = "If an account with that email exists, a reset link has been sent." });
+    }
+
+    /// <summary>
+    /// Complete a password reset using the token from the emailed link.
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
+    {
+        var result = await _identityService.ResetPasswordAsync(
+            request.Email, request.Token, request.NewPassword, ct);
+
+        return result.Succeeded
+            ? Ok(new { message = "Your password has been reset. You can now sign in." })
+            : BadRequest(new { result.Errors });
     }
 }

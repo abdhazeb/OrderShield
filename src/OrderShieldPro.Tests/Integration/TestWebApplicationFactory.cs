@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using OrderShieldPro.Infrastructure.Identity;
 using OrderShieldPro.Infrastructure.Persistence;
 
 namespace OrderShieldPro.Tests.Integration;
@@ -15,6 +17,11 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        // The production auth limit (10/min) is far below what a test class issues, so raise
+        // it here. Rate limiting itself is exercised by its own dedicated test.
+        builder.UseSetting("RateLimiting:AuthPermitLimit", "10000");
+        builder.UseSetting("RateLimiting:GeneralPermitLimit", "10000");
+
         builder.ConfigureServices(services =>
         {
             // Remove the existing DbContext registration
@@ -55,5 +62,27 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>
         });
 
         builder.UseEnvironment("Development");
+    }
+
+    /// <summary>
+    /// Approves a freshly registered account. Public registration creates users in an
+    /// inactive, awaiting-approval state, so tests that need to sign in must approve the
+    /// account first — exactly as a SuperAdmin would.
+    /// </summary>
+    public async Task ApproveUserAsync(string email)
+    {
+        using var scope = Services.CreateScope();
+        var userManager = scope.ServiceProvider
+            .GetRequiredService<UserManager<ApplicationUser>>();
+
+        var user = await userManager.FindByEmailAsync(email);
+        if (user is null)
+            throw new InvalidOperationException($"No account was registered for {email}.");
+
+        // Mirror what the real approval endpoint records — an account that is active but has
+        // no ApprovedAt still reads as a pending registration everywhere else.
+        user.IsActive = true;
+        user.ApprovedAt = DateTime.UtcNow;
+        await userManager.UpdateAsync(user);
     }
 }

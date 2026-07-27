@@ -27,6 +27,10 @@ public record ReviewDto
     public IReadOnlyList<EvidenceFileDto> EvidenceFiles { get; init; } = Array.Empty<EvidenceFileDto>();
     public IReadOnlyList<EvidenceNoteDto> PublicEvidenceNotes { get; init; } = Array.Empty<EvidenceNoteDto>();
     public DateTime CreatedAt { get; init; }
+    /// <summary>Set when listing hidden reviews — when the review was last hidden/restored.</summary>
+    public DateTime? UpdatedAt { get; init; }
+    /// <summary>Set when listing hidden reviews — who hid it.</summary>
+    public string? UpdatedByName { get; init; }
 }
 
 public record EvidenceFileDto

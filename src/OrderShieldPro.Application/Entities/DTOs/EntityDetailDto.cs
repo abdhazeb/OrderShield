@@ -38,4 +38,10 @@ public record EntityDetailDto
     // Followers
     public int FollowerCount { get; init; }
     public bool IsFollowedByCurrentUser { get; init; }
+
+    /// <summary>
+    /// True when the entity is withheld from public search and profile pages. Only
+    /// moderators ever receive a DTO with this set — the public gets a 404 instead.
+    /// </summary>
+    public bool IsHidden { get; init; }
 }

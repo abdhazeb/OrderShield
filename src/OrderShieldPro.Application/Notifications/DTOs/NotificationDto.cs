@@ -8,6 +8,8 @@ public record NotificationDto
     public NotificationType Type { get; init; }
     public string Title { get; init; } = string.Empty;
     public string Message { get; init; } = string.Empty;
+    public string? TemplateKey { get; init; }
+    public string? Subject { get; init; }
     public Guid? ReferenceEntityId { get; init; }
     public Guid? ReferenceReviewId { get; init; }
     public bool IsRead { get; init; }
