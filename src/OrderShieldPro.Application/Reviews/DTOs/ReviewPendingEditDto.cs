@@ -15,6 +15,7 @@ public class ReviewPendingEdit
     public string? ProductCategory { get; set; }
     public DateTime? IncidentDate { get; set; }
     public string? ContactName { get; set; }
+    public string? ContactPosition { get; set; }
     public string? ContactPhoneUsed { get; set; }
     public bool IsComment { get; set; }
 }

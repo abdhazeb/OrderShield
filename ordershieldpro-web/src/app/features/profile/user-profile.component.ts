@@ -125,9 +125,7 @@ export class UserProfileComponent implements OnInit {
     // review returns to the moderation queue for admin re-validation.
     const isComment = review.severity === SeverityLevel.Info;
     this.router.navigate(['/submit-review'], {
-      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },
-      state: { review },
-    });
+      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },    });
   }
 
   onDeleteReview(review: Review): void {

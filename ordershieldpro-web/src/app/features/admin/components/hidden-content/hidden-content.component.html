@@ -39,7 +39,7 @@
               <div class="hidden-card-title-group">
                 <h3 class="hidden-card-title">{{ entity.legalName }}</h3>
                 <div class="hidden-card-meta">
-                  <span>{{ entity.country }}</span>
+                  <span>{{ entity.country | localizeValue:'country' }}</span>
                   <span class="meta-sep">&middot;</span>
                   <span>{{ 'entity.stats.total' | translate }}: {{ entity.totalReviewCount }}</span>
                   @if (entity.hiddenAt) {
@@ -92,7 +92,7 @@
                   <span>{{ review.tradeEntityName }}</span>
                   <span class="meta-sep">&middot;</span>
                   <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
-                    {{ getSeverityString(review.severity) | uppercase }}
+                    {{ getSeverityLabel(review.severity) }}
                   </span>
                   @if (review.updatedAt) {
                     <span class="meta-sep">&middot;</span>

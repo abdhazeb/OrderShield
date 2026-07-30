@@ -47,6 +47,7 @@ public class ApproveReviewEditCommandHandler : IRequestHandler<ApproveReviewEdit
         review.ProductCategory = edit.ProductCategory;
         review.IncidentDate = edit.IncidentDate;
         review.ContactName = edit.ContactName;
+        review.ContactPosition = edit.ContactPosition;
         review.ContactPhoneUsed = edit.ContactPhoneUsed;
         review.PendingEditJson = null;
         review.Status = ReviewStatus.Published;

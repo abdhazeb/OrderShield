@@ -67,6 +67,7 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
                 ProductCategory = request.ProductCategory,
                 IncidentDate = request.IncidentDate,
                 ContactName = request.ContactName,
+                ContactPosition = request.ContactPosition,
                 ContactPhoneUsed = request.ContactPhoneUsed,
                 IsComment = request.IsComment,
             };
@@ -127,6 +128,7 @@ public class UpdateReviewCommandHandler : IRequestHandler<UpdateReviewCommand, R
         review.ProductCategory = request.ProductCategory;
         review.IncidentDate = request.IncidentDate;
         review.ContactName = request.ContactName;
+        review.ContactPosition = request.ContactPosition;
         review.ContactPhoneUsed = request.ContactPhoneUsed;
         review.PendingEditJson = null; // clear any stale snapshot
     }

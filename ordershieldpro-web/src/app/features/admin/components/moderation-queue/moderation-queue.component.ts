@@ -1,22 +1,23 @@
 import { Component, inject, signal, OnInit, output, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { DatePipe, CurrencyPipe, UpperCasePipe } from '@angular/common';
+import { DatePipe, CurrencyPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
-import { FileDownloadService } from '../../../../core/services/file-download.service';
 import { LoadingSpinnerComponent } from '../../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PendingReview, PaginatedResult } from '../../../../core/models';
 import { SeverityLevel, ReviewStatus, ReviewerType } from '../../../../core/enums';
-import { FileSizePipe } from '../../../../shared/pipes/file-size.pipe';
+import { LocalizeValuePipe } from '../../../../shared/pipes/localize-value.pipe';
+import { EvidenceViewerComponent } from '../../../../shared/components/evidence-viewer/evidence-viewer.component';
+import { severityKey, severitySlug } from '../../../../core/utils/severity-label';
 
 @Component({
   selector: 'app-moderation-queue',
   standalone: true,
-  imports: [DatePipe, CurrencyPipe, UpperCasePipe, FormsModule, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent, FileSizePipe],
+  imports: [DatePipe, CurrencyPipe, FormsModule, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent, LocalizeValuePipe, EvidenceViewerComponent],
   templateUrl: './moderation-queue.component.html',
   styleUrl: './moderation-queue.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -27,7 +28,6 @@ export class ModerationQueueComponent implements OnInit {
   private toast = inject(ToastService);
   private confirmService = inject(ConfirmService);
   private router = inject(Router);
-  private fileDownload = inject(FileDownloadService);
 
   countChange = output<number>();
 
@@ -120,7 +120,6 @@ export class ModerationQueueComponent implements OnInit {
     const isComment = review.severity === SeverityLevel.Info;
     this.router.navigate(['/submit-review'], {
       queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },
-      state: { review },
     });
   }
 
@@ -198,18 +197,19 @@ export class ModerationQueueComponent implements OnInit {
     });
   }
 
+  /** Style hook slug (`sev-fraud`, `dot-fraud`, …). */
   getSeverityString(severity: SeverityLevel): string {
-    switch (severity) {
-      case SeverityLevel.Info: return 'info';
-      case SeverityLevel.Warning: return 'warning';
-      case SeverityLevel.Critical: return 'critical';
-      case SeverityLevel.Behavior: return 'behavior';
-      case SeverityLevel.Fraud: return 'fraud';
-      case SeverityLevel.Quality: return 'quality';
-      case SeverityLevel.Delivery: return 'delivery';
-      case SeverityLevel.Payment: return 'payment';
-      default: return 'info';
-    }
+    return severitySlug(severity);
+  }
+
+  /** The review type in the reader's language — never the raw English enum name. */
+  getSeverityLabel(severity: SeverityLevel): string {
+    return this.translate.instant(severityKey(severity));
+  }
+
+  /** Opens the full-page dossier where the evidence files can actually be read. */
+  openDossier(review: PendingReview): void {
+    this.router.navigate(['/admin/reviews', review.id]);
   }
 
   getReviewerTypeLabel(type: ReviewerType): string {
@@ -220,7 +220,4 @@ export class ModerationQueueComponent implements OnInit {
     }
   }
 
-  downloadEvidence(reviewId: string, file: { id: string; fileName: string }): void {
-    this.fileDownload.download(`reviews/${reviewId}/evidence/${file.id}`, file.fileName);
-  }
 }

@@ -8,13 +8,27 @@ import { ApiService } from '../../core/services/api.service';
 import { ToastService } from '../../core/services/toast.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { FileUploadComponent } from '../../shared/components/file-upload/file-upload.component';
-import { SeverityLevel } from '../../core/enums';
-import { EntitySearchResult, EntityDetail, PaginatedResult, Review } from '../../core/models';
+
+import { EntitySearchResult, EntityDetail, PaginatedResult, ReviewEdit } from '../../core/models';
+import { LocalizeValuePipe } from '../../shared/pipes/localize-value.pipe';
+
+/**
+ * Turns a canonical English label into the camelCase suffix used for its i18n key
+ * ("United Kingdom" -> "unitedKingdom", "Finance / Accounting" -> "financeAccounting").
+ */
+function camelize(label: string): string {
+  return label
+    .replace(/[^a-zA-Z ]/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .map((word, i) => i === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase())
+    .join('');
+}
 
 @Component({
   selector: 'app-submit-review',
   standalone: true,
-  imports: [ReactiveFormsModule, TranslateModule, FileUploadComponent],
+  imports: [ReactiveFormsModule, TranslateModule, FileUploadComponent, LocalizeValuePipe],
   templateUrl: './submit-review.component.html',
   styleUrl: './submit-review.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -45,6 +59,40 @@ export class SubmitReviewComponent implements OnInit {
 
   form!: FormGroup;
   countryDialCode = signal('+');
+
+  /**
+   * Countries shown in the current UI language, sorted by the translated label.
+   * `name` stays the canonical English value that is persisted — the localized
+   * `label` is only ever what the user reads and types.
+   */
+  localizedCountries = signal<{ name: string; label: string; code: string }[]>([]);
+
+  /**
+   * Roles the counterparty may hold at the entity. Canonical English values are stored
+   * so a review filed in Arabic still reads correctly for an English-speaking moderator;
+   * `Other` reveals a free-text box for titles this list does not cover.
+   */
+  readonly contactPositionOptions: string[] = [
+    'Owner',
+    'General Manager',
+    'Purchasing Manager',
+    'Sales Manager',
+    'Sales Representative',
+    'Export Manager',
+    'Production Manager',
+    'Quality Manager',
+    'Logistics Manager',
+    'Finance / Accounting',
+    'Engineer',
+    'Agent / Middleman',
+    'Receptionist',
+    'Unknown',
+  ];
+
+  /** i18n key suffix for a canonical contact-position value. */
+  positionKey(position: string): string {
+    return 'contactPosition.' + camelize(position);
+  }
 
   readonly countryOptions: { name: string; code: string }[] = [
     { name: 'Afghanistan', code: '+93' }, { name: 'Albania', code: '+355' }, { name: 'Algeria', code: '+213' },
@@ -83,10 +131,11 @@ export class SubmitReviewComponent implements OnInit {
       this.submissionMode.set('comment');
     }
 
-    // Edit mode: a reviewId query param + the review passed via navigation state.
+    // Edit mode is driven purely by the reviewId query param; the values are then fetched
+    // from the API rather than read out of navigation state, so a reload works and the
+    // contact fields (which the list DTOs omit) are never submitted back blank.
     const editReviewId = this.route.snapshot.queryParamMap.get('reviewId');
-    const stateReview = (history.state?.review as Review | undefined);
-    if (editReviewId && stateReview && stateReview.id === editReviewId) {
+    if (editReviewId) {
       this.editMode.set(true);
       this.editReviewId = editReviewId;
     }
@@ -94,6 +143,8 @@ export class SubmitReviewComponent implements OnInit {
     this.form = this.fb.group({
       entityName: ['', Validators.required],
       contactName: [''],
+      contactPosition: [''],
+      contactPositionOther: [''],
       contactPhoneUsed: [''],
       supplierCountry: [''],
       supplierProvince: [''],
@@ -106,12 +157,26 @@ export class SubmitReviewComponent implements OnInit {
       confirmed: [false, Validators.requiredTrue],
     });
 
+    this.rebuildLocalizedCountries();
+
+    // The datalist shows translated country names, so a language switch mid-form would
+    // leave a stale label in the box — re-label it against the new locale.
+    this.translate.onLangChange.pipe(
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(() => {
+      const canonical = this.resolveCountryName(this.form.get('supplierCountry')?.value || '');
+      this.rebuildLocalizedCountries();
+      if (canonical) {
+        this.form.patchValue({ supplierCountry: this.localizeCountryName(canonical) });
+      }
+    });
+
     // Watch country changes to update dial code
     this.form.get('supplierCountry')!.valueChanges.pipe(
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(country => {
-      const val = (country as string) || '';
-      const match = this.countryOptions.find(c => c.name.toLowerCase() === val.toLowerCase());
+      const canonical = this.resolveCountryName((country as string) || '');
+      const match = this.countryOptions.find(c => c.name === canonical);
       this.countryDialCode.set(match ? match.code : '+');
     });
 
@@ -158,14 +223,27 @@ export class SubmitReviewComponent implements OnInit {
       });
     }
 
-    // Edit mode: prefill the form from the review passed via navigation state.
     if (this.editMode()) {
-      const review = history.state?.review as Review | undefined;
-      if (review) {
+      this.loadReviewForEdit();
+    }
+
+    this.updateValidators();
+  }
+
+  /** Prefills the form from the review's stored values so an edit round-trips intact. */
+  private loadReviewForEdit(): void {
+    this.apiService.get<ReviewEdit>(`reviews/${this.editReviewId}/edit`).subscribe({
+      next: (review) => {
         this.prefilledEntityId = review.tradeEntityId || null;
-        this.submissionMode.set(review.severity === SeverityLevel.Info ? 'comment' : 'review');
+        this.submissionMode.set(review.isComment ? 'comment' : 'review');
+
+        const position = review.contactPosition || '';
+        const isKnownPosition = this.contactPositionOptions.includes(position);
         this.form.patchValue({
           entityName: review.tradeEntityName || '',
+          contactName: review.contactName || '',
+          contactPosition: position ? (isKnownPosition ? position : 'Other') : '',
+          contactPositionOther: isKnownPosition ? '' : position,
           contactPhoneUsed: review.contactPhoneUsed || '',
           productCategory: review.productCategory || '',
           product: review.product || '',
@@ -175,13 +253,64 @@ export class SubmitReviewComponent implements OnInit {
           incidentDate: review.incidentDate ? review.incidentDate.substring(0, 10) : '',
           confirmed: true,
         });
-      } else {
-        // No review payload (e.g. page refresh) — return to profile.
+        this.updateValidators();
+      },
+      error: () => {
+        this.toast.error(this.translate.instant('review.editLoadFailed'));
         this.router.navigate(['/profile']);
-      }
-    }
+      },
+    });
+  }
 
-    this.updateValidators();
+  /** i18n key for a canonical English country name. */
+  private countryKey(name: string): string {
+    return 'country.' + camelize(name);
+  }
+
+  private localizeCountryName(name: string): string {
+    const key = this.countryKey(name);
+    const translated = this.translate.instant(key);
+    // ngx-translate echoes the key back when it has no entry — fall back to English.
+    return translated === key ? name : translated;
+  }
+
+  private rebuildLocalizedCountries(): void {
+    const localized = this.countryOptions.map(c => ({
+      name: c.name,
+      label: this.localizeCountryName(c.name),
+      code: c.code,
+    }));
+    localized.sort((a, b) => a.label.localeCompare(b.label, this.translate.currentLang || 'en'));
+    this.localizedCountries.set(localized);
+  }
+
+  /**
+   * Maps whatever the user typed or picked back to the canonical English country name,
+   * which is what the API stores. Free text that matches nothing is passed through so a
+   * country missing from the list is still accepted.
+   */
+  private resolveCountryName(input: string): string {
+    const value = input.trim();
+    if (!value) return '';
+    const lower = value.toLowerCase();
+    const byLabel = this.localizedCountries().find(c => c.label.toLowerCase() === lower);
+    if (byLabel) return byLabel.name;
+    const byName = this.countryOptions.find(c => c.name.toLowerCase() === lower);
+    return byName ? byName.name : value;
+  }
+
+  /** True when "Other" is selected and the free-text box should show. */
+  isOtherPosition(): boolean {
+    return this.form?.get('contactPosition')?.value === 'Other';
+  }
+
+  /** The value actually sent for contact position: the free text when "Other". */
+  private resolveContactPosition(): string | null {
+    const selected = (this.form.get('contactPosition')?.value as string) || '';
+    if (!selected) return null;
+    if (selected !== 'Other') return selected;
+    const other = ((this.form.get('contactPositionOther')?.value as string) || '').trim();
+    return other || null;
   }
 
   setMode(mode: 'review' | 'comment'): void {
@@ -329,6 +458,7 @@ export class SubmitReviewComponent implements OnInit {
       productCategory: formValue.productCategory,
       incidentDate: formValue.incidentDate || null,
       contactName: formValue.contactName || null,
+      contactPosition: this.resolveContactPosition(),
       contactPhoneUsed: (this.countryDialCode() !== '+' && formValue.contactPhoneUsed)
         ? this.countryDialCode() + formValue.contactPhoneUsed
         : formValue.contactPhoneUsed,
@@ -336,9 +466,10 @@ export class SubmitReviewComponent implements OnInit {
       isComment: this.submissionMode() === 'comment',
     };
 
-    // Country/province for new supplier
+    // Country/province for new supplier. The country is stored canonically in English
+    // regardless of the language the reviewer picked it in.
     if (!this.prefilledEntityId) {
-      reviewData['supplierCountry'] = formValue.supplierCountry;
+      reviewData['supplierCountry'] = this.resolveCountryName(formValue.supplierCountry || '');
       reviewData['supplierProvince'] = formValue.supplierProvince;
     }
 
@@ -348,10 +479,12 @@ export class SubmitReviewComponent implements OnInit {
       reviewData['entityName'] = formValue.entityName;
     }
 
-    this.apiService.post<{ data: string }>('reviews', reviewData).subscribe({
+    // POST /api/reviews responds with { id } — not a Result envelope. Reading the wrong
+    // property here silently skipped the evidence upload entirely.
+    this.apiService.post<{ id: string }>('reviews', reviewData).subscribe({
       next: (result) => {
-        if (this.evidenceFiles.length > 0 && result?.data) {
-          this.uploadEvidence(result.data);
+        if (this.evidenceFiles.length > 0 && result?.id) {
+          this.uploadEvidence(result.id);
         } else {
           this.submitting.set(false);
           this.toast.success(this.translate.instant('review.successSubmitted'));
@@ -390,6 +523,7 @@ export class SubmitReviewComponent implements OnInit {
       productCategory: formValue.productCategory,
       incidentDate: formValue.incidentDate || null,
       contactName: formValue.contactName || null,
+      contactPosition: this.resolveContactPosition(),
       contactPhoneUsed: (this.countryDialCode() !== '+' && formValue.contactPhoneUsed)
         ? this.countryDialCode() + formValue.contactPhoneUsed
         : formValue.contactPhoneUsed,

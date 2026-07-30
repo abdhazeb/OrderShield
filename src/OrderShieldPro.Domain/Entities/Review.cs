@@ -32,6 +32,14 @@ public class Review : AuditableEntity
 
     // Contact info used in the transaction (for rebrand cross-referencing)
     public string? ContactName { get; set; }
+
+    /// <summary>
+    /// The contact's role at the entity as the reviewer dealt with them — owner,
+    /// purchasing manager, sales rep, etc. Free text so reviewers are not forced
+    /// into a taxonomy that does not match the counterparty's actual title.
+    /// </summary>
+    public string? ContactPosition { get; set; }
+
     public string? ContactPhoneUsed { get; set; }
     public string? ContactWeChatUsed { get; set; }
 

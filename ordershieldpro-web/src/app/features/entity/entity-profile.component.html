@@ -97,10 +97,10 @@
 
           <div class="profile-meta">
             @if (entity()!.country) {
-              <span class="meta-item">📍 {{ entity()!.country }}{{ entity()!.region ? ', ' + entity()!.region : '' }}{{ entity()!.city ? ', ' + entity()!.city : '' }}</span>
+              <span class="meta-item">📍 {{ entity()!.country | localizeValue:'country' }}{{ entity()!.region ? ', ' + entity()!.region : '' }}{{ entity()!.city ? ', ' + entity()!.city : '' }}</span>
             }
             @if (entity()!.productCategories) {
-              <span class="meta-item">📦 {{ entity()!.productCategories }}</span>
+              <span class="meta-item">📦 {{ entity()!.productCategories | localizeValue:'productCategory' }}</span>
             }
             <span class="meta-item">📅 {{ 'entity.listedSince' | translate }}: {{ entity()!.listedDate | date:'mediumDate' }}</span>
           </div>

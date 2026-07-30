@@ -37,6 +37,7 @@ Frontend (from `ordershieldpro-web/`):
 npx ng serve --port 4300     # MUST be 4300 — see "Ports" below
 npx ng build --configuration production
 npx ng test --watch=false --browsers=ChromeHeadless
+npm run check:i18n           # locale coverage — see "i18n" below
 ```
 
 Karma needs a Chromium binary. If Chrome is not installed, point it at Edge:
@@ -49,6 +50,10 @@ a dev server is running and holding its own binaries. Either stop it, or build t
 directory with `-o <path>` to verify compilation without touching `bin/`.
 
 VS Code tasks in `.vscode/tasks.json` wrap all of the above — "Start Full Stack (API + Angular)" is the default build task, and "Kill All: Free Ports (5017 + 4300)" clears stuck processes.
+
+`.github/workflows/ci.yml` runs the backend build+test and the frontend `check:i18n` → build →
+test. A checked-in pre-commit hook in `.githooks/` runs `check:i18n` when a commit touches
+`ordershieldpro-web/`; enable it in a fresh clone with `git config core.hooksPath .githooks`.
 
 IIS deployment: `powershell -ExecutionPolicy Bypass -File .\deploy\build-packages.ps1` produces `artifacts/deploy/{api,frontend}`. See `deploy/README-IIS.md`.
 
@@ -85,6 +90,19 @@ and authorize in the query handler: owner or moderator, with unauthorized caller
 same "not found" as a missing file. On the frontend these must go through
 `FileDownloadService` — a plain anchor `href` cannot carry the bearer token and will 401.
 
+**Attaching review evidence goes through `AttachReviewEvidenceCommand`, never the controller.**
+The handler authorizes (reviewer who owns it, or a moderator) *before* anything reaches disk,
+then writes both the bytes and the `ReviewEvidenceFile` rows in one place. Those rows are the
+only thing the moderation screens read, so storing a file without one makes the evidence
+invisible — which is exactly the bug this replaced: the old endpoint wrote to `uploads/`,
+returned the path, and persisted nothing. `POST /api/reviews/{id}/evidence` takes multiple
+files under the form field `files` (a single `file` is accepted too) and validates extension,
+content type, and a 10 MB cap per file. `ReviewsControllerTests` asserts on the persisted rows
+rather than the HTTP status, because a 200 with nothing recorded is the failure mode.
+
+Note that `POST /api/reviews` responds `{ id }`, not a `Result` envelope — the frontend read
+`result.data` for a while and silently skipped the evidence upload entirely.
+
 Conventions to follow when adding a feature:
 - Register nothing by hand — `AddApplication()` scans the assembly for MediatR handlers and FluentValidation validators; `ValidationBehavior` and `LoggingBehavior` are pipeline behaviors applied to every request.
 - Throw `NotFoundException` / `ForbiddenAccessException` / `ValidationException` from `Application/Common/Exceptions`; `ExceptionHandlingMiddleware` converts them to `application/problem+json` with camelCase fields and a `traceId`. Never write ad-hoc error shapes in a controller.
@@ -113,6 +131,23 @@ remove a review from public view, decide up front whether it's a "never approved
 "withdrawn after publish" and use the matching status — reusing `Rejected` for the latter is
 the bug this fixed.
 
+Three read models serve a review, and the split is deliberate — do not widen `ReviewDto`:
+- `ReviewDto` (`GetReviewsByEntityQuery`, `GetReviewsByUserQuery`, `GetPendingReviewsQuery`)
+  is the list shape and carries **no contact fields**, because the same DTO feeds the public
+  entity timeline.
+- `ReviewModerationDto` (`GET /api/reviews/{id}/moderation`, moderators only) is the dossier:
+  the counterparty contact, the reviewer's email, the verification email, and all evidence
+  notes including internal ones. None of that may reach a public response.
+- `ReviewEditDto` (`GET /api/reviews/{id}/edit`, owner or moderator) is exactly what the
+  submit/edit form writes. **The edit form must load from here.** It used to be primed from
+  Angular navigation state carrying a list DTO, so the contact fields came back blank and
+  saving an edit erased them. It also opens showing an unapproved pending edit rather than the
+  older published text, so re-saving cannot silently revert the owner's own changes.
+
+`Review.ContactPosition` records the counterparty's role (owner, purchasing manager, …) — it
+matters for weighing a claim, since an owner speaks for the business and a sales rep may not.
+Stored as free text (150 chars) so a real title that isn't in the frontend's list still fits.
+
 The admin area (`features/admin/admin-dashboard.component`) is a **two-level shell**: six
 sections across the top (Overview, Moderation, Entities, Users, Requests, System) with
 sub-tabs underneath, both driven by the declarative `sections` array in the component —
@@ -129,6 +164,14 @@ unless someone has to act on it. `System` is SuperAdmin-only, as are the `pendin
 mounted twice by the shell, once per half — hidden entities under Entities, hidden reviews
 under Moderation; action approvals under System, pending registrations under Users. Each
 instance emits only the count for what it renders.
+
+Admin → Moderation → the queue card links out to the **review dossier** at
+`/admin/reviews/:id` (`features/admin/components/review-dossier/`), a full page over
+`GET /api/reviews/{id}/moderation`: the claim, the entity under review, who filed it, the
+counterparty contact, the moderation note trail, and the evidence — with the decision
+(publish / reject / hide / message / edit / delete) in a sticky bar. It exists because a
+moderator cannot judge a submission from a list row, and the queue card alone gave them
+nowhere to actually read the attachments.
 
 Hidden material is reached via `GET/PUT /api/entities/hidden` + `.../{id}/visibility` for
 entities and `GET /api/reviews/hidden` + `PUT /api/reviews/{id}/status`
@@ -187,21 +230,87 @@ persists. Fixing this for real means either adding the missing attribute and a p
 migration to create the column, or removing `[NotMapped]` and re-scaffolding — pick one and
 verify the round trip; don't just silence the symptom.
 
+The visible symptoms, so they aren't misdiagnosed as separate bugs: editing an **already
+published** review leaves the pending-edit diff panel empty (in the queue and on the dossier),
+`ApproveReviewEditCommand` fails with "Pending edit data is missing.", and the review is
+stranded in `PendingEdit`. Nothing is slow and nothing throws at startup — it is silent data
+loss in one workflow. Editing a still-`Pending` review applies in place and is unaffected,
+which is why this is easy to miss.
+
 Notable domain behavior: registrations require SuperAdmin approval, so `POST /api/auth/register` returns no JWT and login is refused until the account is activated (integration tests call `TestWebApplicationFactory.ApproveUserAsync`); reviews edited by their owner go back into the moderation queue as a pending-edit snapshot that an admin approves or rejects (`ApproveReviewEditCommand` / `RejectReviewEditCommand`), while owner deletion is immediate.
 
 ## Frontend architecture
 
 Angular 19, standalone components only, no NgModules. Routing is fully lazy (`loadComponent`) in `app.routes.ts`; most pages nest under `MainLayoutComponent`, while auth/contact/legal pages sit at the top level outside the layout chrome.
 
-- `core/` — singletons: `ApiService` (thin typed wrapper over `HttpClient` + `environment.apiBaseUrl`), auth (`AuthService`, `TokenService`, `authGuard`, `roleGuard`, `jwtInterceptor`, `errorInterceptor`), `LanguageService`, `ToastService`, `ConfirmService`, and the TypeScript mirrors of backend DTOs/enums in `core/models` + `core/enums`.
-- `features/` — one folder per route area, each with `.ts`/`.html`/`.scss`. Admin is a shell (`admin-dashboard.component`) with child components per tab (moderation queue, approvals, subscription requests, analytics, team, settings, contact messages).
+- `core/` — singletons: `ApiService` (thin typed wrapper over `HttpClient` + `environment.apiBaseUrl`), auth (`AuthService`, `TokenService`, `authGuard`, `roleGuard`, `jwtInterceptor`, `errorInterceptor`), `LanguageService`, `ToastService`, `ConfirmService`, `FileDownloadService`, the TypeScript mirrors of backend DTOs/enums in `core/models` + `core/enums`, and pure helpers in `core/utils`.
+- `features/` — one folder per route area, each with `.ts`/`.html`/`.scss`. Admin is a shell (`admin-dashboard.component`) with child components per tab (moderation queue, approvals, subscription requests, analytics, team, settings, contact messages), plus the standalone review dossier route.
 - `shared/` — presentational components, pipes, and the RTL directive, all re-exported from `shared/index.ts`; import from there.
+
+`core/utils/severity-label.ts` owns the `SeverityLevel` → slug map used for both the
+`severity.<slug>` translation key and the `sev-`/`dot-` style hooks. It is a total
+`Record<SeverityLevel, string>`, so adding an enum member without a label fails the build —
+the previous hand-written `switch` statements covered 8 of 21 and silently defaulted the rest
+to `info`, mislabelling reviews in the admin queue. Never reintroduce a local copy.
+
+`EvidenceViewerComponent` (`shared/components/evidence-viewer/`) renders a review's evidence
+**in the app** — thumbnails or compact chips plus a full-size overlay with prev/next. Files are
+fetched as blobs (the only way the bearer token is attached; a plain `<img src>` to a protected
+endpoint 401s), held as object URLs, and revoked on destroy, so nothing is written to the
+moderator's disk. `layout="grid"` prefetches renderable files; `layout="compact"` waits for a
+click so a long queue doesn't pull every attachment it lists. Formats a browser can't display
+fall back to an explicit download. Used by both the queue card and the dossier.
+
+**Signal-effect pitfall this component already hit:** its `effect` must read only its inputs
+and do the work inside `untracked()`. The rebuild both reads and writes the `previews` signal,
+so running it in the reactive context made the effect depend on a signal it writes — it
+re-triggered itself forever and froze the tab. The build was completely green while the page
+was unusable, so the spec asserts the component settles after change detection; if the loop
+returns, that spec hangs rather than failing.
 
 State uses Angular **signals** (`signal`/`computed`), not RxJS subjects — see `AuthService.currentUser` / `isAuthenticated` / `isAdmin`. Auth state is derived from decoded JWT claims, including the `http://schemas.microsoft.com/ws/2008/06/identity/claims/role` claim URI. `roleGuard` reads allowed roles from route `data.roles`.
 
+### i18n
+
 i18n and RTL are load-bearing: `@ngx-translate` with `src/assets/i18n/{ar,en,zh}.json`, **default language `ar`**. `LanguageService.setLanguage` sets `dir="rtl"` on `<html>` for Arabic. Any new UI must add keys to **`ar` and `en`** and work in RTL. Chinese is hidden from the language selector and is slated for removal, so `zh.json` is no longer kept current — don't add keys to it.
 
+**Some values are stored canonically in English and translated only on display.** Country,
+product category, and contact position are persisted as their English label (`"Health &
+Medical"`, `"China"`, `"Purchasing Manager"`) so the data stays comparable and a report filed
+in Arabic still reads correctly for an English-speaking moderator. The consequence is that
+every template rendering one has to translate it, and forgetting to is invisible in review —
+it just ships untranslated. Always use the pipe:
+
+```html
+{{ review.productCategory | localizeValue:'productCategory' }}
+{{ entity.country | localizeValue:'country' }}
+{{ entity.productCategories | localizeValue:'productCategory' }}   <!-- comma-separated -->
+```
+
+`LocalizeValuePipe` (`shared/pipes/localize-value.pipe.ts`) derives the key by camelCasing the
+value (`"Health & Medical"` → `productCategory.healthMedical`), handles comma-separated lists,
+and passes unmatched values through unchanged so genuine free text (an "Other" position, a
+country not on the list) still displays as authored. It is impure like ngx-translate's own pipe
+so it re-renders on a language switch, and memoizes per (value, namespace, language).
+
+Because the key is *derived from the stored value*, a select `<option value="…">` and its
+translation key have to agree. They silently didn't for one category — the option was
+`"Stationery & Office Supplies"` while the key was `stationeryOffice`, so it could never match.
+
+**`npm run check:i18n`** (`tools/check-i18n.js`) catches all three failure modes: a key used in
+a template that exists in no locale, a key present in `en` but not `ar` (or the reverse), and a
+stored canonical value with no matching entry. It runs in CI before the build and in the
+pre-commit hook. Add keys and re-run it rather than waiting for someone to spot a raw key in
+the UI — it found four real bugs on its first run.
+
 Styling: Tailwind v4 (via `@tailwindcss/postcss`) plus a hand-written design-system layer of CSS variables at the top of `src/styles.scss` (navy + teal palette, surfaces, text, severity colors). Angular Material is present for dialogs/snackbars. Use the CSS variables rather than hardcoded hex values.
+
+The submit-review form is **one auto-flowing 3-column grid**, not a stack of fixed rows: the
+`<form>` is the grid and every `.form-group` is a direct child, so fields pack into the next
+free cell and a conditionally hidden field leaves no hole. Add a field by adding a
+`.form-group` — don't wrap groups in row divs, which is what produced the empty cells this
+replaced. Long fields (narrative, upload, confirmation, submit) opt out with
+`.form-group--full`. Collapses to 2 columns under 1024px and 1 under 640px.
 
 ## Design guidance (from `.github/copilot-instructions.md`)
 

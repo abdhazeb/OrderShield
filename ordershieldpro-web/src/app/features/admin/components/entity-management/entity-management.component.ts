@@ -12,6 +12,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { EntitySearchResult, PaginatedResult } from '../../../../core/models';
 import { EntityType, VerificationStatus } from '../../../../core/enums';
+import { LocalizeValuePipe } from '../../../../shared/pipes/localize-value.pipe';
 
 /**
  * Admin → Entities → All Entities. The directory as moderators need to work with it:
@@ -23,7 +24,7 @@ import { EntityType, VerificationStatus } from '../../../../core/enums';
 @Component({
   selector: 'app-entity-management',
   standalone: true,
-  imports: [DatePipe, FormsModule, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent],
+  imports: [DatePipe, FormsModule, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent, LocalizeValuePipe],
   templateUrl: './entity-management.component.html',
   styleUrl: './entity-management.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

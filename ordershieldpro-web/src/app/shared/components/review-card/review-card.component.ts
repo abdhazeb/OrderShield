@@ -4,6 +4,7 @@ import { DatePipe, SlicePipe } from '@angular/common';
 import { SeverityBadgeComponent } from '../severity-badge/severity-badge.component';
 import { Review } from '../../../core/models';
 import { ReviewStatus, SeverityLevel } from '../../../core/enums';
+import { severitySlug } from '../../../core/utils/severity-label';
 
 @Component({
   selector: 'app-review-card',
@@ -50,30 +51,9 @@ export class ReviewCardComponent {
     this.hide.emit(this.review());
   }
 
+  /** Slug the severity badge translates; shared so a new severity is labelled everywhere. */
   getSeverityLabel(): string {
-    switch (this.review().severity) {
-      case SeverityLevel.Critical: return 'critical';
-      case SeverityLevel.Warning: return 'warning';
-      case SeverityLevel.Behavior: return 'behavior';
-      case SeverityLevel.Fraud: return 'fraud';
-      case SeverityLevel.Quality: return 'quality';
-      case SeverityLevel.Delivery: return 'delivery';
-      case SeverityLevel.Payment: return 'payment';
-      case SeverityLevel.FinanciallyDistressed: return 'financiallyDistressed';
-      case SeverityLevel.Bankrupt: return 'bankrupt';
-      case SeverityLevel.PoorManagement: return 'poorManagement';
-      case SeverityLevel.InaccurateAppointments: return 'inaccurateAppointments';
-      case SeverityLevel.BribeOthers: return 'bribeOthers';
-      case SeverityLevel.FakeSupplier: return 'fakeSupplier';
-      case SeverityLevel.Other: return 'other';
-      case SeverityLevel.Positive: return 'positive';
-      case SeverityLevel.Recommended: return 'recommended';
-      case SeverityLevel.HighQuality: return 'highQuality';
-      case SeverityLevel.OnTimeDelivery: return 'onTimeDelivery';
-      case SeverityLevel.GoodCommunication: return 'goodCommunication';
-      case SeverityLevel.Reliable: return 'reliable';
-      default: return 'info';
-    }
+    return severitySlug(this.review().severity);
   }
 
   formatCurrency(value: number | undefined): string {

@@ -11,10 +11,10 @@
   @if (entity().country || entity().productCategories) {
     <div class="entity-card__row entity-card__meta">
       @if (entity().country) {
-        <span class="entity-card__meta-item">📍 {{ entity().country }}</span>
+        <span class="entity-card__meta-item">📍 {{ entity().country | localizeValue:'country' }}</span>
       }
       @if (entity().productCategories) {
-        <span class="entity-card__meta-item">📦 {{ entity().productCategories }}</span>
+        <span class="entity-card__meta-item">📦 {{ entity().productCategories | localizeValue:'productCategory' }}</span>
       }
     </div>
   }

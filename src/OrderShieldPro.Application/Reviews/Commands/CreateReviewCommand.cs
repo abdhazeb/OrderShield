@@ -29,6 +29,8 @@ public record CreateReviewCommand : IRequest<Result<Guid>>
 
     // Contact info used in the transaction
     public string? ContactName { get; init; }
+    /// <summary>The contact's role at the entity (owner, purchasing manager, …).</summary>
+    public string? ContactPosition { get; init; }
     public string? ContactPhoneUsed { get; init; }
     public string? ContactWeChatUsed { get; init; }
 

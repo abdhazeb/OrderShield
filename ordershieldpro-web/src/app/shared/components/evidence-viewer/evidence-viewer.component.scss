@@ -1,0 +1,242 @@
+/* Evidence read in place: thumbnails, chips, and a full-size overlay. */
+
+.ev-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-tertiary);
+}
+
+/* ── Compact chips (inline in a list card) ──────────────────────────────── */
+
+.ev-chips { display: flex; flex-direction: column; gap: 6px; }
+
+.ev-chip {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: start;
+  padding: 8px 12px;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  background: var(--surface-0);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+
+  &:hover { border-color: var(--accent-400); background: var(--accent-50); }
+  &:focus-visible { outline: 2px solid var(--accent-500); outline-offset: 2px; }
+}
+
+.ev-chip-glyph { font-size: 0.9375rem; line-height: 1; }
+
+.ev-chip-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-chip-size { font-size: 0.75rem; color: var(--text-tertiary); }
+
+.ev-chip-action {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-600);
+  white-space: nowrap;
+}
+
+/* ── Thumbnail grid ─────────────────────────────────────────────────────── */
+
+.ev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.ev-tile {
+  margin: 0;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--surface-50);
+  display: flex;
+  flex-direction: column;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:hover { border-color: var(--navy-300); box-shadow: var(--shadow-sm); }
+}
+
+.ev-canvas {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--navy-50);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; display: block; }
+}
+
+.ev-fallback {
+  display: grid;
+  gap: 6px;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+}
+
+.ev-glyph {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--navy-500);
+}
+
+.ev-note { font-size: 0.75rem; color: var(--text-tertiary); }
+
+.ev-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--navy-200);
+  border-top-color: var(--accent-500);
+  animation: ev-spin 700ms linear infinite;
+}
+
+@keyframes ev-spin { to { transform: rotate(360deg); } }
+
+.ev-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px 0;
+  background: var(--surface-0);
+}
+
+.ev-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-size { font-size: 0.75rem; color: var(--text-tertiary); }
+
+.ev-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 11px 10px;
+  background: var(--surface-0);
+}
+
+.ev-btn {
+  appearance: none;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-0);
+  border-radius: var(--radius-sm);
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+
+  &:hover { border-color: var(--accent-400); color: var(--accent-600); }
+}
+
+/* ── Full-size viewer ───────────────────────────────────────────────────── */
+
+.ev-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 15, 30, 0.82);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.ev-viewer {
+  width: min(1100px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.ev-viewer-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--surface-50);
+}
+
+.ev-viewer-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-viewer-size { font-size: 0.75rem; color: var(--text-tertiary); }
+
+.ev-viewer-tools { margin-inline-start: auto; display: flex; gap: 6px; }
+
+.ev-viewer-btn {
+  appearance: none;
+  border: 1px solid var(--surface-border);
+  background: var(--surface-0);
+  border-radius: var(--radius-sm);
+  padding: 5px 11px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1.2;
+
+  &:hover { border-color: var(--accent-400); color: var(--accent-600); }
+}
+
+.ev-viewer-close { font-size: 0.875rem; }
+
+.ev-viewer-body {
+  flex: 1;
+  min-height: 320px;
+  display: grid;
+  place-items: center;
+  background: var(--navy-950);
+  overflow: auto;
+
+  img { max-width: 100%; max-height: 78vh; display: block; object-fit: contain; }
+  iframe { width: 100%; height: 78vh; border: 0; background: var(--surface-0); }
+}
+
+.ev-viewer-error {
+  color: var(--text-on-dark);
+  font-size: 0.875rem;
+  padding: 40px;
+  text-align: center;
+}
+
+/* Prev/next chevrons follow reading direction. */
+:host-context([dir='rtl']) .ev-nav { transform: scaleX(-1); }

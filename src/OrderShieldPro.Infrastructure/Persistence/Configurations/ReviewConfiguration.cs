@@ -37,6 +37,9 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
         builder.Property(e => e.OrderValue)
             .HasPrecision(18, 2);
 
+        builder.Property(e => e.ContactPosition)
+            .HasMaxLength(150);
+
         builder.Property(e => e.ContactPhoneUsed)
             .HasMaxLength(50);
 

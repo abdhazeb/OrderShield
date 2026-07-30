@@ -54,6 +54,14 @@ export const routes: Routes = [
         data: { roles: ['Admin', 'ServiceTeam', 'SuperAdmin'] },
         loadComponent: () => import('./features/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent),
       },
+      {
+        // Full-page moderation dossier for one review — the evidence review screen the
+        // queue's inline card links out to.
+        path: 'admin/reviews/:id',
+        canActivate: [authGuard, roleGuard],
+        data: { roles: ['Admin', 'ServiceTeam', 'SuperAdmin'] },
+        loadComponent: () => import('./features/admin/components/review-dossier/review-dossier.component').then(m => m.ReviewDossierComponent),
+      },
     ],
   },
   {

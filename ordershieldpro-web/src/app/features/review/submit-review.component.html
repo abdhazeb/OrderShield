@@ -19,193 +19,210 @@
         </div>
       }
 
+      <!--
+        The form itself is the 3-column grid; every .form-group is a direct child so fields
+        pack into the next free cell. Conditional fields therefore leave no gap, and there is
+        no need to re-balance rows when one is added. Long fields use .form-group--full.
+      -->
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="review-form">
 
-        <!-- Row 1: Legal Name + Contact Name -->
-        <div class="form-row">
-          <div class="form-group entity-autocomplete">
-            <label class="form-label">{{ 'entity.legalName' | translate }} *</label>
-            <div class="autocomplete-wrapper">
-              <input class="form-input" [class.input-error]="isFieldInvalid('entityName')" type="text"
-                     formControlName="entityName" [placeholder]="'review.placeholder.entityName' | translate"
-                     (input)="onEntityNameInput($event)" (focus)="onEntityFieldFocus()"
-                     (blur)="onEntityFieldBlur()" autocomplete="off" />
-              @if (entitySearching()) {
-                <span class="autocomplete-spinner"></span>
-              }
-              @if (showSuggestions() && entitySuggestions().length > 0) {
-                <div class="suggestions-dropdown">
-                  @for (entity of entitySuggestions(); track entity.id) {
-                    <button type="button" class="suggestion-item" (mousedown)="selectEntity(entity)">
-                      <div class="suggestion-name">{{ entity.legalName }}</div>
-                      <div class="suggestion-meta">
-                        <span class="suggestion-type">{{ entity.entityType }}</span>
-                        <span class="suggestion-country">{{ entity.country }}</span>
-                        @if (entity.totalReviewCount > 0) {
-                          <span class="suggestion-reviews">{{ 'review.reviewCount' | translate:{ count: entity.totalReviewCount } }}</span>
-                        }
-                      </div>
-                    </button>
-                  }
-                </div>
-              }
-            </div>
-            @if (isFieldInvalid('entityName')) {
-              <div class="field-error">{{ 'validation.entityNameRequired' | translate }}</div>
+        <!-- Entity -->
+        <div class="form-group entity-autocomplete">
+          <label class="form-label">{{ 'entity.legalName' | translate }} *</label>
+          <div class="autocomplete-wrapper">
+            <input class="form-input" [class.input-error]="isFieldInvalid('entityName')" type="text"
+                   formControlName="entityName" [placeholder]="'review.placeholder.entityName' | translate"
+                   (input)="onEntityNameInput($event)" (focus)="onEntityFieldFocus()"
+                   (blur)="onEntityFieldBlur()" autocomplete="off" />
+            @if (entitySearching()) {
+              <span class="autocomplete-spinner"></span>
             }
-            @if (prefilledEntityId) {
-              <div class="entity-selected-badge">
-                <span class="badge-icon">✓</span>
-                <span>{{ 'review.entityPreSelected' | translate }}</span>
-                <button type="button" class="clear-entity" (click)="clearSelectedEntity()">✕</button>
+            @if (showSuggestions() && entitySuggestions().length > 0) {
+              <div class="suggestions-dropdown">
+                @for (entity of entitySuggestions(); track entity.id) {
+                  <button type="button" class="suggestion-item" (mousedown)="selectEntity(entity)">
+                    <div class="suggestion-name">{{ entity.legalName }}</div>
+                    <div class="suggestion-meta">
+                      <span class="suggestion-type">{{ entity.entityType }}</span>
+                      <span class="suggestion-country">{{ entity.country | localizeValue:'country' }}</span>
+                      @if (entity.totalReviewCount > 0) {
+                        <span class="suggestion-reviews">{{ 'review.reviewCount' | translate:{ count: entity.totalReviewCount } }}</span>
+                      }
+                    </div>
+                  </button>
+                }
               </div>
             }
           </div>
-          <div class="form-group">
-            <label class="form-label">{{ 'review.contactName' | translate }}</label>
-            <input class="form-input" type="text" formControlName="contactName" [placeholder]="'review.placeholder.contactName' | translate" />
-          </div>
+          @if (isFieldInvalid('entityName')) {
+            <div class="field-error">{{ 'validation.entityNameRequired' | translate }}</div>
+          }
+          @if (prefilledEntityId) {
+            <div class="entity-selected-badge">
+              <span class="badge-icon">✓</span>
+              <span>{{ 'review.entityPreSelected' | translate }}</span>
+              <button type="button" class="clear-entity" (click)="clearSelectedEntity()">✕</button>
+            </div>
+          }
         </div>
+
+        <!-- Counterparty contact -->
+        <div class="form-group">
+          <label class="form-label">{{ 'review.contactName' | translate }}</label>
+          <input class="form-input" type="text" formControlName="contactName" [placeholder]="'review.placeholder.contactName' | translate" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">{{ 'review.contactPosition' | translate }}</label>
+          <select class="form-select" formControlName="contactPosition">
+            <option value="">{{ 'review.selectPosition' | translate }}</option>
+            @for (p of contactPositionOptions; track p) {
+              <option [value]="p">{{ positionKey(p) | translate }}</option>
+            }
+            <option value="Other">{{ 'contactPosition.other' | translate }}</option>
+          </select>
+          <div class="form-help">{{ 'review.formHelp.contactPosition' | translate }}</div>
+        </div>
+
+        @if (isOtherPosition()) {
+          <div class="form-group">
+            <label class="form-label">{{ 'review.contactPositionOther' | translate }}</label>
+            <input class="form-input" type="text" formControlName="contactPositionOther"
+                   [placeholder]="'review.placeholder.contactPositionOther' | translate" />
+          </div>
+        }
 
         <!-- Country & Province (for new suppliers) -->
         @if (submissionMode() === 'review' && !prefilledEntityId) {
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">{{ 'review.supplierCountry' | translate }} *</label>
-              <input class="form-input" [class.input-error]="isFieldInvalid('supplierCountry')" type="text" formControlName="supplierCountry" [placeholder]="'review.placeholder.country' | translate" list="countryList" />
-              <datalist id="countryList">
-                @for (c of countryOptions; track c.name) {
-                  <option [value]="c.name"></option>
-                }
-              </datalist>
-              @if (isFieldInvalid('supplierCountry')) {
-                <div class="field-error">{{ 'validation.countryRequired' | translate }}</div>
+          <div class="form-group">
+            <label class="form-label">{{ 'review.supplierCountry' | translate }} *</label>
+            <input class="form-input" [class.input-error]="isFieldInvalid('supplierCountry')" type="text" formControlName="supplierCountry" [placeholder]="'review.placeholder.country' | translate" list="countryList" />
+            <datalist id="countryList">
+              @for (c of localizedCountries(); track c.name) {
+                <option [value]="c.label"></option>
               }
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ 'review.supplierProvince' | translate }}</label>
-              <input class="form-input" type="text" formControlName="supplierProvince" [placeholder]="'review.placeholder.province' | translate" />
-            </div>
+            </datalist>
+            @if (isFieldInvalid('supplierCountry')) {
+              <div class="field-error">{{ 'validation.countryRequired' | translate }}</div>
+            }
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ 'review.supplierProvince' | translate }}</label>
+            <input class="form-input" type="text" formControlName="supplierProvince" [placeholder]="'review.placeholder.province' | translate" />
           </div>
         }
 
         @if (submissionMode() === 'review') {
-          <!-- Contact Phone (with country code) & Incident Date -->
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">{{ 'review.contactPhone' | translate }}</label>
-              <div class="phone-input-wrapper">
-                <span class="phone-code-prefix">{{ countryDialCode() }}</span>
-                <input class="form-input phone-input-with-code" type="tel" formControlName="contactPhoneUsed" [placeholder]="'review.placeholder.phoneNumber' | translate" />
+          <div class="form-group">
+            <label class="form-label">{{ 'review.contactPhone' | translate }}</label>
+            <div class="phone-input-wrapper">
+              <span class="phone-code-prefix">{{ countryDialCode() }}</span>
+              <input class="form-input phone-input-with-code" type="tel" formControlName="contactPhoneUsed" [placeholder]="'review.placeholder.phoneNumber' | translate" />
+            </div>
+            <div class="form-help">{{ 'review.formHelp.phone' | translate }}</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'review.incidentDate' | translate }}</label>
+            <input class="form-input" type="date" formControlName="incidentDate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'review.productCategory' | translate }} *</label>
+            <select class="form-select" [class.input-error]="isFieldInvalid('productCategory')" formControlName="productCategory">
+              <option value="">{{ 'review.selectCategory' | translate }}</option>
+              <option value="Auto">{{ 'productCategory.auto' | translate }}</option>
+              <option value="Bags & Cases">{{ 'productCategory.bagsCases' | translate }}</option>
+              <option value="Building">{{ 'productCategory.building' | translate }}</option>
+              <option value="Chemical">{{ 'productCategory.chemical' | translate }}</option>
+              <option value="Computer Products">{{ 'productCategory.computerProducts' | translate }}</option>
+              <option value="Consumer Electronics">{{ 'productCategory.consumerElectronics' | translate }}</option>
+              <option value="Electrics & Electronics">{{ 'productCategory.electricsElectronics' | translate }}</option>
+              <option value="Energy">{{ 'productCategory.energy' | translate }}</option>
+              <option value="Fashion Accessories">{{ 'productCategory.fashionAccessories' | translate }}</option>
+              <option value="Food & Beverage">{{ 'productCategory.foodBeverage' | translate }}</option>
+              <option value="Furniture">{{ 'productCategory.furniture' | translate }}</option>
+              <option value="Garment">{{ 'productCategory.garment' | translate }}</option>
+              <option value="Gifts & Crafts">{{ 'productCategory.giftsCrafts' | translate }}</option>
+              <option value="Hardware">{{ 'productCategory.hardware' | translate }}</option>
+              <option value="Health & Medical">{{ 'productCategory.healthMedical' | translate }}</option>
+              <option value="Home & Garden">{{ 'productCategory.homeGarden' | translate }}</option>
+              <option value="Home Appliances">{{ 'productCategory.homeAppliances' | translate }}</option>
+              <option value="Kitchenware & Tableware">{{ 'productCategory.kitchenwareTableware' | translate }}</option>
+              <option value="Lights & Lighting">{{ 'productCategory.lightsLighting' | translate }}</option>
+              <option value="Machinery">{{ 'productCategory.machinery' | translate }}</option>
+              <option value="Other">{{ 'productCategory.other' | translate }}</option>
+              <option value="Packaging & Printing">{{ 'productCategory.packagingPrinting' | translate }}</option>
+              <option value="Personal Care">{{ 'productCategory.personalCare' | translate }}</option>
+              <option value="Sanitary Ware">{{ 'productCategory.sanitaryWare' | translate }}</option>
+              <option value="Shoes">{{ 'productCategory.shoes' | translate }}</option>
+              <option value="Sports & Entertainment">{{ 'productCategory.sportsEntertainment' | translate }}</option>
+              <option value="Stationery & Office Supplies">{{ 'productCategory.stationeryOfficeSupplies' | translate }}</option>
+              <option value="Textile">{{ 'productCategory.textile' | translate }}</option>
+              <option value="Toys">{{ 'productCategory.toys' | translate }}</option>
+            </select>
+            @if (isFieldInvalid('productCategory')) {
+              <div class="field-error">{{ 'validation.categoryRequired' | translate }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'review.product' | translate }}</label>
+            <input class="form-input" type="text" formControlName="product" [placeholder]="'review.placeholder.product' | translate" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'review.reviewType' | translate }} *</label>
+            <select class="form-select" [class.input-error]="isFieldInvalid('severity')" formControlName="severity">
+              <option [ngValue]="null" disabled>{{ 'review.selectType' | translate }}</option>
+              <optgroup [label]="'severity.groupNegative' | translate">
+                <option [ngValue]="0">{{ 'severity.info' | translate }}</option>
+                <option [ngValue]="1">{{ 'severity.warning' | translate }}</option>
+                <option [ngValue]="2">{{ 'severity.critical' | translate }}</option>
+                <option [ngValue]="3">{{ 'severity.behavior' | translate }}</option>
+                <option [ngValue]="4">{{ 'severity.fraud' | translate }}</option>
+                <option [ngValue]="5">{{ 'severity.quality' | translate }}</option>
+                <option [ngValue]="6">{{ 'severity.delivery' | translate }}</option>
+                <option [ngValue]="7">{{ 'severity.payment' | translate }}</option>
+                <option [ngValue]="8">{{ 'severity.financiallyDistressed' | translate }}</option>
+                <option [ngValue]="9">{{ 'severity.bankrupt' | translate }}</option>
+                <option [ngValue]="10">{{ 'severity.poorManagement' | translate }}</option>
+                <option [ngValue]="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
+                <option [ngValue]="12">{{ 'severity.bribeOthers' | translate }}</option>
+                <option [ngValue]="13">{{ 'severity.fakeSupplier' | translate }}</option>
+                <option [ngValue]="14">{{ 'severity.other' | translate }}</option>
+              </optgroup>
+              <optgroup [label]="'severity.groupPositive' | translate">
+                <option [ngValue]="15">{{ 'severity.positive' | translate }}</option>
+                <option [ngValue]="16">{{ 'severity.recommended' | translate }}</option>
+                <option [ngValue]="17">{{ 'severity.highQuality' | translate }}</option>
+                <option [ngValue]="18">{{ 'severity.onTimeDelivery' | translate }}</option>
+                <option [ngValue]="19">{{ 'severity.goodCommunication' | translate }}</option>
+                <option [ngValue]="20">{{ 'severity.reliable' | translate }}</option>
+              </optgroup>
+            </select>
+            @if (isFieldInvalid('severity')) {
+              <div class="field-error">{{ 'validation.selectReviewType' | translate }}</div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">{{ 'review.title' | translate }} *</label>
+            <input class="form-input" [class.input-error]="isFieldInvalid('title')" type="text" formControlName="title" [placeholder]="'review.placeholder.title' | translate" />
+            @if (isFieldInvalid('title')) {
+              <div class="field-error">
+                @if (form.get('title')?.errors?.['required']) {
+                  {{ 'validation.titleRequired' | translate }}
+                } @else {
+                  {{ 'validation.titleMinLength' | translate }}
+                }
               </div>
-              <div class="form-help">{{ 'review.formHelp.phone' | translate }}</div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ 'review.incidentDate' | translate }}</label>
-              <input class="form-input" type="date" formControlName="incidentDate" />
-            </div>
-          </div>
-
-          <!-- Product Category & Product -->
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">{{ 'review.productCategory' | translate }} *</label>
-              <select class="form-select" [class.input-error]="isFieldInvalid('productCategory')" formControlName="productCategory">
-                <option value="">{{ 'review.selectCategory' | translate }}</option>
-                <option value="Auto">{{ 'productCategory.auto' | translate }}</option>
-                <option value="Bags & Cases">{{ 'productCategory.bagsCases' | translate }}</option>
-                <option value="Building">{{ 'productCategory.building' | translate }}</option>
-                <option value="Chemical">{{ 'productCategory.chemical' | translate }}</option>
-                <option value="Computer Products">{{ 'productCategory.computerProducts' | translate }}</option>
-                <option value="Consumer Electronics">{{ 'productCategory.consumerElectronics' | translate }}</option>
-                <option value="Electrics & Electronics">{{ 'productCategory.electricsElectronics' | translate }}</option>
-                <option value="Energy">{{ 'productCategory.energy' | translate }}</option>
-                <option value="Fashion Accessories">{{ 'productCategory.fashionAccessories' | translate }}</option>
-                <option value="Food & Beverage">{{ 'productCategory.foodBeverage' | translate }}</option>
-                <option value="Furniture">{{ 'productCategory.furniture' | translate }}</option>
-                <option value="Garment">{{ 'productCategory.garment' | translate }}</option>
-                <option value="Gifts & Crafts">{{ 'productCategory.giftsCrafts' | translate }}</option>
-                <option value="Hardware">{{ 'productCategory.hardware' | translate }}</option>
-                <option value="Health & Medical">{{ 'productCategory.healthMedical' | translate }}</option>
-                <option value="Home & Garden">{{ 'productCategory.homeGarden' | translate }}</option>
-                <option value="Home Appliances">{{ 'productCategory.homeAppliances' | translate }}</option>
-                <option value="Kitchenware & Tableware">{{ 'productCategory.kitchenwareTableware' | translate }}</option>
-                <option value="Lights & Lighting">{{ 'productCategory.lightsLighting' | translate }}</option>
-                <option value="Machinery">{{ 'productCategory.machinery' | translate }}</option>
-                <option value="Other">{{ 'productCategory.other' | translate }}</option>
-                <option value="Packaging & Printing">{{ 'productCategory.packagingPrinting' | translate }}</option>
-                <option value="Personal Care">{{ 'productCategory.personalCare' | translate }}</option>
-                <option value="Sanitary Ware">{{ 'productCategory.sanitaryWare' | translate }}</option>
-                <option value="Shoes">{{ 'productCategory.shoes' | translate }}</option>
-                <option value="Sports & Entertainment">{{ 'productCategory.sportsEntertainment' | translate }}</option>
-                <option value="Stationery & Office Supplies">{{ 'productCategory.stationeryOffice' | translate }}</option>
-                <option value="Textile">{{ 'productCategory.textile' | translate }}</option>
-                <option value="Toys">{{ 'productCategory.toys' | translate }}</option>
-              </select>
-              @if (isFieldInvalid('productCategory')) {
-                <div class="field-error">{{ 'validation.categoryRequired' | translate }}</div>
-              }
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ 'review.product' | translate }}</label>
-              <input class="form-input" type="text" formControlName="product" [placeholder]="'review.placeholder.product' | translate" />
-            </div>
-          </div>
-
-          <!-- Review Type & Title -->
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">{{ 'review.reviewType' | translate }} *</label>
-              <select class="form-select" [class.input-error]="isFieldInvalid('severity')" formControlName="severity">
-                <option [ngValue]="null" disabled>{{ 'review.selectType' | translate }}</option>
-                <optgroup [label]="'severity.groupNegative' | translate">
-                  <option [ngValue]="0">{{ 'severity.info' | translate }}</option>
-                  <option [ngValue]="1">{{ 'severity.warning' | translate }}</option>
-                  <option [ngValue]="2">{{ 'severity.critical' | translate }}</option>
-                  <option [ngValue]="3">{{ 'severity.behavior' | translate }}</option>
-                  <option [ngValue]="4">{{ 'severity.fraud' | translate }}</option>
-                  <option [ngValue]="5">{{ 'severity.quality' | translate }}</option>
-                  <option [ngValue]="6">{{ 'severity.delivery' | translate }}</option>
-                  <option [ngValue]="7">{{ 'severity.payment' | translate }}</option>
-                  <option [ngValue]="8">{{ 'severity.financiallyDistressed' | translate }}</option>
-                  <option [ngValue]="9">{{ 'severity.bankrupt' | translate }}</option>
-                  <option [ngValue]="10">{{ 'severity.poorManagement' | translate }}</option>
-                  <option [ngValue]="11">{{ 'severity.inaccurateAppointments' | translate }}</option>
-                  <option [ngValue]="12">{{ 'severity.bribeOthers' | translate }}</option>
-                  <option [ngValue]="13">{{ 'severity.fakeSupplier' | translate }}</option>
-                  <option [ngValue]="14">{{ 'severity.other' | translate }}</option>
-                </optgroup>
-                <optgroup [label]="'severity.groupPositive' | translate">
-                  <option [ngValue]="15">{{ 'severity.positive' | translate }}</option>
-                  <option [ngValue]="16">{{ 'severity.recommended' | translate }}</option>
-                  <option [ngValue]="17">{{ 'severity.highQuality' | translate }}</option>
-                  <option [ngValue]="18">{{ 'severity.onTimeDelivery' | translate }}</option>
-                  <option [ngValue]="19">{{ 'severity.goodCommunication' | translate }}</option>
-                  <option [ngValue]="20">{{ 'severity.reliable' | translate }}</option>
-                </optgroup>
-              </select>
-              @if (isFieldInvalid('severity')) {
-                <div class="field-error">{{ 'validation.selectReviewType' | translate }}</div>
-              }
-            </div>
-            <div class="form-group">
-              <label class="form-label">{{ 'review.title' | translate }} *</label>
-              <input class="form-input" [class.input-error]="isFieldInvalid('title')" type="text" formControlName="title" [placeholder]="'review.placeholder.title' | translate" />
-              @if (isFieldInvalid('title')) {
-                <div class="field-error">
-                  @if (form.get('title')?.errors?.['required']) {
-                    {{ 'validation.titleRequired' | translate }}
-                  } @else {
-                    {{ 'validation.titleMinLength' | translate }}
-                  }
-                </div>
-              }
-            </div>
+            }
           </div>
         }
 
         <!-- Narrative -->
-        <div class="form-group">
+        <div class="form-group form-group--full">
           <label class="form-label">{{ submissionMode() === 'comment' ? ('review.commentNarrative' | translate) : ('review.narrative' | translate) }} *</label>
           <textarea class="form-textarea" [class.input-error]="isFieldInvalid('narrative')" formControlName="narrative"
                     [placeholder]="'review.placeholder.narrative' | translate"
@@ -221,7 +238,7 @@
 
         @if (submissionMode() === 'review' && !editMode()) {
           <!-- File Upload -->
-          <div class="form-group">
+          <div class="form-group form-group--full">
             <label class="form-label">
               {{ 'review.uploadEvidence' | translate }} <span>*</span>
             </label>
@@ -233,7 +250,7 @@
         }
 
         <!-- Confirmation -->
-        <div class="form-group checkbox-group">
+        <div class="form-group form-group--full checkbox-group">
           <label class="checkbox-label">
             <input type="checkbox" formControlName="confirmed" />
             <span>{{ 'review.confirmation' | translate }}</span>
@@ -242,11 +259,11 @@
 
         <!-- Submit -->
         @if (submitted() && !isFormReady()) {
-          <div class="validation-summary">
+          <div class="form-group--full validation-summary">
             ⚠️ {{ 'review.validationSummary' | translate }}
           </div>
         }
-        <button type="submit" class="btn btn-primary submit-btn"
+        <button type="submit" class="btn btn-primary submit-btn form-group--full"
           [class.btn-disabled]="!isFormReady()"
           [disabled]="submitting() || !isFormReady()">
           @if (submitting()) {

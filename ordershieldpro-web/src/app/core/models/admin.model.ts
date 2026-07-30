@@ -1,4 +1,5 @@
 import { AdminActionStatus, AdminActionType, EntityType, ReviewerType, ReviewStatus, SeverityLevel } from '../enums';
+import { EvidenceFileRef } from './review.model';
 
 export interface PendingReview {
   id: string;
@@ -18,7 +19,7 @@ export interface PendingReview {
   evidenceLinks?: string;
   /** JSON string (ReviewPendingEdit) when status === PendingEdit */
   pendingEditJson?: string;
-  evidenceFiles: { id: string; fileName: string; contentType: string; fileSizeBytes: number }[];
+  evidenceFiles: EvidenceFileRef[];
   publicEvidenceNotes: { id: string; summary: string; verificationOutcome: number; createdAt: string }[];
   createdAt: string;
 }

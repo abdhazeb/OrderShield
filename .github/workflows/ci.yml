@@ -52,6 +52,11 @@ jobs:
       - name: Install
         run: npm ci
 
+      # Runs before the build: a missing or asymmetric translation key is a real user-facing
+      # bug (the raw key renders), but it compiles cleanly, so only this check catches it.
+      - name: Check locales
+        run: npm run check:i18n
+
       - name: Build
         run: npx ng build --configuration production
 

@@ -81,6 +81,7 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
             IncidentDate = request.IncidentDate,
             OrderValue = request.OrderValue,
             ContactName = request.ContactName,
+            ContactPosition = request.ContactPosition,
             ContactPhoneUsed = request.ContactPhoneUsed,
             ContactWeChatUsed = request.ContactWeChatUsed,
             EvidenceLinks = request.EvidenceLinks,

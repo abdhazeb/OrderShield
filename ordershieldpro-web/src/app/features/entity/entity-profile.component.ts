@@ -12,6 +12,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { EntityDetail, Review, PaginatedResult } from '../../core/models';
 import { EntityType, ReviewStatus, SeverityLevel, VerificationStatus } from '../../core/enums';
+import { LocalizeValuePipe } from '../../shared/pipes/localize-value.pipe';
 
 interface EntityEditModel {
   legalName: string;
@@ -35,6 +36,7 @@ interface EntityEditModel {
     ReviewCardComponent,
     StatCardComponent,
     LoadingSpinnerComponent,
+    LocalizeValuePipe,
   ],
   templateUrl: './entity-profile.component.html',
   styleUrl: './entity-profile.component.scss',
@@ -88,9 +90,7 @@ export class EntityProfileComponent implements OnInit {
   onEditReview(review: Review): void {
     const isComment = review.severity === SeverityLevel.Info;
     this.router.navigate(['/submit-review'], {
-      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },
-      state: { review },
-    });
+      queryParams: { reviewId: review.id, mode: isComment ? 'comment' : 'review' },    });
   }
 
   onDeleteReview(review: Review): void {

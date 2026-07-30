@@ -36,42 +36,81 @@ public class ReviewsController : ControllerBase
             : BadRequest(new { result.Errors });
     }
 
+    private const long MaxEvidenceFileBytes = 10 * 1024 * 1024; // 10 MB
+
+    private static readonly HashSet<string> AllowedEvidenceExtensions = new(StringComparer.OrdinalIgnoreCase)
+        { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt" };
+
+    private static readonly HashSet<string> AllowedEvidenceContentTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp",
+        "application/pdf",
+        "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/plain"
+    };
+
     /// <summary>
-    /// Upload evidence file for a review.
+    /// Attach one or more evidence files to a review. The form field name is "files";
+    /// a single file posted under "file" is accepted too.
     /// </summary>
     [HttpPost("{reviewId:guid}/evidence")]
     [Authorize]
-    public async Task<IActionResult> UploadEvidence(Guid reviewId, IFormFile file, CancellationToken ct)
+    public async Task<IActionResult> UploadEvidence(
+        Guid reviewId,
+        [FromForm(Name = "files")] IFormFileCollection? files,
+        CancellationToken ct)
     {
-        if (file.Length == 0)
-            return BadRequest(new { errors = new[] { "File is empty." } });
+        // Fall back to whatever the request actually carried so a client posting a single
+        // "file" field still works. Evidence is only ever attached through this endpoint,
+        // so silently accepting zero files would look like a successful upload.
+        var uploads = (files is { Count: > 0 } ? files : Request.Form.Files)
+            ?.Where(f => f.Length > 0).ToList() ?? new List<IFormFile>();
 
-        if (file.Length > 10 * 1024 * 1024) // 10 MB limit
-            return BadRequest(new { errors = new[] { "File size must not exceed 10 MB." } });
+        if (uploads.Count == 0)
+            return BadRequest(new { errors = new[] { "No files were uploaded." } });
 
-        // Validate file type (whitelist of allowed extensions)
-        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt" };
-        var extension = Path.GetExtension(file.FileName);
-        if (string.IsNullOrEmpty(extension) || !allowedExtensions.Contains(extension))
-            return BadRequest(new { errors = new[] { $"File type '{extension}' is not allowed. Allowed types: {string.Join(", ", allowedExtensions)}" } });
-
-        // Validate content type
-        var allowedContentTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        foreach (var file in uploads)
         {
-            "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp",
-            "application/pdf",
-            "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "text/plain"
-        };
-        if (!allowedContentTypes.Contains(file.ContentType))
-            return BadRequest(new { errors = new[] { $"Content type '{file.ContentType}' is not allowed." } });
+            if (file.Length > MaxEvidenceFileBytes)
+                return BadRequest(new { errors = new[] { $"'{file.FileName}' exceeds the 10 MB limit." } });
 
-        await using var stream = file.OpenReadStream();
-        var storagePath = await _fileStorage.UploadFileAsync(stream, file.FileName, file.ContentType, ct);
+            var extension = Path.GetExtension(file.FileName);
+            if (string.IsNullOrEmpty(extension) || !AllowedEvidenceExtensions.Contains(extension))
+                return BadRequest(new { errors = new[] { $"File type '{extension}' is not allowed. Allowed types: {string.Join(", ", AllowedEvidenceExtensions)}" } });
 
-        return Ok(new { storagePath, fileName = file.FileName, contentType = file.ContentType, fileSizeBytes = file.Length });
+            if (!AllowedEvidenceContentTypes.Contains(file.ContentType))
+                return BadRequest(new { errors = new[] { $"Content type '{file.ContentType}' is not allowed." } });
+        }
+
+        var streams = new List<Stream>(uploads.Count);
+        try
+        {
+            var items = uploads.Select(f =>
+            {
+                var stream = f.OpenReadStream();
+                streams.Add(stream);
+                return new EvidenceUpload
+                {
+                    Content = stream,
+                    FileName = Path.GetFileName(f.FileName),
+                    ContentType = f.ContentType,
+                    FileSizeBytes = f.Length
+                };
+            }).ToList();
+
+            var result = await _mediator.Send(
+                new AttachReviewEvidenceCommand { ReviewId = reviewId, Files = items }, ct);
+
+            return result.Succeeded
+                ? Ok(new { fileIds = result.Data })
+                : BadRequest(new { result.Errors });
+        }
+        finally
+        {
+            foreach (var stream in streams)
+                await stream.DisposeAsync();
+        }
     }
 
     /// <summary>
@@ -138,6 +177,33 @@ public class ReviewsController : ControllerBase
     {
         var result = await _mediator.Send(new GetHiddenReviewsQuery { Page = page, PageSize = pageSize }, ct);
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Current values of a review for prefilling the edit form. Owner or moderator.
+    /// </summary>
+    [HttpGet("{reviewId:guid}/edit")]
+    [Authorize]
+    public async Task<IActionResult> GetForEdit(Guid reviewId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetReviewForEditQuery(reviewId), ct);
+        return result.Succeeded
+            ? Ok(result.Data)
+            : BadRequest(new { result.Errors });
+    }
+
+    /// <summary>
+    /// Full detail of one review for the moderation dossier screen (service team only).
+    /// Carries the reviewer's contact details and evidence manifest, so it is never public.
+    /// </summary>
+    [HttpGet("{reviewId:guid}/moderation")]
+    [Authorize(Roles = "ServiceTeam,Admin,SuperAdmin")]
+    public async Task<IActionResult> GetForModeration(Guid reviewId, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetReviewForModerationQuery(reviewId), ct);
+        return result.Succeeded
+            ? Ok(result.Data)
+            : BadRequest(new { result.Errors });
     }
 
     /// <summary>

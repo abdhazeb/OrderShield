@@ -1,0 +1,281 @@
+<!-- `as` aliasing only binds on a leading @if, so the loaded state is tested first and
+     the loading/missing states fall through to the else branches. -->
+@if (review(); as r) {
+  <div class="dossier-shell">
+
+    <!-- ── Header ─────────────────────────────────────────────────────────── -->
+    <header class="dossier-head">
+      <a class="back-link" [routerLink]="['/admin']" [queryParams]="{ section: 'moderation', tab: 'queue' }">
+        <span class="back-arrow" aria-hidden="true">←</span>
+        {{ 'admin.dossier.backToQueue' | translate }}
+      </a>
+
+      <div class="head-main">
+        <div class="head-titles">
+          <p class="eyebrow">{{ 'admin.dossier.eyebrow' | translate }}</p>
+          <h1 class="dossier-title">{{ r.title }}</h1>
+          <p class="dossier-sub">
+            <a class="entity-link" [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a>
+            <span class="sep">·</span>
+            <span>{{ r.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
+          </p>
+        </div>
+        <div class="head-chips">
+          <span class="chip chip-status" [class]="'status-' + r.status">{{ statusLabel(r.status) }}</span>
+          <span class="chip chip-sev" [class]="'sev-' + severityClass(r.severity)">{{ severityLabel(r.severity) }}</span>
+          @if (r.isComment) {
+            <span class="chip chip-muted">{{ 'admin.dossier.isComment' | translate }}</span>
+          }
+        </div>
+      </div>
+    </header>
+
+    <div class="dossier-grid">
+
+      <!-- ── Main column ──────────────────────────────────────────────────── -->
+      <main class="dossier-main">
+
+        <!-- Narrative -->
+        <section class="panel">
+          <h2 class="panel-title">{{ 'admin.dossier.claim' | translate }}</h2>
+          <p class="narrative">{{ r.narrative }}</p>
+        </section>
+
+        <!-- Pending edit diff -->
+        @if (r.status === ReviewStatus.PendingEdit && parsedPendingEdit(); as edit) {
+          <section class="panel panel-edit">
+            <h2 class="panel-title">{{ 'admin.pendingEditTitle' | translate }}</h2>
+            <p class="panel-note">{{ 'admin.pendingEditDesc' | translate }}</p>
+            <div class="diff-grid">
+              <div class="diff-col">
+                <span class="diff-label">{{ 'admin.originalContent' | translate }}</span>
+                <p class="diff-field"><strong>{{ 'review.title' | translate }}</strong>{{ r.title }}</p>
+                <p class="diff-field"><strong>{{ 'admin.narrative' | translate }}</strong>{{ r.narrative }}</p>
+              </div>
+              <div class="diff-col">
+                <span class="diff-label">{{ 'admin.proposedEdit' | translate }}</span>
+                <p class="diff-field" [class.changed]="edit['title'] !== r.title">
+                  <strong>{{ 'review.title' | translate }}</strong>{{ edit['title'] }}
+                </p>
+                <p class="diff-field" [class.changed]="edit['narrative'] !== r.narrative">
+                  <strong>{{ 'admin.narrative' | translate }}</strong>{{ edit['narrative'] }}
+                </p>
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- Evidence -->
+        <section class="panel">
+          <h2 class="panel-title">
+            {{ 'admin.dossier.evidence' | translate }}
+            <span class="panel-count">{{ r.evidenceFiles.length }}</span>
+          </h2>
+
+          <app-evidence-viewer [reviewId]="r.id" [files]="r.evidenceFiles" layout="grid" />
+
+          @if (parsedEvidenceLinks().length > 0) {
+            <div class="evidence-links">
+              <h3 class="subhead">{{ 'review.evidenceLinks' | translate }}</h3>
+              <ul>
+                @for (link of parsedEvidenceLinks(); track link) {
+                  <li><a [href]="link" target="_blank" rel="noopener noreferrer">{{ link }}</a></li>
+                }
+              </ul>
+            </div>
+          }
+        </section>
+
+        <!-- Moderation trail -->
+        <section class="panel">
+          <h2 class="panel-title">{{ 'admin.dossier.notes' | translate }}</h2>
+          @if (r.evidenceNotes.length === 0) {
+            <p class="panel-empty">{{ 'admin.dossier.noNotes' | translate }}</p>
+          } @else {
+            <ul class="note-list">
+              @for (note of r.evidenceNotes; track note.id) {
+                <li class="note">
+                  <p class="note-body">{{ note.summary }}</p>
+                  <p class="note-meta">
+                    <span>{{ note.authoredByName || ('admin.dossier.serviceTeam' | translate) }}</span>
+                    <span class="sep">·</span>
+                    <span>{{ note.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
+                    <span class="sep">·</span>
+                    <span>{{ verificationLabel(note.verificationOutcome) }}</span>
+                    @if (!note.isPubliclyVisible) {
+                      <span class="note-internal">{{ 'admin.dossier.internalNote' | translate }}</span>
+                    }
+                  </p>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </main>
+
+      <!-- ── Side column ──────────────────────────────────────────────────── -->
+      <aside class="dossier-side">
+
+        <section class="panel side-panel">
+          <h2 class="panel-title">{{ 'admin.dossier.subject' | translate }}</h2>
+          <dl class="facts">
+            <dt>{{ 'entity.legalName' | translate }}</dt>
+            <dd><a [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a></dd>
+            @if (r.tradeEntityCountry) {
+              <dt>{{ 'entity.country' | translate }}</dt>
+              <dd>{{ r.tradeEntityCountry | localizeValue:'country' }}{{ r.tradeEntityRegion ? ' — ' + r.tradeEntityRegion : '' }}</dd>
+            }
+            <dt>{{ 'entity.verificationStatus' | translate }}</dt>
+            <dd>{{ verificationLabel(r.tradeEntityVerificationStatus) }}</dd>
+            <dt>{{ 'entity.reviews' | translate }}</dt>
+            <dd>{{ r.tradeEntityTotalReviewCount }}</dd>
+            @if (r.tradeEntityIsHidden) {
+              <dt>{{ 'admin.dossier.entityHidden' | translate }}</dt>
+              <dd class="flag-warn">{{ 'common.yes' | translate }}</dd>
+            }
+          </dl>
+        </section>
+
+        <section class="panel side-panel">
+          <h2 class="panel-title">{{ 'admin.dossier.filedBy' | translate }}</h2>
+          <dl class="facts">
+            <dt>{{ 'admin.reviewer' | translate }}</dt>
+            <dd>{{ r.reviewerName || ('admin.anonymous' | translate) }}</dd>
+            @if (r.reviewerEmail) {
+              <dt>{{ 'auth.email' | translate }}</dt>
+              <dd class="mono"><a [href]="'mailto:' + r.reviewerEmail">{{ r.reviewerEmail }}</a></dd>
+            }
+            <dt>{{ 'admin.reviewerType' | translate }}</dt>
+            <dd>{{ reviewerTypeLabel(r.reviewerType) }}</dd>
+            @if (r.verificationEmail && r.verificationEmail !== r.reviewerEmail) {
+              <dt>{{ 'review.verificationEmail' | translate }}</dt>
+              <dd class="mono">{{ r.verificationEmail }}</dd>
+            }
+          </dl>
+        </section>
+
+        <section class="panel side-panel">
+          <h2 class="panel-title">{{ 'admin.dossier.counterparty' | translate }}</h2>
+          @if (!r.contactName && !r.contactPosition && !r.contactPhoneUsed && !r.contactWeChatUsed) {
+            <p class="panel-empty">{{ 'admin.dossier.noContact' | translate }}</p>
+          } @else {
+            <dl class="facts">
+              @if (r.contactName) {
+                <dt>{{ 'review.contactName' | translate }}</dt>
+                <dd>{{ r.contactName }}</dd>
+              }
+              @if (r.contactPosition) {
+                <dt>{{ 'review.contactPosition' | translate }}</dt>
+                <dd>{{ r.contactPosition | localizeValue:'contactPosition' }}</dd>
+              }
+              @if (r.contactPhoneUsed) {
+                <dt>{{ 'review.contactPhone' | translate }}</dt>
+                <dd class="mono" dir="ltr">{{ r.contactPhoneUsed }}</dd>
+              }
+              @if (r.contactWeChatUsed) {
+                <dt>{{ 'review.contactWeChat' | translate }}</dt>
+                <dd class="mono" dir="ltr">{{ r.contactWeChatUsed }}</dd>
+              }
+            </dl>
+          }
+        </section>
+
+        <section class="panel side-panel">
+          <h2 class="panel-title">{{ 'admin.dossier.submission' | translate }}</h2>
+          <dl class="facts">
+            <dt>{{ 'review.reviewType' | translate }}</dt>
+            <dd>{{ severityLabel(r.severity) }}</dd>
+            @if (r.productCategory) {
+              <dt>{{ 'review.productCategory' | translate }}</dt>
+              <dd>{{ r.productCategory | localizeValue:'productCategory' }}</dd>
+            }
+            @if (r.product) {
+              <dt>{{ 'review.product' | translate }}</dt>
+              <dd>{{ r.product }}</dd>
+            }
+            @if (r.incidentDate) {
+              <dt>{{ 'review.incidentDate' | translate }}</dt>
+              <dd>{{ r.incidentDate | date:'MMM d, yyyy' }}</dd>
+            }
+            @if (r.orderValue) {
+              <dt>{{ 'review.orderValue' | translate }}</dt>
+              <dd>{{ r.orderValue | currency:'USD':'symbol':'1.0-0' }}</dd>
+            }
+            <dt>{{ 'admin.submitted' | translate }}</dt>
+            <dd>{{ r.createdAt | date:'MMM d, yyyy h:mm a' }}</dd>
+            @if (r.updatedAt) {
+              <dt>{{ 'admin.dossier.lastUpdated' | translate }}</dt>
+              <dd>{{ r.updatedAt | date:'MMM d, yyyy h:mm a' }}</dd>
+            }
+          </dl>
+        </section>
+      </aside>
+    </div>
+
+    <!-- ── Decision bar ───────────────────────────────────────────────────── -->
+    <div class="decision-bar">
+      <p class="decision-hint">{{ 'admin.dossier.decisionHint' | translate }}</p>
+      <div class="decision-actions">
+        @if (r.status === ReviewStatus.PendingEdit) {
+          <button type="button" class="act act-approve" [disabled]="acting()" (click)="approveEdit()">
+            {{ 'admin.approveEdit' | translate }}
+          </button>
+          <button type="button" class="act act-reject" [disabled]="acting()" (click)="rejectEdit()">
+            {{ 'admin.rejectEdit' | translate }}
+          </button>
+        } @else if (r.status === ReviewStatus.Published) {
+          <button type="button" class="act act-reject" [disabled]="acting()" (click)="hide()">
+            {{ 'review.hide' | translate }}
+          </button>
+        } @else {
+          <button type="button" class="act act-approve" [disabled]="acting()" (click)="publish()">
+            {{ 'admin.publish' | translate }}
+          </button>
+          <button type="button" class="act act-reject" [disabled]="acting()" (click)="reject()">
+            {{ 'admin.reject' | translate }}
+          </button>
+        }
+        <button type="button" class="act act-ghost" [disabled]="acting()" (click)="showMessageForm.set(!showMessageForm())">
+          {{ 'admin.messageReviewer' | translate }}
+        </button>
+        <button type="button" class="act act-ghost" [disabled]="acting()" (click)="editReview()">
+          {{ 'review.edit' | translate }}
+        </button>
+        <button type="button" class="act act-danger" [disabled]="acting()" (click)="deleteReview()">
+          {{ 'review.delete' | translate }}
+        </button>
+      </div>
+
+      @if (showMessageForm()) {
+        <div class="message-box">
+          <label class="message-label" for="dossier-message">{{ 'admin.contactReviewer' | translate }}</label>
+          <p class="message-desc">{{ 'admin.contactDesc' | translate }}</p>
+          <textarea id="dossier-message" rows="4" [(ngModel)]="messageText"
+                    [placeholder]="'admin.placeholder.message' | translate"></textarea>
+          <div class="message-actions">
+            <button type="button" class="act act-approve" [disabled]="!messageText.trim() || sendingMessage()" (click)="sendMessage()">
+              {{ sendingMessage() ? ('admin.sending' | translate) : ('admin.sendMessage' | translate) }}
+            </button>
+            <button type="button" class="act act-ghost" (click)="showMessageForm.set(false)">
+              {{ 'admin.cancel' | translate }}
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+} @else if (loading()) {
+  <div class="dossier-shell">
+    <app-loading-spinner [message]="'admin.dossier.loading' | translate" />
+  </div>
+} @else {
+  <div class="dossier-shell">
+    <div class="dossier-missing">
+      <h1>{{ 'admin.dossier.notFound' | translate }}</h1>
+      <p>{{ 'admin.dossier.notFoundDesc' | translate }}</p>
+      <a class="btn-ghost" [routerLink]="['/admin']" [queryParams]="{ section: 'moderation', tab: 'queue' }">
+        {{ 'admin.dossier.backToQueue' | translate }}
+      </a>
+    </div>
+  </div>
+}

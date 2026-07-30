@@ -72,6 +72,7 @@ public class ReviewRepository : IReviewRepository
         var query = _context.Reviews
             .Include(r => r.TradeEntity)
             .Include(r => r.EvidenceFiles)
+            .Include(r => r.EvidenceNotes)
             .Where(r => r.Status == ReviewStatus.Pending || r.Status == ReviewStatus.PendingEdit)
             .OrderBy(r => r.CreatedAt); // Oldest first for FIFO moderation
 

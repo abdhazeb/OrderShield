@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { DatePipe, UpperCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -9,6 +9,8 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { HiddenEntity, HiddenReview, PaginatedResult } from '../../../../core/models';
 import { ReviewStatus, SeverityLevel } from '../../../../core/enums';
+import { severityKey, severitySlug } from '../../../../core/utils/severity-label';
+import { LocalizeValuePipe } from '../../../../shared/pipes/localize-value.pipe';
 
 /**
  * Admin → Hidden Content. Two independent lists:
@@ -27,7 +29,7 @@ import { ReviewStatus, SeverityLevel } from '../../../../core/enums';
 @Component({
   selector: 'app-hidden-content',
   standalone: true,
-  imports: [DatePipe, UpperCasePipe, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent],
+  imports: [DatePipe, TranslateModule, LoadingSpinnerComponent, EmptyStateComponent, LocalizeValuePipe],
   templateUrl: './hidden-content.component.html',
   styleUrl: './hidden-content.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -205,17 +207,13 @@ export class HiddenContentComponent implements OnInit {
     });
   }
 
+  /** Style hook slug (`sev-fraud`, …). */
   getSeverityString(severity: SeverityLevel): string {
-    switch (severity) {
-      case SeverityLevel.Info: return 'info';
-      case SeverityLevel.Warning: return 'warning';
-      case SeverityLevel.Critical: return 'critical';
-      case SeverityLevel.Behavior: return 'behavior';
-      case SeverityLevel.Fraud: return 'fraud';
-      case SeverityLevel.Quality: return 'quality';
-      case SeverityLevel.Delivery: return 'delivery';
-      case SeverityLevel.Payment: return 'payment';
-      default: return 'info';
-    }
+    return severitySlug(severity);
+  }
+
+  /** The review type in the reader's language — never the raw English enum name. */
+  getSeverityLabel(severity: SeverityLevel): string {
+    return this.translate.instant(severityKey(severity));
   }
 }

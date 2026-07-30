@@ -9,8 +9,11 @@ export { FileUploadComponent } from './components/file-upload/file-upload.compon
 export { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 export { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 export { EmptyStateComponent } from './components/empty-state/empty-state.component';
+export { EvidenceViewerComponent } from './components/evidence-viewer/evidence-viewer.component';
 
 export { RelativeDatePipe } from './pipes/relative-date.pipe';
 export { TruncatePipe } from './pipes/truncate.pipe';
+export { FileSizePipe } from './pipes/file-size.pipe';
+export { LocalizeValuePipe, toI18nKeySuffix } from './pipes/localize-value.pipe';
 
 export { RtlDirective } from './directives/rtl.directive';

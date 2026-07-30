@@ -39,7 +39,9 @@
 }
 .card-meta { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #64748b; flex-wrap: wrap; }
 .meta-sep { color: #cbd5e1; }
-.meta-severity { font-weight: 700; font-size: 12px; letter-spacing: 0.5px; }
+/* Base colour so a severity without its own rule below still reads as a deliberate label
+   rather than inheriting the muted meta grey. */
+.meta-severity { font-weight: 700; font-size: 12px; letter-spacing: 0.5px; color: #475569; }
 .meta-severity.sev-info { color: #3b82f6; }
 .meta-severity.sev-warning { color: #d97706; }
 .meta-severity.sev-critical { color: #ef4444; }
@@ -71,6 +73,7 @@
 .sev-badge {
   display: inline-block; padding: 2px 10px; border-radius: 6px;
   font-size: 12px; font-weight: 700; letter-spacing: 0.5px; width: fit-content;
+  background: #f1f5f9; color: #475569; /* fallback for severities without their own rule */
 }
 .sev-badge.sev-info { background: #dbeafe; color: #1e40af; }
 .sev-badge.sev-warning { background: #fef3c7; color: #92400e; }
@@ -84,18 +87,28 @@
   background: white; padding: 16px; border-radius: 10px; border: 1px solid #e2e8f0;
   font-size: 15px; line-height: 1.75; color: #334155; white-space: pre-wrap;
 }
-.file-list { display: flex; flex-direction: column; gap: 6px; }
-/* A <button> so the authenticated blob download can run; styled as a row. */
-.file-row {
-  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-  background: white; border-radius: 8px; border: 1px solid #e2e8f0;
-  width: 100%; font: inherit; text-align: inherit; cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+.meta-evidence { font-size: 12px; color: var(--text-tertiary); }
+
+
+/* Route into the full dossier: the whole submission, the counterparty contact, and the
+   moderation trail. Files can be read from this card too, via app-evidence-viewer. */
+.open-dossier {
+  appearance: none;
+  margin-top: 10px;
+  padding: 7px 14px;
+  border: 1px solid var(--accent-400);
+  border-radius: var(--radius-md);
+  background: var(--accent-50);
+  color: var(--accent-600);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover { background: var(--accent-100); }
 }
-.file-row:hover { border-color: var(--accent-400); background: var(--accent-50); }
-.file-row:focus-visible { outline: 2px solid var(--accent-500); outline-offset: 2px; }
-.file-name { flex: 1; font-size: 14px; font-weight: 500; color: #1e293b; }
-.file-size { font-size: 13px; color: #94a3b8; }
+
+/* Evidence rows are rendered by app-evidence-viewer (compact layout), which owns their styles. */
 .note-card {
   padding: 12px 16px; background: #fffbeb; border-radius: 8px;
   border: 1px solid #fde68a; margin-bottom: 8px;

@@ -98,6 +98,122 @@ public class ReviewsControllerTests : IClassFixture<TestWebApplicationFactory>
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
+    /// <summary>
+    /// Uploading evidence used to write the bytes to disk and return the path without ever
+    /// creating a ReviewEvidenceFile row, so moderators saw no attachments on submissions
+    /// that had them. The rows are what the moderation screens read — assert on those.
+    /// </summary>
+    [Fact]
+    public async Task UploadEvidence_PersistsTheFilesAgainstTheReview()
+    {
+        // Arrange
+        var token = await RegisterAndLoginAsync();
+        var entityId = await SeedEntityAsync("Evidence Target Entity");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var reviewId = await CreateReviewAsync(entityId);
+
+        using var form = new MultipartFormDataContent();
+        form.Add(ImageContent("proof-one.png"), "files", "proof-one.png");
+        form.Add(PdfContent("invoice.pdf"), "files", "invoice.pdf");
+
+        // Act
+        var response = await _client.PostAsync($"/api/reviews/{reviewId}/evidence", form);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var stored = db.ReviewEvidenceFiles.Where(f => f.ReviewId == reviewId).ToList();
+
+        stored.Should().HaveCount(2);
+        stored.Select(f => f.FileName).Should().BeEquivalentTo(new[] { "proof-one.png", "invoice.pdf" });
+        stored.Should().OnlyContain(f => f.StoragePath.Length > 0 && f.FileSizeBytes > 0);
+    }
+
+    [Fact]
+    public async Task UploadEvidence_ByADifferentUser_IsRefused()
+    {
+        // Arrange — one user files the review, another tries to attach to it.
+        var ownerToken = await RegisterAndLoginAsync();
+        var entityId = await SeedEntityAsync("Evidence Authorization Entity");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", ownerToken);
+        var reviewId = await CreateReviewAsync(entityId);
+
+        var intruderToken = await RegisterAndLoginAsync();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", intruderToken);
+
+        using var form = new MultipartFormDataContent();
+        form.Add(ImageContent("not-mine.png"), "files", "not-mine.png");
+
+        // Act
+        var response = await _client.PostAsync($"/api/reviews/{reviewId}/evidence", form);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.ReviewEvidenceFiles.Count(f => f.ReviewId == reviewId).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task GetForModeration_AsTheReviewer_IsRefused()
+    {
+        // Arrange — the dossier carries contact details, so it is moderator-only.
+        var token = await RegisterAndLoginAsync();
+        var entityId = await SeedEntityAsync("Moderation Detail Entity");
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var reviewId = await CreateReviewAsync(entityId);
+
+        // Act
+        var response = await _client.GetAsync($"/api/reviews/{reviewId}/moderation");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    /// <summary>Creates a review as the currently authenticated caller and returns its id.</summary>
+    private async Task<Guid> CreateReviewAsync(Guid entityId)
+    {
+        var response = await _client.PostAsJsonAsync("/api/reviews", new
+        {
+            TradeEntityId = entityId,
+            ReviewerType = 0,
+            TransactionRole = "Broker reviewing Supplier",
+            Severity = 1,
+            Title = "Evidence Test Review",
+            Narrative = "A narrative long enough to satisfy the validator for this submission, describing the incident in enough detail to be assessed.",
+            ProductCategory = "Metals",
+            ContactName = "Mr Chen",
+            ContactPosition = "Purchasing Manager",
+            IncidentDate = DateTime.UtcNow.AddDays(-5),
+            VerificationEmail = "test@example.com"
+        });
+
+        response.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created);
+        var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        return doc.RootElement.GetProperty("id").GetGuid();
+    }
+
+    private static ByteArrayContent ImageContent(string fileName)
+    {
+        // Minimal PNG header — enough for the extension/content-type whitelist.
+        var bytes = new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x01 };
+        var content = new ByteArrayContent(bytes);
+        content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
+        return content;
+    }
+
+    private static ByteArrayContent PdfContent(string fileName)
+    {
+        var bytes = System.Text.Encoding.ASCII.GetBytes("%PDF-1.4\n% test fixture\n");
+        var content = new ByteArrayContent(bytes);
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/pdf");
+        return content;
+    }
+
     private async Task<Guid> SeedEntityAsync(string name)
     {
         using var scope = _factory.Services.CreateScope();

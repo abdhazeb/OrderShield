@@ -71,7 +71,7 @@
                 <div class="cell-subtle">{{ entityTypeKey(entity.entityType) | translate }}</div>
               </td>
               <td>
-                <div>{{ entity.country }}</div>
+                <div>{{ entity.country | localizeValue:'country' }}</div>
                 @if (entity.region) {
                   <div class="cell-subtle">{{ entity.region }}</div>
                 }

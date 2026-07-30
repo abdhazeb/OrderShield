@@ -1,0 +1,96 @@
+@if (previews().length === 0) {
+  <p class="ev-empty">{{ 'admin.dossier.noEvidence' | translate }}</p>
+} @else if (layout() === 'compact') {
+  <!-- Compact: openable chips, for inline use inside a list card. -->
+  <div class="ev-chips">
+    @for (p of previews(); track p.file.id; let i = $index) {
+      <button type="button" class="ev-chip" (click)="openViewer(i); $event.stopPropagation()">
+        <span class="ev-chip-glyph" aria-hidden="true">
+          @if (p.kind === 'image') { 🖼 } @else if (p.kind === 'pdf') { 📄 } @else { 📎 }
+        </span>
+        <span class="ev-chip-name" [title]="p.file.fileName">{{ p.file.fileName }}</span>
+        <span class="ev-chip-size">{{ p.file.fileSizeBytes | fileSize }}</span>
+        <span class="ev-chip-action">
+          @if (p.kind === 'other') {
+            {{ 'admin.dossier.download' | translate }}
+          } @else {
+            {{ 'admin.dossier.view' | translate }}
+          }
+        </span>
+      </button>
+    }
+  </div>
+} @else {
+  <!-- Grid: thumbnails rendered from the fetched blobs. -->
+  <div class="ev-grid">
+    @for (p of previews(); track p.file.id; let i = $index) {
+      <figure class="ev-tile" [class.is-doc]="p.kind === 'other'">
+        <button type="button" class="ev-canvas" (click)="openViewer(i)" [attr.aria-label]="p.file.fileName">
+          @if (p.loading) {
+            <span class="ev-spinner" aria-hidden="true"></span>
+          } @else if (p.failed) {
+            <span class="ev-fallback">
+              <span class="ev-glyph">⚠</span>
+              <span class="ev-note">{{ 'admin.dossier.previewFailed' | translate }}</span>
+            </span>
+          } @else if (p.kind === 'image' && p.objectUrl) {
+            <img [src]="p.objectUrl" [alt]="p.file.fileName" loading="lazy" />
+          } @else if (p.kind === 'pdf') {
+            <span class="ev-fallback">
+              <span class="ev-glyph">PDF</span>
+              <span class="ev-note">{{ 'admin.dossier.openPdf' | translate }}</span>
+            </span>
+          } @else {
+            <span class="ev-fallback">
+              <span class="ev-glyph">⤓</span>
+              <span class="ev-note">{{ 'admin.dossier.downloadToView' | translate }}</span>
+            </span>
+          }
+        </button>
+        <figcaption class="ev-meta">
+          <span class="ev-name" [title]="p.file.fileName">{{ p.file.fileName }}</span>
+          <span class="ev-size">{{ p.file.fileSizeBytes | fileSize }}</span>
+        </figcaption>
+        <div class="ev-actions">
+          @if (p.failed) {
+            <button type="button" class="ev-btn" (click)="retryPreview(i)">{{ 'admin.dossier.retry' | translate }}</button>
+          }
+          <button type="button" class="ev-btn" (click)="download(p.file)">
+            {{ 'admin.dossier.download' | translate }}
+          </button>
+        </div>
+      </figure>
+    }
+  </div>
+}
+
+<!-- Full-size viewer — reads the file in place, nothing written to disk. -->
+@if (expanded(); as view) {
+  <div class="ev-backdrop" (click)="closeViewer()">
+    <div class="ev-viewer" (click)="$event.stopPropagation()">
+      <header class="ev-viewer-head">
+        <span class="ev-viewer-name">{{ view.file.fileName }}</span>
+        <span class="ev-viewer-size">{{ view.file.fileSizeBytes | fileSize }}</span>
+        <div class="ev-viewer-tools">
+          <button type="button" class="ev-viewer-btn ev-nav" (click)="stepViewer(-1)" [attr.aria-label]="'admin.dossier.previous' | translate">‹</button>
+          <button type="button" class="ev-viewer-btn ev-nav" (click)="stepViewer(1)" [attr.aria-label]="'admin.dossier.next' | translate">›</button>
+          <button type="button" class="ev-viewer-btn" (click)="download(view.file)">{{ 'admin.dossier.download' | translate }}</button>
+          <button type="button" class="ev-viewer-btn ev-viewer-close" (click)="closeViewer()" [attr.aria-label]="'admin.close' | translate">✕</button>
+        </div>
+      </header>
+      <div class="ev-viewer-body">
+        @if (view.loading) {
+          <app-loading-spinner [message]="'admin.dossier.loadingFile' | translate" />
+        } @else if (view.failed) {
+          <p class="ev-viewer-error">{{ 'admin.dossier.previewFailed' | translate }}</p>
+        } @else if (view.kind === 'image' && view.objectUrl) {
+          <img [src]="view.objectUrl" [alt]="view.file.fileName" />
+        } @else if (view.kind === 'pdf' && view.safeUrl) {
+          <iframe [src]="view.safeUrl" [title]="view.file.fileName"></iframe>
+        } @else {
+          <p class="ev-viewer-error">{{ 'admin.dossier.downloadToView' | translate }}</p>
+        }
+      </div>
+    </div>
+  </div>
+}

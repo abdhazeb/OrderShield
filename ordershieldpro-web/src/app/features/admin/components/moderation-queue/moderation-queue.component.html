@@ -19,8 +19,12 @@
                 <span>{{ review.createdAt | date:'MMM d, yyyy' }}</span>
                 <span class="meta-sep">&middot;</span>
                 <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
-                  {{ getSeverityString(review.severity) | uppercase }}
+                  {{ getSeverityLabel(review.severity) }}
                 </span>
+                @if (review.evidenceFiles.length > 0) {
+                  <span class="meta-sep">&middot;</span>
+                  <span class="meta-evidence">📎 {{ review.evidenceFiles.length }}</span>
+                }
                 @if (review.status === 4) {
                   <span class="meta-sep">&middot;</span>
                   <span class="meta-pending-edit">⏳ {{ 'admin.pendingEditBadge' | translate }}</span>
@@ -55,7 +59,7 @@
                 <div class="detail-item">
                   <span class="detail-key">{{ 'admin.severity' | translate }}</span>
                   <span class="detail-val sev-badge" [class]="'sev-' + getSeverityString(review.severity)">
-                    {{ getSeverityString(review.severity) | uppercase }}
+                    {{ getSeverityLabel(review.severity) }}
                   </span>
                 </div>
                 <div class="detail-item">
@@ -77,7 +81,7 @@
                 @if (review.productCategory) {
                   <div class="detail-item">
                     <span class="detail-key">{{ 'admin.category' | translate }}</span>
-                    <span class="detail-val">{{ review.productCategory }}</span>
+                    <span class="detail-val">{{ review.productCategory | localizeValue:'productCategory' }}</span>
                   </div>
                 }
                 <div class="detail-item">
@@ -103,7 +107,7 @@
                     <div class="diff-field"><strong>{{ 'review.title' | translate }}:</strong> {{ review.title }}</div>
                     <div class="diff-field"><strong>{{ 'admin.narrative' | translate }}:</strong><br>{{ review.narrative }}</div>
                     @if (review.productCategory) {
-                      <div class="diff-field"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ review.productCategory }}</div>
+                      <div class="diff-field"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ review.productCategory | localizeValue:'productCategory' }}</div>
                     }
                   </div>
                   <div class="diff-col proposed">
@@ -111,26 +115,21 @@
                     <div class="diff-field" [class.changed]="edit.title !== review.title"><strong>{{ 'review.title' | translate }}:</strong> {{ edit.title }}</div>
                     <div class="diff-field" [class.changed]="edit.narrative !== review.narrative"><strong>{{ 'admin.narrative' | translate }}:</strong><br>{{ edit.narrative }}</div>
                     @if (edit.productCategory) {
-                      <div class="diff-field" [class.changed]="edit.productCategory !== review.productCategory"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ edit.productCategory }}</div>
+                      <div class="diff-field" [class.changed]="edit.productCategory !== review.productCategory"><strong>{{ 'review.productCategory' | translate }}:</strong> {{ edit.productCategory | localizeValue:'productCategory' }}</div>
                     }
                   </div>
                 </div>
               </div>
             }
 
-            @if (review.evidenceFiles.length > 0) {
-              <div class="detail-section">
-                <h4 class="section-title">{{ 'admin.evidenceFiles' | translate }} ({{ review.evidenceFiles.length }})</h4>
-                <div class="file-list">
-                  @for (file of review.evidenceFiles; track file.id) {
-                    <button type="button" class="file-row" (click)="downloadEvidence(review.id, file)">
-                      <span class="file-name">📎 {{ file.fileName }}</span>
-                      <span class="file-size">{{ file.fileSizeBytes | fileSize }}</span>
-                    </button>
-                  }
-                </div>
-              </div>
-            }
+            <div class="detail-section">
+              <h4 class="section-title">{{ 'admin.evidenceFiles' | translate }} ({{ review.evidenceFiles.length }})</h4>
+              <!-- Files open in an in-app viewer; nothing is saved to the moderator's machine. -->
+              <app-evidence-viewer [reviewId]="review.id" [files]="review.evidenceFiles" layout="compact" />
+              <button type="button" class="open-dossier" (click)="openDossier(review); $event.stopPropagation()">
+                {{ 'admin.dossier.openFull' | translate }} →
+              </button>
+            </div>
 
             @if (review.publicEvidenceNotes.length > 0) {
               <div class="detail-section">

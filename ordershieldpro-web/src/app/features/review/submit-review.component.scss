@@ -28,9 +28,18 @@
     }
     .mode-btn:hover:not(.active) { color: var(--text-primary); }
 
-    .review-form { display: flex; flex-direction: column; gap: 0; }
+    /* One auto-flowing grid rather than fixed rows: fields pack into the next free cell,
+       so a conditionally hidden field never leaves a hole. Full-width fields opt out with
+       .form-group--full. */
+    .review-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0 16px;
+      align-items: start;
+    }
 
-    .form-group { margin-bottom: 20px; }
+    .form-group { margin-bottom: 20px; min-width: 0; }
+    .form-group--full { grid-column: 1 / -1; }
     .form-label { display: block; font-weight: 700; margin-bottom: 8px; color: var(--text-primary); font-size: 14px; }
     .form-input, .form-select, .form-textarea {
       width: 100%; padding: 12px; border: 1.5px solid var(--surface-border); border-radius: var(--radius-md);
@@ -44,7 +53,6 @@
       box-shadow: 0 0 0 3px rgba(15, 145, 151, 0.1);
     }
     .form-help { font-size: 12px; color: var(--text-tertiary); margin-top: 6px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     .input-error { border-color: var(--danger) !important; }
     .field-error { font-size: 12px; color: var(--danger); margin-top: 4px; font-weight: 500; }
@@ -79,8 +87,12 @@
 
     .submit-btn { margin-top: 8px; }
 
-    @media (max-width: 599px) {
-      .form-row { grid-template-columns: 1fr; }
+    @media (max-width: 1023px) {
+      .review-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 639px) {
+      .review-form { grid-template-columns: minmax(0, 1fr); }
     }
 
     @media (min-width: 768px) {

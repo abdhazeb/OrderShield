@@ -21,6 +21,8 @@ public record UpdateReviewCommand : IRequest<Result>
     public DateTime? IncidentDate { get; init; }
 
     public string? ContactName { get; init; }
+    /// <summary>The contact's role at the entity (owner, purchasing manager, …).</summary>
+    public string? ContactPosition { get; init; }
     public string? ContactPhoneUsed { get; init; }
 
     public bool IsComment { get; init; }
