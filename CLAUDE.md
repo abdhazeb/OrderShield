@@ -220,6 +220,27 @@ catches it, not a production failure.
 
 Notifications are localized via a template mechanism, not stored text: `Notification.TemplateKey` + `Notification.Subject` (e.g. a review title, an entity name) let the frontend render `notification.templates.{key}.title`/`.message` with `{{subject}}` interpolation in the user's language. `Title`/`Message` on the entity remain as an English fallback for the rare notification that is inherently free text (a moderator's direct message has no `TemplateKey` and is shown as authored — it cannot be translated after the fact). When adding a new notification, add both the key/subject at the call site and the three-locale template entries, not just an English string.
 
+`TemplateKey`/`Subject` were added by migration `20260727051758_AddNotificationTemplateFields`;
+rows created before it have `TemplateKey = NULL` and are permanently stuck on their old English
+text, indistinguishable from the genuinely-free-text case above. `20260730130139_BackfillNotificationTemplateKeys`
+recovered the existing rows by `Type` (and, for `NewReviewPendingApproval`/`EnquiryReply`,
+which cover more than one template, by matching the old Message text), pulling `Subject` back
+out of the quoted text already embedded in it. If a future migration adds another templated
+field, backfilling old rows the same way is worth doing at the time — not months later once
+the "why is this notification in English" report comes in.
+
+`NotificationsComponent.resolveDestination` is the single place deciding where a notification
+click goes, used by both `onNotifClick` and `hasLink` (which decides whether the row even shows
+a nav arrow) — the two used to be separate switch statements that drifted: `hasLink` claimed
+almost everything was clickable while the destinations included a hardcoded `/admin/approvals`
+route that had stopped existing once the admin dashboard moved to `?section=&tab=` query
+params, so every SuperAdmin alert (new registration, new review, new enquiry) silently 404'd.
+Route a new notification type through this one function, not a second switch statement.
+`NewWatchRequestPendingReview` has no real destination today — there is no admin screen for
+reviewing a newly submitted enquiry before it's resolved (`ResolveWatchRequestCommand` exists
+but no controller endpoint calls it) — it lands on `/admin` rather than nowhere; building that
+screen is a separate, larger piece of work.
+
 **Known bug, not just drift:** `Review.PendingEditJson` is `[NotMapped]`, and the file
 `20260711000000_AddPendingEditToReview.cs` that looks like it should have added the backing
 column is missing the `[Migration("...")]` attribute — EF Core never recognized it as a

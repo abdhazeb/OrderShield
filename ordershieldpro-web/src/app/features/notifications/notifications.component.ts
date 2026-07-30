@@ -65,47 +65,85 @@ export class NotificationsComponent implements OnInit {
       );
     }
 
-    // SuperAdmin alerts route directly to the approvals queues.
-    switch (notif.type) {
-      case NotificationType.NewUserPendingApproval:
-        this.router.navigate(['/admin/approvals'], { queryParams: { tab: 'users' } });
-        return;
-      case NotificationType.NewReviewPendingApproval:
-      case NotificationType.NewWatchRequestPendingReview:
-        this.router.navigate(['/admin/approvals'], { queryParams: { tab: 'actions' } });
-        return;
-      case NotificationType.UserAccountApproved:
-        this.router.navigate(['/profile']);
-        return;
-    }
-
-    // Navigate to relevant page based on notification type and references
-    const entityRef = notif.referenceEntityId || notif.entityId;
-    const reviewRef = notif.referenceReviewId || notif.reviewId;
-
-    if (entityRef) {
-      this.router.navigate(['/entity', entityRef]);
-    } else if (reviewRef) {
-      // Reviews are shown within entity pages; navigate to profile
-      this.router.navigate(['/profile']);
-    } else {
-      // Generic notifications — navigate based on type
-      switch (notif.type) {
-        case NotificationType.ReviewStatusChanged:
-          this.router.navigate(['/profile']);
-          break;
-        case NotificationType.InvestigationComplete:
-        case NotificationType.WatchRequestResolved:
-          this.router.navigate(['/profile']);
-          break;
-        default:
-          break;
-      }
+    const destination = this.resolveDestination(notif);
+    if (destination) {
+      this.router.navigate(destination.path, { queryParams: destination.queryParams });
     }
   }
 
   hasLink(notif: AppNotification): boolean {
-    return !!(notif.referenceEntityId || notif.entityId || notif.referenceReviewId || notif.reviewId || notif.type !== undefined);
+    return this.resolveDestination(notif) !== null;
+  }
+
+  /**
+   * Single source of truth for where a notification click goes — used by both the click
+   * handler and `hasLink` (which decides whether the row shows a nav arrow at all), so a
+   * type can never look clickable and then silently do nothing on click.
+   *
+   * Some types route to a fixed admin screen regardless of any entity/review reference
+   * (registration approval, review moderation) because that screen — not the entity or
+   * review itself — is where the recipient needs to act. Everything else falls through to
+   * the generic entity/review reference, and only returns null when neither this
+   * notification's type nor its references point anywhere real.
+   */
+  private resolveDestination(notif: AppNotification): { path: any[]; queryParams?: Record<string, string> } | null {
+    const entityRef = notif.referenceEntityId || notif.entityId;
+    const reviewRef = notif.referenceReviewId || notif.reviewId;
+
+    switch (notif.type) {
+      case NotificationType.NewUserPendingApproval:
+        // Always sent to SuperAdmins, who are the only ones who can see this screen.
+        return { path: ['/admin'], queryParams: { section: 'users', tab: 'pendingUsers' } };
+
+      case NotificationType.NewReviewPendingApproval:
+        // Deep-links straight into the moderation dossier — the reviewId is always set
+        // for this type (see CreateReviewCommandHandler / UpdateReviewCommandHandler) —
+        // falling back to the queue only guards against a malformed notification.
+        return reviewRef
+          ? { path: ['/admin/reviews', reviewRef] }
+          : { path: ['/admin'], queryParams: { section: 'moderation', tab: 'queue' } };
+
+      case NotificationType.NewWatchRequestPendingReview:
+        // No dedicated enquiry-review queue exists yet in the admin UI; land on the shell
+        // rather than a 404. See CLAUDE.md for this known gap.
+        return { path: ['/admin'] };
+
+      case NotificationType.AdminActionApproved:
+      case NotificationType.AdminActionRejected:
+        return { path: ['/admin'], queryParams: { section: 'system', tab: 'approvals' } };
+
+      case NotificationType.UserAccountApproved:
+        return { path: ['/profile'] };
+
+      case NotificationType.ReviewRejected:
+        // A rejected review is never published, so /entity/:id — where entityRef would
+        // otherwise point — has nothing to show for it. The reviewer's own submissions,
+        // including rejected ones, live on their profile.
+        return { path: ['/profile'] };
+    }
+
+    if (entityRef) {
+      return { path: ['/entity', entityRef] };
+    }
+    if (reviewRef) {
+      // Reviews are shown within entity pages; the profile lists the reviewer's own.
+      return { path: ['/profile'] };
+    }
+
+    switch (notif.type) {
+      case NotificationType.ReviewStatusChanged:
+      case NotificationType.InvestigationComplete:
+      case NotificationType.WatchRequestResolved:
+        return { path: ['/profile'] };
+      case NotificationType.EnquiryReply:
+      case NotificationType.WatchRequestAccepted:
+      case NotificationType.WatchRequestRejected:
+        // No entity was created (rejected) or the reply carries no reference — the
+        // requester's own enquiry list is the closest thing to "where this happened".
+        return { path: ['/enquiries'] };
+      default:
+        return null;
+    }
   }
 
   markAsRead(notif: AppNotification): void {
