@@ -60,12 +60,36 @@ else {
     Write-Warning "web.config was not found in frontend output. Ensure ordershieldpro-web/public/web.config exists."
 }
 
-Write-Host "[3/3] Publishing .NET API..."
+Write-Host "[3/4] Publishing .NET API..."
 dotnet publish $apiProjectPath -c $Configuration -o $apiOutputDir
 
 $apiUploadsDir = Join-Path $apiOutputDir "uploads"
 New-Item -ItemType Directory -Path $apiUploadsDir -Force | Out-Null
 
+# The API applies migrations itself on non-Development startup, but that only happens if the
+# app pool actually recycles onto the new binaries. Ship an idempotent script as well so the
+# database can be brought up to date independently of a restart.
+Write-Host "[4/4] Generating idempotent migrations script..."
+$migrationsScriptPath = Join-Path $apiOutputDir "migrations.sql"
+Push-Location (Join-Path $repoRoot "src")
+try {
+    dotnet ef migrations script `
+        --idempotent `
+        --project OrderShieldPro.Infrastructure `
+        --startup-project OrderShieldPro.API `
+        --configuration $Configuration `
+        --no-build `
+        --output $migrationsScriptPath
+}
+finally {
+    Pop-Location
+}
+
+if (-not (Test-Path $migrationsScriptPath)) {
+    throw "Migrations script was not generated at '$migrationsScriptPath'."
+}
+
 Write-Host "Deployment output folders generated successfully:"
 Write-Host "- Frontend folder: $frontendOutputDir"
 Write-Host "- API folder: $apiOutputDir"
+Write-Host "- Migrations script: $migrationsScriptPath"

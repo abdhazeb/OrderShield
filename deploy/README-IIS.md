@@ -22,6 +22,9 @@ Output folders are generated under:
 - `artifacts/deploy/frontend`
 - `artifacts/deploy/api`
 
+The API package includes `migrations.sql`, an idempotent script covering every migration —
+see "Updating the database" below.
+
 ## 2) Server prerequisites
 
 Install on the IIS server:
@@ -50,11 +53,48 @@ Install on the IIS server:
 6. Configure required secrets — see the next section. **The API will not start without a JWT secret.**
 7. On first API start, migrations are applied and the database is created if it does not exist.
 
+### 3b) Updating the database
+
+Automatic migration only runs when the app pool actually starts on the *new* binaries. If files
+are copied over a running site and the pool is never recycled, the schema stays behind while the
+new code expects the new columns — that is the usual reason production looks out of date.
+
+Either recycle the app pool after copying, or apply the shipped script, which is safe to run
+repeatedly and on any version of the database (each migration is guarded by a check against
+`__EFMigrationsHistory`):
+
+```powershell
+sqlcmd -S . -d OrderShieldProDb -E -i C:\inetpub\ordershield\api\migrations.sql
+```
+
+Back up the database first (see "Backups" below). To confirm what is applied:
+
+```powershell
+sqlcmd -S . -d OrderShieldProDb -E -Q "SELECT MigrationId FROM __EFMigrationsHistory ORDER BY MigrationId"
+```
+
 ### 3a) Required secrets and settings
 
 `appsettings.json` intentionally contains **no** signing key or SMTP password. Supply them
 per-server, either as environment variables on the app pool or in
-`appsettings.Production.json` on the server (this file is not in source control).
+`appsettings.Production.json` on the server.
+
+**`appsettings.Production.json` is tracked in this repo and ships with the API package**, so a
+deploy overwrites whatever is on the server with the committed values. That is deliberate — the
+committed file is the single source of truth for production settings, so a fresh deploy comes up
+without hand-editing anything on the box.
+
+Two consequences to keep in mind:
+
+- **The signing secret and SMTP password are in source control.** Anyone with repo read access
+  can forge a token for any role. Treat repo access as production access, and rotate the secret
+  (`JwtSettings:Secret`) if that access set ever changes — rotating signs out every user.
+- **Do not edit the file on the server.** The next deploy discards those edits. Change it here,
+  commit, and redeploy.
+
+App-pool environment variables still work and **take precedence over this file** (environment
+variables are the later configuration source). Use one mechanism or the other — if a variable is
+set on the pool, changing the committed file will appear to do nothing.
 
 | Setting | Environment variable | Required | Notes |
 | --- | --- | --- | --- |
