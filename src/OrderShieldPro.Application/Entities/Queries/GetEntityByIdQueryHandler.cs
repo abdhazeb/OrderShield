@@ -68,8 +68,11 @@ public class GetEntityByIdQueryHandler : IRequestHandler<GetEntityByIdQuery, Res
             CriticalReviewCount = entity.CriticalReviewCount,
             LastReviewDate = entity.LastReviewDate,
             ListedDate = entity.ListedDate,
-            PhoneNumbers = entity.PhoneNumbers.Select(p => p.PhoneNumber).ToList(),
-            WeChatIds = entity.WeChatIds.Select(w => w.WeChatId).ToList(),
+            // Contact details are moderator-only. Emptying them here rather than hiding them
+            // in the UI is the whole point: anything serialized into this response is public
+            // to anyone who opens devtools or curls the endpoint.
+            PhoneNumbers = isModerator ? entity.PhoneNumbers.Select(p => p.PhoneNumber).ToList() : Array.Empty<string>(),
+            WeChatIds = isModerator ? entity.WeChatIds.Select(w => w.WeChatId).ToList() : Array.Empty<string>(),
             HistoricalNames = entity.HistoricalNames.Select(h => h.PreviousName).ToList(),
             FollowerCount = followerCount,
             IsFollowedByCurrentUser = isFollowed,

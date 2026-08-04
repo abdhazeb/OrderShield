@@ -41,7 +41,7 @@
               <div class="suggestions-dropdown">
                 @for (entity of entitySuggestions(); track entity.id) {
                   <button type="button" class="suggestion-item" (mousedown)="selectEntity(entity)">
-                    <div class="suggestion-name">{{ entity.legalName }}</div>
+                    <div class="suggestion-name" dir="auto">{{ entity.legalName }}</div>
                     <div class="suggestion-meta">
                       <span class="suggestion-type">{{ entity.entityType }}</span>
                       <span class="suggestion-country">{{ entity.country | localizeValue:'country' }}</span>

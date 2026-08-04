@@ -458,10 +458,10 @@ export class SubmitReviewComponent implements OnInit {
   }
 
   private fillEntityContactInfo(entity: EntityDetail): void {
-    this.form.patchValue({
-      contactPhoneUsed: entity.phoneNumbers?.[0] || '',
-    });
-    // Auto-fill category if available
+    // The phone field is deliberately *not* prefilled from the entity. It asks which number
+    // the reviewer actually dealt with — that is evidence they are supplying, and answering
+    // it for them would both weaken the record and hand out a contact detail the API
+    // withholds from non-moderators anyway.
     if (entity.productCategories) {
       this.form.patchValue({ productCategory: entity.productCategories.split(',')[0]?.trim() || '' });
     }

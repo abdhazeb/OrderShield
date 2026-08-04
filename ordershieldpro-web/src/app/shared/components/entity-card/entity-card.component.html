@@ -1,9 +1,12 @@
 <a class="entity-card" [routerLink]="['/entity', entity().id]">
   <div class="entity-card__row">
     <div class="entity-card__identity">
-      <span class="entity-card__name">{{ entity().legalName }}</span>
+      <!-- dir="auto" throughout: entity-supplied text is Latin, Chinese or Arabic, and in
+           an RTL page a Latin name ending "Co., Ltd." would otherwise render its trailing
+           period on the left, since the period is bidi-neutral. -->
+      <span class="entity-card__name" dir="auto">{{ entity().legalName }}</span>
       @if (entity().tradeName && entity().tradeName !== entity().legalName) {
-        <span class="entity-card__trade-name">{{ entity().tradeName }}</span>
+        <span class="entity-card__trade-name" dir="auto">{{ entity().tradeName }}</span>
       }
     </div>
   </div>
@@ -14,7 +17,7 @@
         <span class="entity-card__meta-item">📍 {{ entity().country | localizeValue:'country' }}</span>
       }
       @if (entity().productCategories) {
-        <span class="entity-card__meta-item">📦 {{ entity().productCategories | localizeValue:'productCategory' }}</span>
+        <span class="entity-card__meta-item" dir="auto">📦 {{ entity().productCategories | localizeValue:'productCategory' }}</span>
       }
     </div>
   }
@@ -22,8 +25,10 @@
   @if (alternativeNames().length > 0 || phoneNumbers().length > 0) {
     <div class="entity-card__row entity-card__contact">
       @for (name of alternativeNames(); track name) {
-        <span class="entity-card__chip">🏷️ {{ name }}</span>
+        <span class="entity-card__chip" dir="auto">🏷️ {{ name }}</span>
       }
+      <!-- Only ever non-empty for moderators — the API withholds phone numbers from
+           everyone else, so there is no public branch of this loop to guard. -->
       @for (phone of phoneNumbers(); track phone) {
         <span class="entity-card__chip entity-card__chip--phone" dir="ltr">📞 {{ phone }}</span>
       }

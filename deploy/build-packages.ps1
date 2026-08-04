@@ -93,3 +93,10 @@ Write-Host "Deployment output folders generated successfully:"
 Write-Host "- Frontend folder: $frontendOutputDir"
 Write-Host "- API folder: $apiOutputDir"
 Write-Host "- Migrations script: $migrationsScriptPath"
+
+Write-Host ""
+Write-Host "=== Ready to copy to the server ===" -ForegroundColor Green
+Write-Host "API      -> $apiOutputDir       (copy to the internal API IIS site; includes migrations.sql)"
+Write-Host "Frontend -> $frontendOutputDir  (copy to the public web IIS site)"
+Write-Host ""
+Write-Host "Remember: appsettings.Production.json ships from this repo and overwrites server settings on every deploy - see deploy/README-IIS.md before copying." -ForegroundColor Yellow

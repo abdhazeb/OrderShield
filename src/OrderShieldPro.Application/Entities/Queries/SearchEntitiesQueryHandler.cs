@@ -1,4 +1,5 @@
 using MediatR;
+using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Common.Models;
 using OrderShieldPro.Application.Entities.DTOs;
 using OrderShieldPro.Domain.Interfaces;
@@ -7,11 +8,15 @@ namespace OrderShieldPro.Application.Entities.Queries;
 
 public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, PaginatedList<EntitySearchResultDto>>
 {
-    private readonly ITradeEntityRepository _repository;
+    private static readonly string[] ModeratorRoles = { "ServiceTeam", "Admin", "SuperAdmin" };
 
-    public SearchEntitiesQueryHandler(ITradeEntityRepository repository)
+    private readonly ITradeEntityRepository _repository;
+    private readonly ICurrentUserService _currentUserService;
+
+    public SearchEntitiesQueryHandler(ITradeEntityRepository repository, ICurrentUserService currentUserService)
     {
         _repository = repository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PaginatedList<EntitySearchResultDto>> Handle(SearchEntitiesQuery request, CancellationToken cancellationToken)
@@ -27,6 +32,11 @@ public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, P
             request.SortBy,
             request.IncludeHidden,
             cancellationToken);
+
+        // Phone numbers are moderator-only. Withholding them here rather than in the UI is
+        // the point — anything serialized into this response is public to anyone who opens
+        // devtools, regardless of what the template chooses to render.
+        var isModerator = _currentUserService.Role is { } role && ModeratorRoles.Contains(role);
 
         var dtos = items.Select(e => new EntitySearchResultDto
         {
@@ -44,8 +54,10 @@ public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, P
             CriticalReviewCount = e.CriticalReviewCount,
             LastReviewDate = e.LastReviewDate,
             ListedDate = e.ListedDate,
-            PhoneNumbers = e.PhoneNumbers.Select(p => p.PhoneNumber).ToList(),
             AlternativeNames = e.HistoricalNames.Select(h => h.PreviousName).Distinct().ToList(),
+            PhoneNumbers = isModerator
+                ? e.PhoneNumbers.Select(p => p.PhoneNumber).ToList()
+                : Array.Empty<string>(),
             IsHidden = e.IsHidden
         }).ToList();
 

@@ -13,9 +13,9 @@
       <div class="head-main">
         <div class="head-titles">
           <p class="eyebrow">{{ 'admin.dossier.eyebrow' | translate }}</p>
-          <h1 class="dossier-title">{{ r.title }}</h1>
+          <h1 class="dossier-title" dir="auto">{{ r.title }}</h1>
           <p class="dossier-sub">
-            <a class="entity-link" [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a>
+            <a class="entity-link" dir="auto" [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a>
             <span class="sep">·</span>
             <span>{{ r.createdAt | date:'MMM d, yyyy h:mm a' }}</span>
           </p>
@@ -38,7 +38,7 @@
         <!-- Narrative -->
         <section class="panel">
           <h2 class="panel-title">{{ 'admin.dossier.claim' | translate }}</h2>
-          <p class="narrative">{{ r.narrative }}</p>
+          <p class="narrative" dir="auto">{{ r.narrative }}</p>
         </section>
 
         <!-- Pending edit diff -->
@@ -120,7 +120,7 @@
           <h2 class="panel-title">{{ 'admin.dossier.subject' | translate }}</h2>
           <dl class="facts">
             <dt>{{ 'entity.legalName' | translate }}</dt>
-            <dd><a [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a></dd>
+            <dd><a dir="auto" [routerLink]="['/entity', r.tradeEntityId]">{{ r.tradeEntityName }}</a></dd>
             @if (r.tradeEntityCountry) {
               <dt>{{ 'entity.country' | translate }}</dt>
               <dd>{{ r.tradeEntityCountry | localizeValue:'country' }}{{ r.tradeEntityRegion ? ' — ' + r.tradeEntityRegion : '' }}</dd>

@@ -64,9 +64,9 @@
               (click)="openEntity(entity)"
               (keydown.enter)="openEntity(entity)">
               <td>
-                <div class="cell-name">{{ entity.legalName }}</div>
+                <div class="cell-name" dir="auto">{{ entity.legalName }}</div>
                 @if (entity.tradeName) {
-                  <div class="cell-subtle">{{ entity.tradeName }}</div>
+                  <div class="cell-subtle" dir="auto">{{ entity.tradeName }}</div>
                 }
                 <div class="cell-subtle">{{ entityTypeKey(entity.entityType) | translate }}</div>
               </td>

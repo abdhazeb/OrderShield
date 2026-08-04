@@ -23,6 +23,10 @@ export class EntityCardComponent {
    * Other names and phone numbers the entity is known by. Search matches on both, so a
    * result can otherwise look unrelated to what was typed. Capped because an imported
    * entity can carry a dozen numbers and the card is a summary, not the profile.
+   *
+   * `phoneNumbers` arrives empty for anyone who is not a moderator — the API withholds
+   * contact details rather than trusting the UI to hide them. Rendering it unguarded is
+   * therefore safe, and an empty array here does not mean the entity has no numbers.
    */
   private static readonly ChipLimit = 3;
 

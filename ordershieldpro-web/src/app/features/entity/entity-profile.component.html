@@ -6,9 +6,13 @@
         <div class="profile-header">
           <div class="profile-name-row">
             <div>
-              <h1 class="profile-name">{{ entity()!.legalName }}</h1>
+              <!-- dir="auto" so the browser takes direction from the name's own first
+                   strong character, not from the Arabic page. Without it a Latin name
+                   ending in "Co., Ltd." renders its trailing period on the left — the
+                   period is bidi-neutral, so it flows to the end of an RTL paragraph. -->
+              <h1 class="profile-name" dir="auto">{{ entity()!.legalName }}</h1>
               @if (entity()!.tradeName && entity()!.tradeName !== entity()!.legalName) {
-                <div class="trade-name">{{ entity()!.tradeName }}</div>
+                <div class="trade-name" dir="auto">{{ entity()!.tradeName }}</div>
               }
             </div>
             @if (isAdmin() && !editingEntity()) {
@@ -100,7 +104,9 @@
               <span class="meta-item">📍 {{ entity()!.country | localizeValue:'country' }}{{ entity()!.region ? ', ' + entity()!.region : '' }}{{ entity()!.city ? ', ' + entity()!.city : '' }}</span>
             }
             @if (entity()!.productCategories) {
-              <span class="meta-item">📦 {{ entity()!.productCategories | localizeValue:'productCategory' }}</span>
+              <!-- Imported categories are free text in the source language, so this can be
+                   Latin or Chinese in an Arabic page — let the browser detect it. -->
+              <span class="meta-item" dir="auto">📦 {{ entity()!.productCategories | localizeValue:'productCategory' }}</span>
             }
             <span class="meta-item">📅 {{ 'entity.listedSince' | translate }}: {{ entity()!.listedDate | date:'mediumDate' }}</span>
           </div>
@@ -128,19 +134,22 @@
         <!-- Additional Info -->
         @if (entity()!.phoneNumbers.length > 0 || entity()!.weChatIds.length > 0 || entity()!.historicalNames.length > 0) {
           <div class="info-section">
-            @if (entity()!.phoneNumbers.length > 0) {
+            <!-- Contact details are moderator-only, and the API already withholds them from
+                 everyone else — these arrays arrive empty for the public. The isAdmin()
+                 guard is the second lock, not the only one. -->
+            @if (isAdmin() && entity()!.phoneNumbers.length > 0) {
               <div class="info-group">
                 <h3>📞 {{ 'entity.phoneNumbers' | translate }}</h3>
                 @for (phone of entity()!.phoneNumbers; track phone) {
-                  <span class="info-tag">{{ phone }}</span>
+                  <span class="info-tag" dir="ltr">{{ phone }}</span>
                 }
               </div>
             }
-            @if (entity()!.weChatIds.length > 0) {
+            @if (isAdmin() && entity()!.weChatIds.length > 0) {
               <div class="info-group">
                 <h3>💬 {{ 'entity.weChatIds' | translate }}</h3>
                 @for (wechat of entity()!.weChatIds; track wechat) {
-                  <span class="info-tag">{{ wechat }}</span>
+                  <span class="info-tag" dir="ltr">{{ wechat }}</span>
                 }
               </div>
             }
@@ -148,7 +157,8 @@
               <div class="info-group">
                 <h3>📜 {{ 'entity.historicalNames' | translate }}</h3>
                 @for (name of entity()!.historicalNames; track name) {
-                  <span class="info-tag">{{ name }}</span>
+                  <!-- dir="auto": an alias may be Latin, Chinese, or Arabic. -->
+                  <span class="info-tag" dir="auto">{{ name }}</span>
                 }
               </div>
             }

@@ -23,13 +23,22 @@ public record EntitySearchResultDto
     public DateTime ListedDate { get; init; }
 
     /// <summary>
-    /// The entity's known phone numbers and its other/former names. Search matches on both
-    /// (see <c>TradeEntityRepository.SearchAsync</c>), so a result that only matched on a
-    /// phone number or an old name would otherwise look unrelated to what was typed —
-    /// showing them is what makes the hit explicable.
+    /// The other/former names this entity is known by — public, and the point of rebrand
+    /// tracking. Search matches on these, so a result that matched an old name would
+    /// otherwise look unrelated to what was typed.
+    /// </summary>
+    public IReadOnlyList<string> AlternativeNames { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Phone numbers, populated **only for moderators** — empty for everyone else.
+    ///
+    /// Search still matches on them for all callers, so a broker who already has a number
+    /// can find the entity behind it. What is withheld is the reverse lookup: listing every
+    /// number an entity answers on would turn the public directory into a scrapeable
+    /// contact database. Moderators need them to work the directory, so they get them here
+    /// as well as on <see cref="EntityDetailDto"/>.
     /// </summary>
     public IReadOnlyList<string> PhoneNumbers { get; init; } = Array.Empty<string>();
-    public IReadOnlyList<string> AlternativeNames { get; init; } = Array.Empty<string>();
 
     /// <summary>
     /// Withheld from public search. Only ever true in results for a moderator, since

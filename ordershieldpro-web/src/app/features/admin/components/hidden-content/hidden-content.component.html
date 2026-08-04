@@ -37,7 +37,7 @@
           <div class="hidden-card">
             <div class="hidden-card-main" (click)="viewEntity(entity)">
               <div class="hidden-card-title-group">
-                <h3 class="hidden-card-title">{{ entity.legalName }}</h3>
+                <h3 class="hidden-card-title" dir="auto">{{ entity.legalName }}</h3>
                 <div class="hidden-card-meta">
                   <span>{{ entity.country | localizeValue:'country' }}</span>
                   <span class="meta-sep">&middot;</span>
@@ -87,9 +87,9 @@
             <div class="hidden-card-main" (click)="viewReviewEntity(review)">
               <span class="severity-dot" [class]="'dot-' + getSeverityString(review.severity)"></span>
               <div class="hidden-card-title-group">
-                <h3 class="hidden-card-title">{{ review.title }}</h3>
+                <h3 class="hidden-card-title" dir="auto">{{ review.title }}</h3>
                 <div class="hidden-card-meta">
-                  <span>{{ review.tradeEntityName }}</span>
+                  <span dir="auto">{{ review.tradeEntityName }}</span>
                   <span class="meta-sep">&middot;</span>
                   <span class="meta-severity" [class]="'sev-' + getSeverityString(review.severity)">
                     {{ getSeverityLabel(review.severity) }}

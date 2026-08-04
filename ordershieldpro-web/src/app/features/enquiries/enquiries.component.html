@@ -49,7 +49,7 @@
             <div class="enquiry-card" [class.completed]="enquiry.status === 'Completed'" [class.in-progress]="enquiry.status === 'InProgress'">
               <div class="card-header">
                 <div class="entity-info">
-                  <h3 class="entity-name">{{ enquiry.entityName }}</h3>
+                  <h3 class="entity-name" dir="auto">{{ enquiry.entityName }}</h3>
                   @if (enquiry.entityCountry) {
                     <span class="entity-country">📍 {{ enquiry.entityCountry }}</span>
                   }

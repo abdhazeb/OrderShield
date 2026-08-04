@@ -12,9 +12,9 @@
           <div class="card-left">
             <span class="severity-dot" [class]="'dot-' + getSeverityString(review.severity)"></span>
             <div class="card-title-group">
-              <h3 class="card-title">{{ review.title }}</h3>
+              <h3 class="card-title" dir="auto">{{ review.title }}</h3>
               <div class="card-meta">
-                <span>{{ review.tradeEntityName }}</span>
+                <span dir="auto">{{ review.tradeEntityName }}</span>
                 <span class="meta-sep">&middot;</span>
                 <span>{{ review.createdAt | date:'MMM d, yyyy' }}</span>
                 <span class="meta-sep">&middot;</span>
@@ -46,7 +46,7 @@
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-key">{{ 'admin.entity' | translate }}</span>
-                  <span class="detail-val">{{ review.tradeEntityName }}</span>
+                  <span class="detail-val" dir="auto">{{ review.tradeEntityName }}</span>
                 </div>
                 <div class="detail-item">
                   <span class="detail-key">{{ 'admin.reviewer' | translate }}</span>
@@ -93,7 +93,7 @@
 
             <div class="detail-section">
               <h4 class="section-title">{{ 'admin.narrative' | translate }}</h4>
-              <div class="narrative-block">{{ review.narrative }}</div>
+              <div class="narrative-block" dir="auto">{{ review.narrative }}</div>
             </div>
 
             <!-- PendingEdit diff: show original vs proposed changes side-by-side -->

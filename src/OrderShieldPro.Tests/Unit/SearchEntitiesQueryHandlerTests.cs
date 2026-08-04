@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Moq;
+using OrderShieldPro.Application.Common.Interfaces;
 using OrderShieldPro.Application.Common.Models;
 using OrderShieldPro.Application.Entities.DTOs;
 using OrderShieldPro.Application.Entities.Queries;
@@ -12,12 +13,17 @@ namespace OrderShieldPro.Tests.Unit;
 public class SearchEntitiesQueryHandlerTests
 {
     private readonly Mock<ITradeEntityRepository> _repositoryMock;
+    private readonly Mock<ICurrentUserService> _currentUserServiceMock;
     private readonly SearchEntitiesQueryHandler _handler;
 
     public SearchEntitiesQueryHandlerTests()
     {
         _repositoryMock = new Mock<ITradeEntityRepository>();
-        _handler = new SearchEntitiesQueryHandler(_repositoryMock.Object);
+        _currentUserServiceMock = new Mock<ICurrentUserService>();
+        // Default to an anonymous visitor — the public shape is the one worth defaulting to,
+        // so a test that wants moderator data has to say so.
+        _currentUserServiceMock.Setup(s => s.Role).Returns((string?)null);
+        _handler = new SearchEntitiesQueryHandler(_repositoryMock.Object, _currentUserServiceMock.Object);
     }
 
     [Fact]
@@ -234,6 +240,61 @@ public class SearchEntitiesQueryHandlerTests
 
         result.Items.Single(e => e.LegalName == "Withheld Trading Co.").IsHidden.Should().BeTrue();
         result.Items.Single(e => e.LegalName == "Public Trading Co.").IsHidden.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Broker")]
+    [InlineData("Buyer")]
+    public async Task Handle_WithheldPhoneNumbersFromNonModerators(string? role)
+    {
+        // Search matches on phone numbers so a broker can look up a number they already
+        // have — but a public result must not hand the numbers back, or the directory
+        // becomes a scrapeable contact database. Withholding it here rather than in the UI
+        // is the point: a value in this response is public whatever the template renders.
+        _currentUserServiceMock.Setup(s => s.Role).Returns(role);
+        SetupSearchReturning(EntityWithContactDetails());
+
+        var result = await _handler.Handle(new SearchEntitiesQuery { SearchTerm = "18660902700" }, CancellationToken.None);
+
+        var dto = result.Items.Single();
+        dto.PhoneNumbers.Should().BeEmpty();
+        // Names stay public — publishing them is the entire point of rebrand tracking.
+        dto.AlternativeNames.Should().ContainSingle().Which.Should().Be("临沂盛德塑胶有限公司");
+    }
+
+    [Theory]
+    [InlineData("ServiceTeam")]
+    [InlineData("Admin")]
+    [InlineData("SuperAdmin")]
+    public async Task Handle_GivesPhoneNumbersToModerators(string role)
+    {
+        // Moderators work the directory and judge reports against these numbers, so the
+        // gate is on who is asking, not on removing the data.
+        _currentUserServiceMock.Setup(s => s.Role).Returns(role);
+        SetupSearchReturning(EntityWithContactDetails());
+
+        var result = await _handler.Handle(new SearchEntitiesQuery(), CancellationToken.None);
+
+        result.Items.Single().PhoneNumbers.Should().ContainSingle().Which.Should().Be("18660902700");
+    }
+
+    private static TradeEntity EntityWithContactDetails()
+    {
+        var entity = CreateEntity("Linyi Shengde Plastic Co., Ltd", EntityType.Supplier, "China");
+        entity.PhoneNumbers.Add(new EntityPhoneNumber { TradeEntityId = entity.Id, PhoneNumber = "18660902700" });
+        entity.HistoricalNames.Add(new EntityHistoricalName { TradeEntityId = entity.Id, PreviousName = "临沂盛德塑胶有限公司" });
+        return entity;
+    }
+
+    private void SetupSearchReturning(params TradeEntity[] entities)
+    {
+        _repositoryMock.Setup(r => r.SearchAsync(
+            It.IsAny<string?>(), It.IsAny<EntityType?>(), It.IsAny<string?>(),
+            It.IsAny<string?>(), It.IsAny<SeverityLevel?>(),
+            It.IsAny<int>(), It.IsAny<int>(), It.IsAny<string?>(), It.IsAny<bool>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync((entities.ToList().AsReadOnly() as IReadOnlyList<TradeEntity>, entities.Length));
     }
 
     private static TradeEntity CreateEntity(string name, EntityType type, string country)

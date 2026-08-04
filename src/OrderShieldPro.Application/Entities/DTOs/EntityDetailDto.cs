@@ -30,9 +30,20 @@ public record EntityDetailDto
     public DateTime? LastReviewDate { get; init; }
     public DateTime ListedDate { get; init; }
 
-    // Contact info
+    /// <summary>
+    /// Contact details, populated **only for moderators** — they stay empty for everyone
+    /// else rather than being hidden in the template, because a value in the JSON is public
+    /// whether or not a template renders it.
+    ///
+    /// Entity search still matches on phone numbers, so someone who already has a number can
+    /// find the entity behind it. What is withheld is the reverse lookup: opening an entity
+    /// and harvesting every number it answers on. Moderators need them to judge a report and
+    /// to edit the entity, so they get the real values.
+    /// </summary>
     public IReadOnlyList<string> PhoneNumbers { get; init; } = Array.Empty<string>();
     public IReadOnlyList<string> WeChatIds { get; init; } = Array.Empty<string>();
+
+    /// <summary>Other/former names — public, and the point of rebrand tracking.</summary>
     public IReadOnlyList<string> HistoricalNames { get; init; } = Array.Empty<string>();
 
     // Followers

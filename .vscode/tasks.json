@@ -196,7 +196,13 @@
     {
       "label": "Publish: Build Deploy Packages (API + Web + DB script)",
       "type": "shell",
-      "command": "powershell -ExecutionPolicy Bypass -File .\\deploy\\build-packages.ps1; if ($LASTEXITCODE -eq 0) { Write-Host ''; Write-Host '=== Ready to copy to the server ===' -ForegroundColor Green; Write-Host \"API      -> $PWD\\artifacts\\deploy\\api       (copy to the internal API IIS site; includes migrations.sql)\"; Write-Host \"Frontend -> $PWD\\artifacts\\deploy\\frontend  (copy to the public web IIS site)\"; Write-Host ''; Write-Host 'Remember: appsettings.Production.json ships from this repo and overwrites server settings on every deploy — see deploy/README-IIS.md before copying.' -ForegroundColor Yellow }",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "deploy/build-packages.ps1"
+      ],
       "options": {
         "cwd": "${workspaceFolder}"
       },

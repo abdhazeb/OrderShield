@@ -8,11 +8,14 @@
         }
         <span class="review-date">{{ review().createdAt | date:'mediumDate' }}</span>
       </div>
-      <div class="review-title">{{ review().title }}</div>
-      <div class="review-content">{{ review().narrative | slice:0:200 }}{{ review().narrative.length > 200 ? '...' : '' }}</div>
+      <!-- dir="auto" on everything the reviewer wrote: a report may be filed in Arabic or
+           English regardless of the reader's language, and mixing the two flips trailing
+           punctuation to the wrong side. -->
+      <div class="review-title" dir="auto">{{ review().title }}</div>
+      <div class="review-content" dir="auto">{{ review().narrative | slice:0:200 }}{{ review().narrative.length > 200 ? '...' : '' }}</div>
       <div class="review-meta">
         @if (review().product) {
-          <span>📦 {{ review().product }}</span>
+          <span dir="auto">📦 {{ review().product }}</span>
         }
         @if (review().orderValue) {
           <span>💰 {{ formatCurrency(review().orderValue) }}</span>
@@ -27,7 +30,7 @@
         @if (note.isPubliclyVisible) {
           <div class="clarification-box">
             <div class="clarification-title">⚡ {{ 'review.clarification' | translate }}</div>
-            <div>{{ note.summary }}</div>
+            <div dir="auto">{{ note.summary }}</div>
           </div>
         }
       }
