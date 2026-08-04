@@ -64,6 +64,25 @@
               <button type="button" class="clear-entity" (click)="clearSelectedEntity()">✕</button>
             </div>
           }
+
+          <!-- Other names this entity trades under. Each one is stored on the entity as a
+               searchable alias, so the next broker finds it by whichever name they were
+               given. Not offered while editing — an edit changes the review, not identity. -->
+          @if (!editMode()) {
+            <div class="repeat-list" formArrayName="alternativeNames">
+              @for (control of alternativeNames.controls; track $index) {
+                <div class="repeat-row">
+                  <input class="form-input" type="text" [formControlName]="$index"
+                         [placeholder]="'review.placeholder.alternativeName' | translate" />
+                  <button type="button" class="repeat-remove" (click)="removeAlternativeName($index)"
+                          [attr.aria-label]="'review.removeAlternativeName' | translate">−</button>
+                </div>
+              }
+            </div>
+            <button type="button" class="repeat-add" (click)="addAlternativeName()">
+              ＋ {{ 'review.addAlternativeName' | translate }}
+            </button>
+          }
         </div>
 
         <!-- Counterparty contact -->
@@ -81,7 +100,6 @@
             }
             <option value="Other">{{ 'contactPosition.other' | translate }}</option>
           </select>
-          <div class="form-help">{{ 'review.formHelp.contactPosition' | translate }}</div>
         </div>
 
         @if (isOtherPosition()) {
@@ -119,7 +137,27 @@
               <span class="phone-code-prefix">{{ countryDialCode() }}</span>
               <input class="form-input phone-input-with-code" type="tel" formControlName="contactPhoneUsed" [placeholder]="'review.placeholder.phoneNumber' | translate" />
             </div>
-            <div class="form-help">{{ 'review.formHelp.phone' | translate }}</div>
+
+            <!-- Extra numbers the same entity answered on. Added to its searchable phone
+                 list, which is how a rebranded supplier is caught. -->
+            @if (!editMode()) {
+              <div class="repeat-list" formArrayName="additionalPhones">
+                @for (control of additionalPhones.controls; track $index) {
+                  <div class="repeat-row">
+                    <div class="phone-input-wrapper">
+                      <span class="phone-code-prefix">{{ countryDialCode() }}</span>
+                      <input class="form-input phone-input-with-code" type="tel" [formControlName]="$index"
+                             [placeholder]="'review.placeholder.phoneNumber' | translate" />
+                    </div>
+                    <button type="button" class="repeat-remove" (click)="removeAdditionalPhone($index)"
+                            [attr.aria-label]="'review.removePhone' | translate">−</button>
+                  </div>
+                }
+              </div>
+              <button type="button" class="repeat-add" (click)="addAdditionalPhone()">
+                ＋ {{ 'review.addPhone' | translate }}
+              </button>
+            }
           </div>
 
           <div class="form-group">

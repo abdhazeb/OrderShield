@@ -19,6 +19,17 @@
     </div>
   }
 
+  @if (alternativeNames().length > 0 || phoneNumbers().length > 0) {
+    <div class="entity-card__row entity-card__contact">
+      @for (name of alternativeNames(); track name) {
+        <span class="entity-card__chip">🏷️ {{ name }}</span>
+      }
+      @for (phone of phoneNumbers(); track phone) {
+        <span class="entity-card__chip entity-card__chip--phone" dir="ltr">📞 {{ phone }}</span>
+      }
+    </div>
+  }
+
   <div class="entity-card__row entity-card__badges">
     @if (isVerified()) {
       <span class="entity-card__badge entity-card__badge--verified">✓ {{ 'verification.verified' | translate }}</span>

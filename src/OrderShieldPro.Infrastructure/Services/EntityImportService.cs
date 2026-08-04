@@ -91,9 +91,9 @@ public class EntityImportService : IEntityImportService
             if (string.IsNullOrWhiteSpace(legalNameRaw) && IsRowBlank(row)) continue;
 
             var phones = new List<string>();
-            AddIfPresent(phones, Cell(row, columns, "mobile"));
-            AddIfPresent(phones, Cell(row, columns, "tel"));
-            AddIfPresent(phones, Cell(row, columns, "fax"));
+            AddPhones(phones, Cell(row, columns, "mobile"));
+            AddPhones(phones, Cell(row, columns, "tel"));
+            AddPhones(phones, Cell(row, columns, "fax"));
 
             var products = Cell(row, columns, "products");
             if (products.Length > 1000) products = products[..1000];
@@ -152,8 +152,8 @@ public class EntityImportService : IEntityImportService
             if (legalName is null) continue;
 
             var phones = new List<string>();
-            AddIfPresent(phones, QichaValue(Cell(row, columns, "mobile")), splitOn: ';');
-            AddIfPresent(phones, QichaValue(Cell(row, columns, "morePhone")), splitOn: ';');
+            AddPhones(phones, QichaValue(Cell(row, columns, "mobile")));
+            AddPhones(phones, QichaValue(Cell(row, columns, "morePhone")));
 
             var industry = new[]
             {
@@ -212,18 +212,27 @@ public class EntityImportService : IEntityImportService
     private static string Cell(IRow row, Dictionary<string, int> columns, string key) =>
         columns.TryGetValue(key, out var index) ? GetCellString(row.GetCell(index)) : string.Empty;
 
-    private static void AddIfPresent(List<string> target, string? value, char? splitOn = null)
+    /// <summary>
+    /// Separators that appear between numbers packed into a single cell. Both templates do
+    /// this — Qicha's 更多电话 is semicolon-delimited, and Cantoon's Mobile/Tel cells are
+    /// hand-entered, so they turn up comma-, slash-, newline- and 、-separated too. A cell
+    /// that holds three numbers has to become three searchable rows, since the phone number
+    /// is how a broker looks an entity up.
+    /// </summary>
+    private static readonly char[] PhoneSeparators = { ';', '；', ',', '，', '、', '/', '\\', '|', '\n', '\r' };
+
+    private static void AddPhones(List<string> target, string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return;
 
-        if (splitOn is { } sep)
+        foreach (var part in value.Split(PhoneSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            target.AddRange(value.Split(sep, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Where(p => p is not "-" and not ""));
-        }
-        else
-        {
-            target.Add(value.Trim());
+            var phone = part.Trim();
+            // Qicha writes a missing value as "-", and a split can leave a fragment that is
+            // punctuation only ("()", "转"), which is not a number anyone can search for.
+            if (phone.Length == 0 || phone == "-" || !phone.Any(char.IsDigit)) continue;
+            if (!target.Contains(phone, StringComparer.OrdinalIgnoreCase))
+                target.Add(phone);
         }
     }
 

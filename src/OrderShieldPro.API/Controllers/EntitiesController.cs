@@ -191,7 +191,10 @@ public class EntitiesController : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
         var result = await _mediator.Send(new DeleteEntityCommand(id), ct);
-        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors });
+        // Code travels with the errors here: the refusal is shown to a moderator in their
+        // own language, and the frontend keys the translation off the code rather than
+        // parsing the English sentence.
+        return result.Succeeded ? NoContent() : BadRequest(new { result.Errors, result.Code });
     }
 
     public record SetVisibilityRequest(bool IsHidden);

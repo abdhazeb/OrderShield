@@ -44,8 +44,7 @@ public class CreateReviewCommandHandlerTests
     {
         // Arrange
         var entityId = Guid.NewGuid();
-        _entityRepoMock.Setup(r => r.ExistsAsync(entityId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        SetupEntity(entityId);
 
         _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Review r, CancellationToken _) => r);
@@ -67,9 +66,6 @@ public class CreateReviewCommandHandlerTests
     {
         // Arrange
         var entityId = Guid.NewGuid();
-        _entityRepoMock.Setup(r => r.ExistsAsync(entityId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-
         var command = CreateValidCommand(entityId);
 
         // Act
@@ -84,8 +80,7 @@ public class CreateReviewCommandHandlerTests
     {
         // Arrange
         var entityId = Guid.NewGuid();
-        _entityRepoMock.Setup(r => r.ExistsAsync(entityId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        SetupEntity(entityId);
 
         _currentUserServiceMock.Setup(s => s.IsAuthenticated).Returns(false);
         _currentUserServiceMock.Setup(s => s.UserId).Returns((string?)null);
@@ -107,8 +102,7 @@ public class CreateReviewCommandHandlerTests
         var entityId = Guid.NewGuid();
         Review? capturedReview = null;
 
-        _entityRepoMock.Setup(r => r.ExistsAsync(entityId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        SetupEntity(entityId);
 
         _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
             .Callback<Review, CancellationToken>((r, _) => capturedReview = r)
@@ -158,8 +152,7 @@ public class CreateReviewCommandHandlerTests
         var entityId = Guid.NewGuid();
         Review? capturedReview = null;
 
-        _entityRepoMock.Setup(r => r.ExistsAsync(entityId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(true);
+        SetupEntity(entityId);
 
         _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
             .Callback<Review, CancellationToken>((r, _) => capturedReview = r)
@@ -175,7 +168,122 @@ public class CreateReviewCommandHandlerTests
         capturedReview!.Status.Should().Be(ReviewStatus.Pending);
     }
 
-    private CreateReviewCommand CreateValidCommand(Guid entityId) => new()
+    /// <summary>
+    /// The handler loads the selected entity with its collections rather than just probing
+    /// for existence, because the alternative names and phone numbers on the command are
+    /// merged onto it. Returns the tracked instance so a test can assert on what was added.
+    /// </summary>
+    private TradeEntity SetupEntity(Guid entityId, string legalName = "Existing Supplier Co.")
+    {
+        var entity = new TradeEntity { Id = entityId, LegalName = legalName, Country = "China" };
+        _entityRepoMock.Setup(r => r.GetByIdWithDetailsAsync(entityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(entity);
+        return entity;
+    }
+
+    [Fact]
+    public async Task Handle_AlternativeNames_AreRecordedOnTheEntitySoSearchFindsIt()
+    {
+        var entityId = Guid.NewGuid();
+        var entity = SetupEntity(entityId);
+        _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review r, CancellationToken _) => r);
+
+        var command = CreateValidCommand(entityId) with
+        {
+            // The legal name is already on file and must not be duplicated as an alias;
+            // the two genuinely new names must be.
+            AlternativeEntityNames = new List<string> { "临沂盛德塑胶有限公司", "existing supplier co.", "Shengde Plastics" }
+        };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        entity.HistoricalNames.Select(h => h.PreviousName)
+            .Should().BeEquivalentTo(new[] { "临沂盛德塑胶有限公司", "Shengde Plastics" });
+    }
+
+    [Fact]
+    public async Task Handle_PhoneNumbers_AreMergedOntoTheEntityWithoutDuplicates()
+    {
+        var entityId = Guid.NewGuid();
+        var entity = SetupEntity(entityId);
+        entity.PhoneNumbers.Add(new EntityPhoneNumber { TradeEntityId = entityId, PhoneNumber = "+8613800000000" });
+        _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review r, CancellationToken _) => r);
+
+        var command = CreateValidCommand(entityId) with
+        {
+            ContactPhoneUsed = "+8613800000000",
+            AdditionalPhoneNumbers = new List<string> { "+8613911111111", "", "n/a" }
+        };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        entity.PhoneNumbers.Select(p => p.PhoneNumber)
+            .Should().BeEquivalentTo(new[] { "+8613800000000", "+8613911111111" });
+    }
+
+    [Fact]
+    public async Task Handle_NewEntity_KeepsTheTypedNameAsLegalNameAndTheRestAsAliases()
+    {
+        _entityRepoMock.Setup(r => r.FindByNameAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TradeEntity?)null);
+
+        TradeEntity? created = null;
+        _entityRepoMock.Setup(r => r.AddAsync(It.IsAny<TradeEntity>(), It.IsAny<CancellationToken>()))
+            .Callback<TradeEntity, CancellationToken>((e, _) => created = e)
+            .ReturnsAsync((TradeEntity e, CancellationToken _) => e);
+        _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review r, CancellationToken _) => r);
+
+        var command = CreateValidCommand(null) with
+        {
+            EntityName = "Linyi Shengde Plastic Co., Ltd",
+            SupplierCountry = "China",
+            AlternativeEntityNames = new List<string> { "临沂盛德塑胶有限公司" },
+            ContactPhoneUsed = "+8613800000000"
+        };
+
+        await _handler.Handle(command, CancellationToken.None);
+
+        created.Should().NotBeNull();
+        created!.LegalName.Should().Be("Linyi Shengde Plastic Co., Ltd");
+        created.HistoricalNames.Should().ContainSingle(h => h.PreviousName == "临沂盛德塑胶有限公司");
+        created.PhoneNumbers.Should().ContainSingle(p => p.PhoneNumber == "+8613800000000");
+    }
+
+    [Fact]
+    public async Task Handle_ExistingEntityKnownByAnAlternativeName_ReusesItInsteadOfCreatingADuplicate()
+    {
+        var entityId = Guid.NewGuid();
+        var existing = new TradeEntity { Id = entityId, LegalName = "Linyi Shengde Plastic Co., Ltd", Country = "China" };
+
+        // The reviewer typed the Chinese name, which matches nothing; the alternative they
+        // added is the one on file.
+        _entityRepoMock.Setup(r => r.FindByNameAsync("临沂盛德塑胶有限公司", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((TradeEntity?)null);
+        _entityRepoMock.Setup(r => r.FindByNameAsync("Linyi Shengde Plastic Co., Ltd", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+        _entityRepoMock.Setup(r => r.GetByIdWithDetailsAsync(entityId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+        _reviewRepoMock.Setup(r => r.AddAsync(It.IsAny<Review>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Review r, CancellationToken _) => r);
+
+        var command = CreateValidCommand(null) with
+        {
+            EntityName = "临沂盛德塑胶有限公司",
+            AlternativeEntityNames = new List<string> { "Linyi Shengde Plastic Co., Ltd" }
+        };
+
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Succeeded.Should().BeTrue();
+        _entityRepoMock.Verify(r => r.AddAsync(It.IsAny<TradeEntity>(), It.IsAny<CancellationToken>()), Times.Never);
+        // The name the reviewer knew it by is now searchable too.
+        existing.HistoricalNames.Should().ContainSingle(h => h.PreviousName == "临沂盛德塑胶有限公司");
+    }
+
+    private CreateReviewCommand CreateValidCommand(Guid? entityId) => new()
     {
         TradeEntityId = entityId,
         ReviewerType = ReviewerType.Broker,

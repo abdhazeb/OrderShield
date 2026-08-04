@@ -51,7 +51,10 @@ public interface ITradeEntityRepository
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Find entity by exact legal name (case-insensitive).
+    /// Find an entity by any exact name it is known by (case-insensitive): its legal name
+    /// first, then its trade name or one of its historical/alternative names. Matching the
+    /// alternatives is what stops a reviewer who knows a supplier only by its other name
+    /// from creating a duplicate record for it.
     /// </summary>
     Task<TradeEntity?> FindByNameAsync(string legalName, CancellationToken cancellationToken = default);
 }

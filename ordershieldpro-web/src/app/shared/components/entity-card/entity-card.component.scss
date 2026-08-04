@@ -68,6 +68,28 @@
   gap: 4px;
 }
 
+/* Other names and phone numbers the entity is known by — deliberately quieter than the
+   severity badges below, since they are context for the match, not a verdict on it. */
+.entity-card__contact {
+  gap: 6px;
+}
+
+.entity-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--surface-border-subtle);
+  background: var(--surface-50);
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.entity-card__chip--phone {
+  font-variant-numeric: tabular-nums;
+}
+
 .entity-card__badges {
   gap: 8px;
 }

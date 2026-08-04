@@ -14,6 +14,22 @@ public record CreateReviewCommand : IRequest<Result<Guid>>
     public Guid? TradeEntityId { get; init; }
     public string? EntityName { get; init; }
 
+    /// <summary>
+    /// Other names the reviewer knows this entity by — an English trading name against a
+    /// Chinese legal name, a rebrand, a name on the invoice that differs from the one on
+    /// the website. Stored as <see cref="Domain.Entities.EntityHistoricalName"/> rows,
+    /// which entity search already matches on, so the next broker searching any of these
+    /// names finds the same entity rather than filing a duplicate.
+    /// </summary>
+    public List<string> AlternativeEntityNames { get; init; } = new();
+
+    /// <summary>
+    /// Additional numbers the entity was reached on, beyond
+    /// <see cref="ContactPhoneUsed"/>. Added to the entity's searchable phone list for the
+    /// same reason — a scammer's phone number outlives the company name.
+    /// </summary>
+    public List<string> AdditionalPhoneNumbers { get; init; } = new();
+
     // Reviewer info
     public ReviewerType ReviewerType { get; init; }
     public string TransactionRole { get; init; } = string.Empty;

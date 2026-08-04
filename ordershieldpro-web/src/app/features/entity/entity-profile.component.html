@@ -131,24 +131,24 @@
             @if (entity()!.phoneNumbers.length > 0) {
               <div class="info-group">
                 <h3>📞 {{ 'entity.phoneNumbers' | translate }}</h3>
-                @for (phone of entity()!.phoneNumbers; track phone.id) {
-                  <span class="info-tag">{{ phone.phoneNumber }}</span>
+                @for (phone of entity()!.phoneNumbers; track phone) {
+                  <span class="info-tag">{{ phone }}</span>
                 }
               </div>
             }
             @if (entity()!.weChatIds.length > 0) {
               <div class="info-group">
                 <h3>💬 {{ 'entity.weChatIds' | translate }}</h3>
-                @for (wechat of entity()!.weChatIds; track wechat.id) {
-                  <span class="info-tag">{{ wechat.weChatId }}</span>
+                @for (wechat of entity()!.weChatIds; track wechat) {
+                  <span class="info-tag">{{ wechat }}</span>
                 }
               </div>
             }
             @if (entity()!.historicalNames.length > 0) {
               <div class="info-group">
                 <h3>📜 {{ 'entity.historicalNames' | translate }}</h3>
-                @for (name of entity()!.historicalNames; track name.id) {
-                  <span class="info-tag">{{ name.previousName }}</span>
+                @for (name of entity()!.historicalNames; track name) {
+                  <span class="info-tag">{{ name }}</span>
                 }
               </div>
             }

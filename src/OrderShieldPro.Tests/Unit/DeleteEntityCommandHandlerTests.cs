@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using OrderShieldPro.Application.Entities.Commands;
 using OrderShieldPro.Domain.Entities;
+using OrderShieldPro.Domain.Enums;
 using OrderShieldPro.Domain.Interfaces;
 using OrderShieldPro.Infrastructure.Persistence;
 
@@ -36,6 +37,39 @@ public class DeleteEntityCommandHandlerTests
         VerificationEmail = "reviewer@example.com"
     };
 
+    /// <summary>
+    /// The profile page shows TradeEntity's denormalized counts, which only track published
+    /// reviews — so an entity reading "0 reviews" can still be undeletable because its
+    /// submissions are sitting in the moderation queue. This is the case that looked like a
+    /// bug when the refusal reached a moderator as untranslated English prose.
+    /// </summary>
+    [Fact]
+    public async Task Handle_WhenOnlyPendingReviewsExist_IsStillRefused()
+    {
+        using var context = CreateContext();
+        var entity = CreateEntity();
+        entity.TotalReviewCount = 0; // Nothing published yet — the profile shows zero.
+        context.TradeEntities.Add(entity);
+
+        var pending = CreateReview(entity.Id);
+        pending.Status = ReviewStatus.Pending;
+        context.Reviews.Add(pending);
+        await context.SaveChangesAsync();
+
+        var repo = new Mock<ITradeEntityRepository>();
+        repo.Setup(r => r.GetByIdAsync(entity.Id, It.IsAny<CancellationToken>())).ReturnsAsync(entity);
+        var unitOfWork = new Mock<IUnitOfWork>();
+        unitOfWork.SetupGet(u => u.TradeEntities).Returns(repo.Object);
+
+        var handler = new DeleteEntityCommandHandler(unitOfWork.Object, context);
+
+        var result = await handler.Handle(new DeleteEntityCommand(entity.Id), CancellationToken.None);
+
+        result.Succeeded.Should().BeFalse();
+        result.Code.Should().Be("entityHasReviews");
+        repo.Verify(r => r.RemoveAsync(It.IsAny<TradeEntity>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
     [Fact]
     public async Task Handle_WhenEntityHasReviews_IsRefusedAndNothingIsRemoved()
     {
@@ -57,6 +91,9 @@ public class DeleteEntityCommandHandlerTests
 
         result.Succeeded.Should().BeFalse();
         result.Errors.Should().ContainSingle().Which.Should().Contain("2 review");
+        // The UI is localized and cannot show the English sentence above; it keys the
+        // message it displays off this code instead.
+        result.Code.Should().Be("entityHasReviews");
         repo.Verify(r => r.RemoveAsync(It.IsAny<TradeEntity>(), It.IsAny<CancellationToken>()), Times.Never);
         unitOfWork.Verify(u => u.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }

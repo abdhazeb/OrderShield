@@ -44,6 +44,8 @@ public class SearchEntitiesQueryHandler : IRequestHandler<SearchEntitiesQuery, P
             CriticalReviewCount = e.CriticalReviewCount,
             LastReviewDate = e.LastReviewDate,
             ListedDate = e.ListedDate,
+            PhoneNumbers = e.PhoneNumbers.Select(p => p.PhoneNumber).ToList(),
+            AlternativeNames = e.HistoricalNames.Select(h => h.PreviousName).Distinct().ToList(),
             IsHidden = e.IsHidden
         }).ToList();
 

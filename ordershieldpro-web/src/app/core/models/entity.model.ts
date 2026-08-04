@@ -15,6 +15,13 @@ export interface EntitySearchResult {
   criticalReviewCount: number;
   lastReviewDate?: string;
   listedDate: string;
+  /**
+   * Every number and other name the entity is known by. Search matches on both, so these
+   * explain a result that matched nothing visible in its name — and are what a broker
+   * checking a phone number against a rebranded supplier is actually looking for.
+   */
+  phoneNumbers?: string[];
+  alternativeNames?: string[];
   /** Only ever present for moderators — hidden entities are filtered out for everyone else. */
   isHidden?: boolean;
 }
@@ -37,29 +44,18 @@ export interface EntityDetail {
   criticalReviewCount: number;
   lastReviewDate?: string;
   listedDate: string;
-  phoneNumbers: EntityPhoneNumber[];
-  weChatIds: EntityWeChatId[];
-  historicalNames: EntityHistoricalName[];
+  /**
+   * Flattened by the API — `EntityDetailDto` projects each collection down to its one
+   * meaningful string (`p.PhoneNumber`, `w.WeChatId`, `h.PreviousName`). Typing these as
+   * objects is what rendered the edit form's phone box as ", ," and silently wiped the
+   * WeChat IDs on every save, since `p.phoneNumber` on a string is `undefined`.
+   */
+  phoneNumbers: string[];
+  weChatIds: string[];
+  historicalNames: string[];
   followerCount: number;
   isFollowed: boolean;
   /** Withheld from public search and profile pages. Only moderators ever see this true. */
   isHidden?: boolean;
 }
 
-export interface EntityPhoneNumber {
-  id: string;
-  phoneNumber: string;
-  isPrimary: boolean;
-}
-
-export interface EntityWeChatId {
-  id: string;
-  weChatId: string;
-  isPrimary: boolean;
-}
-
-export interface EntityHistoricalName {
-  id: string;
-  previousName: string;
-  changedDate?: string;
-}

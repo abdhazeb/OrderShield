@@ -13,6 +13,7 @@ import { ConfirmService } from '../../core/services/confirm.service';
 import { EntityDetail, Review, PaginatedResult } from '../../core/models';
 import { EntityType, ReviewStatus, SeverityLevel, VerificationStatus } from '../../core/enums';
 import { LocalizeValuePipe } from '../../shared/pipes/localize-value.pipe';
+import { entityDeleteErrorKey } from '../../core/utils/api-error';
 
 interface EntityEditModel {
   legalName: string;
@@ -149,7 +150,7 @@ export class EntityProfileComponent implements OnInit {
       region: e.region || '',
       city: e.city || '',
       productCategories: e.productCategories || '',
-      phoneNumbers: (e.phoneNumbers || []).map(p => p.phoneNumber).join(', '),
+      phoneNumbers: (e.phoneNumbers || []).join(', '),
     };
     this.editingEntity.set(true);
   }
@@ -175,7 +176,9 @@ export class EntityProfileComponent implements OnInit {
       city: this.entityEdit.city.trim() || null,
       productCategories: this.entityEdit.productCategories.trim() || null,
       phoneNumbers: this.entityEdit.phoneNumbers.split(',').map(s => s.trim()).filter(s => s.length > 0),
-      weChatIds: (e.weChatIds || []).map(w => w.weChatId),
+      // Passed straight back through: the update command replaces the whole collection,
+      // so omitting them here would delete every WeChat ID the entity has.
+      weChatIds: e.weChatIds || [],
     };
     this.apiService.put(`entities/${e.id}`, payload).subscribe({
       next: () => {
@@ -246,12 +249,7 @@ export class EntityProfileComponent implements OnInit {
         },
         error: (err) => {
           this.updatingEntity.set(false);
-          const errors = err?.error?.errors;
-          this.toast.error(
-            Array.isArray(errors) && errors.length
-              ? errors.join(' ')
-              : this.translate.instant('entity.deleteFailed')
-          );
+          this.toast.error(this.translate.instant(entityDeleteErrorKey(err)));
         },
       });
     });

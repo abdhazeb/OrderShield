@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal, ElementRef, ViewChild, DestroyRef, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -89,6 +89,53 @@ export class SubmitReviewComponent implements OnInit {
     'Unknown',
   ];
 
+  get alternativeNames(): FormArray {
+    return this.form.get('alternativeNames') as FormArray;
+  }
+
+  get additionalPhones(): FormArray {
+    return this.form.get('additionalPhones') as FormArray;
+  }
+
+  addAlternativeName(): void {
+    this.alternativeNames.push(this.fb.control(''));
+  }
+
+  removeAlternativeName(index: number): void {
+    this.alternativeNames.removeAt(index);
+  }
+
+  addAdditionalPhone(): void {
+    this.additionalPhones.push(this.fb.control(''));
+  }
+
+  removeAdditionalPhone(index: number): void {
+    this.additionalPhones.removeAt(index);
+  }
+
+  /**
+   * Prefixes the selected country's dial code, unless the reviewer already typed one.
+   * The stored number is what entity search matches on, so it has to be the full number.
+   */
+  private withDialCode(phone: string): string {
+    const value = (phone || '').trim();
+    if (!value || value.startsWith('+') || this.countryDialCode() === '+') return value;
+    return this.countryDialCode() + value;
+  }
+
+  /** Non-empty, de-duplicated values from one of the repeatable field arrays. */
+  private collect(array: FormArray): string[] {
+    const seen = new Set<string>();
+    const values: string[] = [];
+    for (const raw of array.value as string[]) {
+      const value = (raw || '').trim();
+      if (!value || seen.has(value.toLowerCase())) continue;
+      seen.add(value.toLowerCase());
+      values.push(value);
+    }
+    return values;
+  }
+
   /** i18n key suffix for a canonical contact-position value. */
   positionKey(position: string): string {
     return 'contactPosition.' + camelize(position);
@@ -142,6 +189,11 @@ export class SubmitReviewComponent implements OnInit {
 
     this.form = this.fb.group({
       entityName: ['', Validators.required],
+      // One entity often trades under several names and answers several numbers. Each
+      // extra row here becomes a searchable alias / phone on the entity itself, which is
+      // how the next person finds it under whichever name or number they were given.
+      alternativeNames: this.fb.array([] as FormControl<string>[]),
+      additionalPhones: this.fb.array([] as FormControl<string>[]),
       contactName: [''],
       contactPosition: [''],
       contactPositionOther: [''],
@@ -406,9 +458,8 @@ export class SubmitReviewComponent implements OnInit {
   }
 
   private fillEntityContactInfo(entity: EntityDetail): void {
-    const primaryPhone = entity.phoneNumbers?.find(p => p.isPrimary) || entity.phoneNumbers?.[0];
     this.form.patchValue({
-      contactPhoneUsed: primaryPhone?.phoneNumber || '',
+      contactPhoneUsed: entity.phoneNumbers?.[0] || '',
     });
     // Auto-fill category if available
     if (entity.productCategories) {
@@ -459,9 +510,11 @@ export class SubmitReviewComponent implements OnInit {
       incidentDate: formValue.incidentDate || null,
       contactName: formValue.contactName || null,
       contactPosition: this.resolveContactPosition(),
-      contactPhoneUsed: (this.countryDialCode() !== '+' && formValue.contactPhoneUsed)
-        ? this.countryDialCode() + formValue.contactPhoneUsed
-        : formValue.contactPhoneUsed,
+      contactPhoneUsed: this.withDialCode(formValue.contactPhoneUsed),
+      // Merged onto the entity as searchable aliases and phone numbers, not onto the
+      // review itself — the point is that the *next* search finds this entity by them.
+      alternativeEntityNames: this.collect(this.alternativeNames),
+      additionalPhoneNumbers: this.collect(this.additionalPhones).map(p => this.withDialCode(p)),
       verificationEmail: currentUser?.email || '',
       isComment: this.submissionMode() === 'comment',
     };
@@ -524,9 +577,7 @@ export class SubmitReviewComponent implements OnInit {
       incidentDate: formValue.incidentDate || null,
       contactName: formValue.contactName || null,
       contactPosition: this.resolveContactPosition(),
-      contactPhoneUsed: (this.countryDialCode() !== '+' && formValue.contactPhoneUsed)
-        ? this.countryDialCode() + formValue.contactPhoneUsed
-        : formValue.contactPhoneUsed,
+      contactPhoneUsed: this.withDialCode(formValue.contactPhoneUsed),
       isComment,
     };
 

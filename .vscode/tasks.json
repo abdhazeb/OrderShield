@@ -194,6 +194,21 @@
       }
     },
     {
+      "label": "Publish: Build Deploy Packages (API + Web + DB script)",
+      "type": "shell",
+      "command": "powershell -ExecutionPolicy Bypass -File .\\deploy\\build-packages.ps1; if ($LASTEXITCODE -eq 0) { Write-Host ''; Write-Host '=== Ready to copy to the server ===' -ForegroundColor Green; Write-Host \"API      -> $PWD\\artifacts\\deploy\\api       (copy to the internal API IIS site; includes migrations.sql)\"; Write-Host \"Frontend -> $PWD\\artifacts\\deploy\\frontend  (copy to the public web IIS site)\"; Write-Host ''; Write-Host 'Remember: appsettings.Production.json ships from this repo and overwrites server settings on every deploy — see deploy/README-IIS.md before copying.' -ForegroundColor Yellow }",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": true
+      },
+      "detail": "Builds Angular (production) + publishes the API + generates an idempotent migrations.sql into artifacts/deploy/. Run this locally, then copy the two output folders to the server yourself per deploy/README-IIS.md."
+    },
+    {
       "label": "Kill All: Free Ports (5017 + 4300)",
       "type": "shell",
       "command": "Write-Host '--- Killing Backend (port 5017) ---'; $pids5017 = (Get-NetTCPConnection -LocalPort 5017 -ErrorAction SilentlyContinue).OwningProcess | Sort-Object -Unique; if ($pids5017) { $pids5017 | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; Write-Host \"Killed PID $_\" } } else { Write-Host 'No process on port 5017' }; Write-Host '--- Killing Frontend (port 4300) ---'; $pids4300 = (Get-NetTCPConnection -LocalPort 4300 -ErrorAction SilentlyContinue).OwningProcess | Sort-Object -Unique; if ($pids4300) { $pids4300 | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; Write-Host \"Killed PID $_\" } } else { Write-Host 'No process on port 4300' }; Write-Host '--- Done: Ports 5017 and 4300 are free ---'",

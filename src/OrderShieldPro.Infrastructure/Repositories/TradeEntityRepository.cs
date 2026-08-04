@@ -45,6 +45,7 @@ public class TradeEntityRepository : ITradeEntityRepository
         var query = _context.TradeEntities
             .Include(e => e.PhoneNumbers)
             .Include(e => e.WeChatIds)
+            .Include(e => e.HistoricalNames)
             .AsQueryable();
 
         // Hidden entities are withheld from search for everyone. The admin entity-management
@@ -169,7 +170,17 @@ public class TradeEntityRepository : ITradeEntityRepository
 
     public async Task<TradeEntity?> FindByNameAsync(string legalName, CancellationToken cancellationToken = default)
     {
+        var name = legalName.Trim().ToLower();
+
+        // The legal name wins outright; only if nothing matches it do we fall back to the
+        // other names an entity is known by, so an exact legal-name hit is never shadowed
+        // by some other entity that happens to list the same string as an alias.
         return await _context.TradeEntities
-            .FirstOrDefaultAsync(e => e.LegalName.ToLower() == legalName.ToLower(), cancellationToken);
+                   .FirstOrDefaultAsync(e => e.LegalName.ToLower() == name, cancellationToken)
+               ?? await _context.TradeEntities
+                   .FirstOrDefaultAsync(e =>
+                       (e.TradeName != null && e.TradeName.ToLower() == name) ||
+                       e.HistoricalNames.Any(h => h.PreviousName.ToLower() == name),
+                       cancellationToken);
     }
 }

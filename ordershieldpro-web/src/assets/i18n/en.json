@@ -85,6 +85,7 @@
     "deleteConfirm": "Permanently delete \"{{name}}\"? This cannot be undone. Entities that still have reviews cannot be deleted — hide them instead.",
     "deleteSuccess": "Entity deleted.",
     "deleteFailed": "Failed to delete the entity. Please try again.",
+    "deleteBlocked": "This entity still has reports on record — including any awaiting moderation, which don't appear on this page — so it cannot be deleted. Hide it instead, or delete its reports first.",
     "stats": {
       "total": "Total",
       "info": "Info",
@@ -151,11 +152,12 @@
     "evidenceUploadFailed": "Review submitted but evidence upload failed.",
     "failedSubmit": "Failed to submit review:",
     "clarification": "Admin Clarification",
-    "formHelp": {
-      "phone": "Helps track entity rebrand activity",
-      "contactPosition": "Their role at the company — an owner speaks for the business, a sales rep may not."
-    },
+    "addAlternativeName": "Add another name",
+    "removeAlternativeName": "Remove this name",
+    "addPhone": "Add another phone number",
+    "removePhone": "Remove this phone number",
     "placeholder": {
+      "alternativeName": "Other name for the same company",
       "entityName": "Enter company/entity name",
       "title": "Brief summary of your experience",
       "narrative": "Describe your experience in detail...",

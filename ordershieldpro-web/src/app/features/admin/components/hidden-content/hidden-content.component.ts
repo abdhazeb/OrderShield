@@ -10,6 +10,7 @@ import { EmptyStateComponent } from '../../../../shared/components/empty-state/e
 import { HiddenEntity, HiddenReview, PaginatedResult } from '../../../../core/models';
 import { ReviewStatus, SeverityLevel } from '../../../../core/enums';
 import { severityKey, severitySlug } from '../../../../core/utils/severity-label';
+import { entityDeleteErrorKey } from '../../../../core/utils/api-error';
 import { LocalizeValuePipe } from '../../../../shared/pipes/localize-value.pipe';
 
 /**
@@ -149,12 +150,7 @@ export class HiddenContentComponent implements OnInit {
         },
         error: (err) => {
           this.processingEntityId.set(null);
-          const errors = err?.error?.errors;
-          this.toast.error(
-            Array.isArray(errors) && errors.length
-              ? errors.join(' ')
-              : this.translate.instant('entity.deleteFailed')
-          );
+          this.toast.error(this.translate.instant(entityDeleteErrorKey(err)));
         },
       });
     });

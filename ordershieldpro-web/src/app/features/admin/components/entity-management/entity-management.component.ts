@@ -12,6 +12,7 @@ import { LoadingSpinnerComponent } from '../../../../shared/components/loading-s
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { EntitySearchResult, PaginatedResult } from '../../../../core/models';
 import { EntityType, VerificationStatus } from '../../../../core/enums';
+import { entityDeleteErrorKey } from '../../../../core/utils/api-error';
 import { LocalizeValuePipe } from '../../../../shared/pipes/localize-value.pipe';
 
 /**
@@ -191,12 +192,7 @@ export class EntityManagementComponent implements OnInit {
         },
         error: (err) => {
           this.processingId.set(null);
-          const errors = err?.error?.errors;
-          this.toast.error(
-            Array.isArray(errors) && errors.length
-              ? errors.join(' ')
-              : this.translate.instant('entity.deleteFailed')
-          );
+          this.toast.error(this.translate.instant(entityDeleteErrorKey(err)));
         },
       });
     });
